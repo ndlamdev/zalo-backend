@@ -1,0 +1,95 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = 'chat-ws:v1.0.0'
+        DOCKER_CONTAINER = 'chat-ws-container'
+        DOCKERFILE = './cli/docker/project/Dockerfile'
+        PORT_MAPPING = '-p 7000:1305'
+        KAFKA_SERVER = 'kafka1:9092,kafka2:9093,kafka3:9094'
+        SHARED_NETWORK = 'zalo_shared_network'
+    }
+
+     triggers {
+        pollSCM('H/2 * * * *')  // kiểm tra repo mỗi 2 phút
+     }
+
+    stages {
+        stage('Clone Code') {
+            steps {
+                 git branch: 'main', url: 'https://github.com/ndlamdev/zalo-backend.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                dir('chat-ws') {
+                    sh 'chmod +x ./gradlew'
+                    sh './gradlew clean build -x test --no-daemon'
+                }
+            }
+        }
+
+//         stage('Test') {
+//             steps {
+//                 dir('chat-ws') {
+//                     sh './gradlew test'
+//                 }
+//             }
+//         }
+
+        stage('Docker Build') {
+            steps {
+                dir('chat-ws') {
+                    sh 'docker image rm -f $DOCKER_IMAGE'
+                    sh 'docker build --no-cache -t $DOCKER_IMAGE -f $DOCKERFILE .'
+                }
+            }
+        }
+
+//         stage('Ensure Docker Network') {
+//             steps {
+//                 script {
+//                     sh '''
+//                     if [ -z "$(docker network ls --filter name=^${SHARED_NETWORK}$ --format '{{ .Name }}')" ]; then
+//                       echo "Docker network '$SHARED_NETWORK' does not exist. Creating..."
+//                       docker network create $SHARED_NETWORK
+//                     else
+//                       echo "Docker network '$SHARED_NETWORK' already exists."
+//                     fi
+//                     '''
+//                 }
+//             }
+//         }
+
+        stage('Check docker container is running and remove it') {
+            steps {
+                script {
+                    sh '''
+                    echo "check docker $DOCKER_CONTAINER is running and remove docker container"
+
+                    if docker ps | grep -q $DOCKER_CONTAINER
+                    then
+                            docker stop $DOCKER_CONTAINER
+                            echo "Stop docker container done"
+                    fi
+
+                    if docker container ls -a | grep -q $DOCKER_CONTAINER
+                    then
+                            docker rm $DOCKER_CONTAINER
+                            echo "Remove docker container done"
+                    fi
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy (Local)') {
+            steps {
+                dir('chat-ws') {
+                    sh 'docker run $PORT_MAPPING --name $DOCKER_CONTAINER -d -e KAFKA_SERVER=$KAFKA_SERVER --network=$SHARED_NETWORK $DOCKER_IMAGE'
+                }
+            }
+        }
+    }
+}
