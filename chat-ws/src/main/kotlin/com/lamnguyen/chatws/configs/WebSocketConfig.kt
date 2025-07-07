@@ -18,15 +18,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Configuration
 @EnableWebSocketMessageBroker
 class WebSocketConfig : WebSocketMessageBrokerConfigurer {
-    @Value("\${spring.kafka.bootstrap-servers}")
-    private val kafkaServers: String? = null
-
     override fun configureMessageBroker(registry: MessageBrokerRegistry) {
-        print("""
-            ====================================================================================================================================
-            $kafkaServers
-            ====================================================================================================================================
-        """.trimIndent())
         registry.enableSimpleBroker("/room")
         registry.setApplicationDestinationPrefixes("/app")
         registry.setUserDestinationPrefix("/user")
