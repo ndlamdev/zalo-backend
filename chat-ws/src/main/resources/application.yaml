@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: chat-ws
+
+
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVER:localhost:9092,localhost:9093,localhost:9094}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring:
+          json:
+            type:
+              mapping: chat-message:com.lamnguyen.chatws.domain.message.ChatMessage
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: chat-message
+            type:
+              mapping: chat-message:com.lamnguyen.chatws.domain.message.ChatMessage
+
+logging:
+  level:
+    org:
+      springframework:
+        messaging: trace
+
+server:
+  port: ${CHAT_WS_PORT:8000}
