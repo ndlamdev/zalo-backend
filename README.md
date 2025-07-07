@@ -49,8 +49,7 @@ Client
 | Authentication         | Spring Security + JWT         |
 | WebSocket Chat         | Spring WebSocket + STOMP      |
 | Messaging Queue        | Apache Kafka                  |
-| Message Sync           | Redis Pub/Sub                 |
-| Data Persistence       | MongoDB / PostgreSQL          |
+| Data Persistence       | MongoDB                       |
 | Cache & Session        | Redis                         |
 | Deploy & Container     | Docker + Docker Compose       |
 
@@ -120,12 +119,12 @@ docker exec kafka1 kafka-topics   --bootstrap-server kafka1:19092   --create   -
 ## ✅ Các tính năng chính
 
 - [x] Gửi/nhận tin nhắn real-time
-- [x] Đăng nhập & xác thực người dùng bằng JWT
-- [x] Lưu trữ lịch sử chat vào database
-- [x] Broadcast message qua Kafka và Redis Pub/Sub
-- [x] Hỗ trợ scale WebSocket ngang qua nhiều instance
-- [x] Cấu hình tập trung qua Spring Cloud Config
-- [x] Service discovery tự động qua Eureka
+- [ ] Đăng nhập & xác thực người dùng bằng JWT
+- [ ] Lưu trữ lịch sử chat vào database
+- [ ] Broadcast message qua Kafka
+- [ ] Hỗ trợ scale WebSocket ngang qua nhiều instance
+- [ ] Cấu hình tập trung qua Spring Cloud Config
+- [ ] Service discovery tự động qua Eureka
 - [ ] Tích hợp gửi thông báo (FCM) - _đang phát triển_
 - [ ] Hệ thống tìm kiếm (Elasticsearch) - _đang phát triển_
 
