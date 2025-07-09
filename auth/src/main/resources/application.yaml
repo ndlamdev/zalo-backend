@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: auth
+
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/zalo-auth
+    username: ${PORTGRES_USERNAME:root}
+    password: ${PORTGRES_PASSWORD:root}
+
+  flyway:
+    url: jdbc:postgresql://localhost:5432/zalo-auth
+    password: ${PORTGRES_USERNAME:root}
+    user: ${PORTGRES_PASSWORD:root}
+    locations: classpath:db/postgres/migration
+
+application:
+  whitelist:
+    - /
+    - /actuator
+  auth:
+    jwt:
+      secret-key: asfahsdkfhasfkashdfkasndfkaskdf-asfbkasbfaskf-askfjasdfjaskdf
+server:
+  port: ${AUTH_PORT:8001}
+logging:
+  level:
+    org.springframework.security: trace
+
