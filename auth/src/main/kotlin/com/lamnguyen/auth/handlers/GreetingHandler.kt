@@ -8,6 +8,7 @@
 
 package com.lamnguyen.auth.handlers
 
+import com.lamnguyen.auth.utils.helpers.ok
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.server.ServerRequest
@@ -18,8 +19,7 @@ import reactor.core.publisher.Mono
 @Component
 class GreetingHandler {
     fun hello(request: ServerRequest?): Mono<ServerResponse?> {
-        return ServerResponse.ok()
-            .body(BodyInserters.fromValue(Greeting("Hello world!")))
+        return ok(Greeting("Hello world"))
     }
 
     data class Greeting(var content: String)

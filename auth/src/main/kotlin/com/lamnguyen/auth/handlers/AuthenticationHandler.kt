@@ -8,16 +8,25 @@
 
 package com.lamnguyen.auth.handlers
 
+import com.lamnguyen.auth.model.requests.RegisterRequest
+import com.lamnguyen.auth.service.IAuthService
+import com.lamnguyen.auth.utils.helpers.ok
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
 
 @Component
-class AuthenticationHandler {
-    fun login(request: ServerRequest?): Mono<ServerResponse> {
-        return ServerResponse.ok()
-            .body(BodyInserters.fromValue("Login success!"))
+class AuthenticationHandler(val authService: IAuthService) {
+    fun login(request: ServerRequest): Mono<ServerResponse?> {
+        return ok("Login success!")
     }
+
+    fun register(request: ServerRequest): Mono<ServerResponse?> {
+        return request.bodyToMono(RegisterRequest::class.java)
+            .flatMap(authService::register)
+            .then(ok("Register success!"))
+    }
+
+
 }

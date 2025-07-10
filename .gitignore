@@ -40,3 +40,5 @@
 **/.kotlin
 **/data
 **/.env
+**/application-local.yaml
+/Makefile
