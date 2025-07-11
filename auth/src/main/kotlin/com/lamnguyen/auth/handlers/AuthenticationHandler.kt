@@ -27,8 +27,7 @@ class AuthenticationHandler(val authService: IAuthService, val validator: Valida
     fun register(request: ServerRequest): Mono<ServerResponse?> {
         return request.bodyToMono(RegisterRequest::class.java)
             .flatMap { it ->
-                validator.validate<RegisterRequest>(it)
-                    .flatMap(authService::register)
+                validator.validate(it, authService::register)
             }
             .then(ok("Register success!"))
     }
