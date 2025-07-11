@@ -8,6 +8,8 @@
 
 package com.lamnguyen.auth.utils.helpers
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.lamnguyen.auth.model.dto.ApiResponseError
 import com.lamnguyen.auth.model.dto.ApiResponseSuccess
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -18,5 +20,19 @@ fun <T : Any> ok(data: T, message: String? = "Response Success!"): Mono<ServerRe
         code = 200
         this.data = data
         this.message = message ?: "Response Success!"
+    }))
+}
+
+fun <T : Any> error(
+    ex: Throwable,
+    code: Int?,
+    message: String?,
+    detail: T?
+): Mono<ServerResponse> {
+    return ServerResponse.ok().body(BodyInserters.fromValue(ApiResponseError<T>().apply {
+        this.code = code ?: 400
+        error = message ?: ex.message
+        this.detail = ObjectMapper().readValue(detail?.toString() ?: "{}", Any::class.java) as T?
+        trace = ex.stackTrace
     }))
 }

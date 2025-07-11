@@ -8,8 +8,6 @@
 
 package com.lamnguyen.auth.service
 
-import com.lamnguyen.auth.exceptions.ApplicationException
-import com.lamnguyen.auth.exceptions.ExceptionEnum
 import com.lamnguyen.auth.model.requests.RegisterRequest
 import com.lamnguyen.auth.repositories.IUserRepository
 import org.springframework.stereotype.Service
@@ -18,6 +16,6 @@ import reactor.core.publisher.Mono
 @Service
 class AuthServiceImpl(val userRepository: IUserRepository) : IAuthService {
     override fun register(data: RegisterRequest): Mono<Void> {
-        return Mono.error(ApplicationException(ExceptionEnum.REGISTER_ERROR))
+        return Mono.empty()
     }
 }

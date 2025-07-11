@@ -10,9 +10,16 @@ package com.lamnguyen.auth.model.requests
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 class RegisterRequest {
-    lateinit var phoneNumber: String
-    lateinit var password: String
+    @NotBlank
+    @NotNull
+    var phoneNumber: String? = null
+
+    @NotBlank
+    @NotNull
+    var password: String? = null
 }
