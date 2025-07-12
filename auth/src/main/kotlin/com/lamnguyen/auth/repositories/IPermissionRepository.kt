@@ -8,12 +8,12 @@
 
 package com.lamnguyen.auth.repositories
 
-import com.lamnguyen.auth.model.entity.Permission
+import com.lamnguyen.auth.model.Permission
 import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import reactor.core.publisher.Flux
 
-interface IPermissionRepository : ReactiveCrudRepository<Permission, Long> {
+interface IPermissionRepository : ReactiveCrudRepository<Permission, String> {
     @Query("""
         SELECT * FROM permissions p
         left join permissions_of_role pr

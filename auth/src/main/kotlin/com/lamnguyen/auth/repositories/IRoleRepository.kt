@@ -8,14 +8,14 @@
 
 package com.lamnguyen.auth.repositories
 
-import com.lamnguyen.auth.model.entity.Role
+import com.lamnguyen.auth.model.Role
 import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import org.springframework.stereotype.Repository
 import reactor.core.publisher.Flux
 
 @Repository
-interface IRoleRepository : ReactiveCrudRepository<Role, Long> {
+interface IRoleRepository : ReactiveCrudRepository<Role, String> {
     @Query(
         """
         SELECT * FROM roles r

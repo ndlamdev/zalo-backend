@@ -1,6 +1,6 @@
 package com.lamnguyen.auth.service
 
-import com.lamnguyen.auth.model.requests.RegisterRequest
+import com.lamnguyen.auth.domain.requests.RegisterRequest
 import reactor.core.publisher.Mono
 
 interface IAuthService {

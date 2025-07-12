@@ -7,7 +7,7 @@ CREATE TABLE "users"
     updated_by   VARCHAR(255),
     locked       BOOL DEFAULT false,
     deleted      BOOL DEFAULT false,
-    email        VARCHAR(255) NOT NULL,
+    email        VARCHAR(255) NULL,
     password     VARCHAR      NOT NULL
 );
 
