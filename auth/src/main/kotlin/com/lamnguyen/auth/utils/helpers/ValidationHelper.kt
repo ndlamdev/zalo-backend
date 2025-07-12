@@ -30,7 +30,10 @@ inline fun <reified T : Any, R : Any> Validator.validate(data: T, next: Function
     val errors = BeanPropertyBindingResult(this, T::class.java.name)
     this.validate(data, errors)
     if (!errors.hasErrors()) return next.apply(data)
-    val msg = errors.fieldErrors.associate { error -> error.field to (error.defaultMessage ?: "Invalid") }
+    val msg = errors
+        .fieldErrors
+        .associate { error -> error.field to (error.defaultMessage ?: "Invalid") }
+        .plus(Pair("Error data", errors.globalError?.defaultMessage ?: "Error data"))
     return Mono.error(
         ResponseStatusException(HttpStatus.BAD_REQUEST, ObjectMapper().writeValueAsString(msg))
     )

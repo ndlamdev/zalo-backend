@@ -8,10 +8,10 @@
 
 package com.lamnguyen.auth.service
 
+import com.lamnguyen.auth.domain.requests.RegisterRequest
 import com.lamnguyen.auth.exceptions.ApplicationException
 import com.lamnguyen.auth.exceptions.ExceptionEnum
 import com.lamnguyen.auth.model.User
-import com.lamnguyen.auth.domain.requests.RegisterRequest
 import com.lamnguyen.auth.repositories.IUserRepository
 import formatPhoneNumber
 import org.springframework.security.crypto.password.PasswordEncoder
