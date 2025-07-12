@@ -53,6 +53,7 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     // https://mvnrepository.com/artifact/org.flywaydb/flyway-database-postgresql
     runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.10.1'
+    implementation 'com.googlecode.libphonenumber:libphonenumber:9.0.9'
 }
 
 kotlin {
