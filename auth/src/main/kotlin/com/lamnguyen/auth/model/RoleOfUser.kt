@@ -6,15 +6,13 @@
  *  User: kimin
  **/
 
-package com.lamnguyen.auth.model.entity
+package com.lamnguyen.auth.model
 
-import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 
 
 @Table(name = "roles_of_user")
 data class RoleOfUser(
-    @Id
     val fakeId: String = "",
     var userPhoneNumber: String,
     var roleName: String

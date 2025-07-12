@@ -6,10 +6,11 @@
  *  User: kimin
  **/
 
-package com.lamnguyen.auth.model.requests
+package com.lamnguyen.auth.domain.requests
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
+import com.lamnguyen.auth.utils.annotations.ValidPhoneNumber
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 
@@ -17,6 +18,7 @@ import jakarta.validation.constraints.NotNull
 class RegisterRequest {
     @NotBlank
     @NotNull
+    @ValidPhoneNumber
     var phoneNumber: String? = null
 
     @NotBlank

@@ -6,17 +6,14 @@
  *  User: kimin
  **/
 
-package com.lamnguyen.auth.model.entity
+package com.lamnguyen.auth.model
 
-import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 
 
 @Table(name = "users")
 class User : BaseEntity() {
-    lateinit var email: String
-
-    @Id
     lateinit var phoneNumber: String
     lateinit var password: String
+    lateinit var email: String
 }

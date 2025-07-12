@@ -13,6 +13,10 @@ class AuditorAwareConfig {
 
     @Bean
     fun myAuditorProvider(): ReactiveAuditorAware<String> {
-        return ReactiveAuditorAware<String> { Mono.just(SecurityContextHolder.getContext().authentication.name) }
+        return ReactiveAuditorAware<String> {
+            val auth = SecurityContextHolder.getContext().authentication
+            if (auth == null) return@ReactiveAuditorAware Mono.empty()
+            return@ReactiveAuditorAware Mono.just(auth.name)
+        }
     }
 }

@@ -8,7 +8,7 @@
 
 package com.lamnguyen.auth.security.convertors
 
-import com.lamnguyen.auth.model.dto.JWTPayload
+import com.lamnguyen.auth.domain.dto.JWTPayload
 import com.lamnguyen.auth.repositories.IPermissionRepository
 import com.lamnguyen.auth.utils.Keyword
 import org.springframework.context.annotation.Configuration

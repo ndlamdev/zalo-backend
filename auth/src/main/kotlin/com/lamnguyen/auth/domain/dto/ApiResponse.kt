@@ -6,7 +6,7 @@
  * User: kimin
  **/
 
-package com.lamnguyen.auth.model.dto
+package com.lamnguyen.auth.domain.dto
 
 open class ApiResponse<T : Any> {
     var code: Int = 0

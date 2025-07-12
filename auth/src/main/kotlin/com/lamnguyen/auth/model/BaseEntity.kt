@@ -6,7 +6,7 @@
  *  User: kimin
  **/
 
-package com.lamnguyen.auth.model.entity
+package com.lamnguyen.auth.model
 
 import org.springframework.data.annotation.CreatedBy
 import org.springframework.data.annotation.CreatedDate

@@ -8,7 +8,7 @@
 
 package com.lamnguyen.auth.security.filters
 
-import com.lamnguyen.auth.model.dto.JWTPayload
+import com.lamnguyen.auth.domain.dto.JWTPayload
 import com.lamnguyen.auth.utils.Keyword
 import com.lamnguyen.auth.utils.enums.JwtTokenType
 import org.springframework.data.redis.core.ReactiveRedisTemplate

@@ -2,18 +2,19 @@
  * Nguyen Dinh Lam
  * Email: kiminonawa1305@gmail.com
  * Phone number: +84 855354919
- * Create at: 2:14 PM-08/07/2025
+ * Create at: 2:24 PM-08/07/2025
  *  User: kimin
  **/
 
-package com.lamnguyen.auth.model.entity
+package com.lamnguyen.auth.model
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 
-
-@Table(name = "roles")
-class Role : BaseEntity() {
+@Table(name = "permissions_of_role")
+data class PermissionsOfRole(
     @Id
-    lateinit var name: String
-}
+    val fakeId: String = "",
+    var permissionName: String,
+    var roleName: String,
+)

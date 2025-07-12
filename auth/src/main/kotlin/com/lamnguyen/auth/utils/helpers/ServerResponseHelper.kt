@@ -9,8 +9,8 @@
 package com.lamnguyen.auth.utils.helpers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.lamnguyen.auth.model.dto.ApiResponseError
-import com.lamnguyen.auth.model.dto.ApiResponseSuccess
+import com.lamnguyen.auth.domain.dto.ApiResponseError
+import com.lamnguyen.auth.domain.dto.ApiResponseSuccess
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono

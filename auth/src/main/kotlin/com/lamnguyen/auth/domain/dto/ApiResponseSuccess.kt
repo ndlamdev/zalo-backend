@@ -6,7 +6,7 @@
  * User: kimin
  **/
 
-package com.lamnguyen.auth.model.dto
+package com.lamnguyen.auth.domain.dto
 
 class ApiResponseSuccess<T : Any> : ApiResponse<T>() {
     lateinit var message: String

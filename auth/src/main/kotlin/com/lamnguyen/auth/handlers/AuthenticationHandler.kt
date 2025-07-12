@@ -8,7 +8,7 @@
 
 package com.lamnguyen.auth.handlers
 
-import com.lamnguyen.auth.model.requests.RegisterRequest
+import com.lamnguyen.auth.domain.requests.RegisterRequest
 import com.lamnguyen.auth.service.IAuthService
 import com.lamnguyen.auth.utils.helpers.ok
 import com.lamnguyen.auth.utils.helpers.validate

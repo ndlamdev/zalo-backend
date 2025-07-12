@@ -9,7 +9,7 @@
 package com.lamnguyen.auth.security.filters
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.lamnguyen.auth.model.requests.LoginRequest
+import com.lamnguyen.auth.domain.requests.LoginRequest
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.ReactiveAuthenticationManager
