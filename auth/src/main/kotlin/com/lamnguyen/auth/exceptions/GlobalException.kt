@@ -9,7 +9,8 @@
 package com.lamnguyen.auth.exceptions
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.lamnguyen.auth.model.dto.ApiResponseError
+import com.lamnguyen.auth.domain.dto.ApiResponseError
+import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
@@ -20,11 +21,15 @@ import reactor.core.publisher.Mono
 
 @Component
 @Order(-2)
-class GlobalException(val objectMapper: ObjectMapper) : ErrorWebExceptionHandler {
+class GlobalException(
+    val objectMapper: ObjectMapper
+) : ErrorWebExceptionHandler {
+    private val logger = LoggerFactory.getLogger(this.javaClass)
     override fun handle(
         exchange: ServerWebExchange,
         ex: Throwable
     ): Mono<Void?> {
+        logger.error(ex.message, ex)
         exchange.response.statusCode = HttpStatus.BAD_REQUEST
 
         val response = ApiResponseError<Any>().apply {
