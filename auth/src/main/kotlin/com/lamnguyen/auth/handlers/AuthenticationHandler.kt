@@ -21,7 +21,8 @@ import reactor.core.publisher.Mono
 @Component
 class AuthenticationHandler(val authService: IAuthService, val validator: Validator) {
     fun login(request: ServerRequest): Mono<ServerResponse?> {
-        return ok("Login success!")
+//        val accessToken = request.attributes()[HttpHeaders.AUTHORIZATION] ?: ""
+        return ok("Login success!", null)
     }
 
     fun register(request: ServerRequest): Mono<ServerResponse?> {

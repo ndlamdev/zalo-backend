@@ -1,10 +1,13 @@
 package com.lamnguyen.auth.security
 
-import org.springframework.beans.factory.annotation.Value
+import com.lamnguyen.auth.utils.properties.ApplicationProperty
+import com.nimbusds.jose.jwk.source.ImmutableSecret
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm
 import org.springframework.security.oauth2.jwt.JwsHeader
+import org.springframework.security.oauth2.jwt.JwtEncoder
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder
 import javax.crypto.spec.SecretKeySpec
@@ -18,10 +21,7 @@ import javax.crypto.spec.SecretKeySpec
  **/
 
 @Configuration
-class JwtConfig {
-    @Value("\${application.auth.jwt.secret-key}")
-    private lateinit var jwtSecretKey: String
-
+class JwtConfig(val jwtProperty: ApplicationProperty.Companion.Auth.Companion.Jwt) {
     @Bean
     fun jwsHeader(): JwsHeader {
         return JwsHeader.with(MacAlgorithm.HS256).type("JWT").build()
@@ -31,9 +31,14 @@ class JwtConfig {
     fun decoder(): ReactiveJwtDecoder {
         return NimbusReactiveJwtDecoder.withSecretKey(
             SecretKeySpec(
-                jwtSecretKey.toByteArray(Charsets.UTF_8),
+                jwtProperty.secretKey.toByteArray(Charsets.UTF_8),
                 MacAlgorithm.HS256.name
             )
         ).build()
+    }
+
+    @Bean
+    fun encoder(): JwtEncoder {
+        return NimbusJwtEncoder(ImmutableSecret(jwtProperty.secretKey.toByteArray(Charsets.UTF_8)))
     }
 }

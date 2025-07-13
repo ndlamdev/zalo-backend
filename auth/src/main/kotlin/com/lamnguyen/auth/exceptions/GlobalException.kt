@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.server.ServerWebExchange
@@ -42,7 +43,7 @@ class GlobalException(
                 response.detail = ex.detail
             }
 
-            is ResponseStatusException -> ApiResponseError<Any>().apply {
+            is ResponseStatusException -> {
                 response.code = HttpStatus.PAYMENT_REQUIRED.value()
                 response.error = HttpStatus.PAYMENT_REQUIRED.name
                 response.detail = ObjectMapper().readValue(ex.reason, Any::class.java)

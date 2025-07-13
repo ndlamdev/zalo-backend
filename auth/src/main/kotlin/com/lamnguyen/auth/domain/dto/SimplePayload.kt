@@ -13,5 +13,4 @@ import com.lamnguyen.auth.utils.enums.JwtTokenType
 open class SimplePayload {
     var phoneNumber: String = ""
     var type: JwtTokenType? = JwtTokenType.ACCESS
-    var email: String? = null
 }

@@ -1,9 +1,11 @@
 package com.lamnguyen.auth.security
 
+import com.lamnguyen.auth.service.ReactiveUserDetailsServiceImpl
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
+import org.springframework.security.crypto.password.PasswordEncoder
 
 /**
  * Nguyen Dinh Lam
@@ -13,9 +15,13 @@ import org.springframework.security.authentication.UserDetailsRepositoryReactive
  *  User: kimin
  **/
 @Configuration
-class AuthenticationManagerConfig {
+class AuthenticationManagerConfig(val passwordEncoder: PasswordEncoder) {
     @Bean
-    fun authenticationManager(userDetailsService: ReactiveUserDetailsServiceImpl): ReactiveAuthenticationManager {
-        return UserDetailsRepositoryReactiveAuthenticationManager(userDetailsService)
+    fun authenticationManager(
+        userDetailsService: ReactiveUserDetailsServiceImpl
+    ): ReactiveAuthenticationManager {
+        return UserDetailsRepositoryReactiveAuthenticationManager(userDetailsService).apply {
+            setPasswordEncoder(passwordEncoder)
+        }
     }
 }

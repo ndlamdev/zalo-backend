@@ -8,6 +8,9 @@
 
 package com.lamnguyen.auth.security.entrypoint
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.lamnguyen.auth.domain.dto.ApiResponseError
+import org.springframework.http.HttpStatus
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.server.ServerAuthenticationEntryPoint
 import org.springframework.stereotype.Component
@@ -17,9 +20,16 @@ import reactor.core.publisher.Mono
 @Component
 class AuthenticationEntryPoint : ServerAuthenticationEntryPoint {
     override fun commence(
-        exchange: ServerWebExchange?,
-        ex: AuthenticationException?
+        exchange: ServerWebExchange,
+        ex: AuthenticationException
     ): Mono<Void?>? {
-        return Mono.create { sink -> sink.error(ex?.cause!!) }
+        val apiResponse = ApiResponseError<Any>().apply {
+            code = HttpStatus.FORBIDDEN.value()
+            trace = ex.stackTrace as Any
+            error = ex.message
+        }
+
+        val dataBuffer = exchange.response.bufferFactory().wrap(ObjectMapper().writeValueAsBytes(apiResponse))
+        return exchange.response.writeWith(Mono.just(dataBuffer))
     }
 }

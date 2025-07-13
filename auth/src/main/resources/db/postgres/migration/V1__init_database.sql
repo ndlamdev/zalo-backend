@@ -8,7 +8,8 @@ CREATE TABLE "users"
     locked       BOOL DEFAULT false,
     deleted      BOOL DEFAULT false,
     email        VARCHAR(255) NULL,
-    password     VARCHAR      NOT NULL
+    password     VARCHAR      NOT NULL,
+    active       BOOL DEFAULT false
 );
 
 CREATE TABLE "roles"

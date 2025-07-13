@@ -15,4 +15,34 @@ import org.springframework.stereotype.Component
 @ConfigurationProperties("application")
 class ApplicationProperty {
     lateinit var whitelist: List<String>
+    lateinit var auth: Auth
+
+    companion object {
+        class Auth {
+            companion object {
+                @Component
+                @ConfigurationProperties("application.auth.jwt")
+                class Jwt {
+                    lateinit var secretKey: String
+                    lateinit var iss: String
+                    lateinit var claimKey: String
+                    lateinit var accessToken: AccessToken
+
+                    companion object {
+                        @Component
+                        @ConfigurationProperties("application.auth.jwt.access-token")
+                        class AccessToken {
+                            var expires: Long = 0
+                        }
+
+                        @Component
+                        @ConfigurationProperties("application.auth.jwt.refresh-token")
+                        class RefreshToken {
+                            var expires: Long = 0
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

@@ -24,7 +24,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
 
 @Configuration
-@EnableReactiveMethodSecurity
+@EnableReactiveMethodSecurity(useAuthorizationManager=true)
 class SecurityConfig(
     val applicationProperty: ApplicationProperty,
     var jwtAuthenticationConverter: JwtAuthenticationConverterImpl,

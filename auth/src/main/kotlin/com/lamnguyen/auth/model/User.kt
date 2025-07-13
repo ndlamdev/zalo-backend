@@ -16,4 +16,5 @@ class User : BaseEntity() {
     lateinit var phoneNumber: String
     lateinit var password: String
     lateinit var email: String
+    var active: Boolean = false
 }

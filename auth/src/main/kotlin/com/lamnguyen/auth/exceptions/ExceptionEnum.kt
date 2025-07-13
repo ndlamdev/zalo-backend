@@ -11,4 +11,5 @@ package com.lamnguyen.auth.exceptions
 enum class ExceptionEnum(val code: Int, val message: String) {
     REGISTER_ERROR(1, "Register error!"),
     USER_EXISTED(2, "User already exists!"),
+    LOGIN_FAILED(3, "Login failed!"),
 }
