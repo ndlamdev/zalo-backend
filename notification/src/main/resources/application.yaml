@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: notification
+server:
+  port: ${NOTIFICATION_PORT:8002}
