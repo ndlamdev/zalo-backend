@@ -25,6 +25,7 @@ class AuthenticationRouter {
             .path("/v1") { v1 ->
                 v1.POST("/login", authenticationHandler::login)
                 v1.POST("/register", authenticationHandler::register)
+                v1.POST("/validate", authenticationHandler::validate)
             }
             .build()
     }

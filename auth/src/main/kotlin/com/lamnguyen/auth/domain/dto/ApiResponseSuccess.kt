@@ -10,5 +10,5 @@ package com.lamnguyen.auth.domain.dto
 
 class ApiResponseSuccess<T : Any> : ApiResponse<T>() {
     lateinit var message: String
-    lateinit var data: T
+    var data: T? = null
 }

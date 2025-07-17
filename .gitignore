@@ -42,3 +42,4 @@
 **/.env
 **/application-local.yaml
 /Makefile
+/notification/src/main/resources/configs/firebase-config.json

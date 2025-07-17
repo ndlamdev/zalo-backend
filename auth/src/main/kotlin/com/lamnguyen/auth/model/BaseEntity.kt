@@ -22,10 +22,10 @@ open class BaseEntity() {
     lateinit var updatedAt: LocalDateTime
 
     @CreatedBy
-    lateinit var createdBy: String
+    var createdBy: String? = null
 
     @LastModifiedBy
-    lateinit var updatedBy: String
+    var updatedBy: String? = null
     var locked: Boolean = false
     var deleted: Boolean = false
 }

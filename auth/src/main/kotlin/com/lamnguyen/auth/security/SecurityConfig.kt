@@ -13,9 +13,11 @@ import com.lamnguyen.auth.security.entrypoint.AuthenticationEntryPoint
 import com.lamnguyen.auth.security.filters.CheckBlacklistTokenFilter
 import com.lamnguyen.auth.security.filters.JwtTokenGenerateFilter
 import com.lamnguyen.auth.security.filters.UsernamePasswordJsonAuthenticationFilter
+import com.lamnguyen.auth.utils.helpers.JwtHelper
 import com.lamnguyen.auth.utils.properties.ApplicationProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
@@ -28,9 +30,10 @@ import org.springframework.security.web.server.context.NoOpServerSecurityContext
 class SecurityConfig(
     val applicationProperty: ApplicationProperty,
     var jwtAuthenticationConverter: JwtAuthenticationConverterImpl,
-    var jwtGenerateFilter: JwtTokenGenerateFilter,
+    val jwtHelper: JwtHelper,
+    val refreshTokenProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty.Companion.RefreshTokenProperty,
+    val redisTemplate: ReactiveRedisTemplate<String, Any>,
     var manager: ReactiveAuthenticationManager,
-    var checkBlacklistTokenFilter: CheckBlacklistTokenFilter,
     var authenticationEntryPoint: AuthenticationEntryPoint,
 //    var removeBearerTokenAuthorizationFilter: RemoveBearerTokenAuthorizationFilter,
 ) {
@@ -41,9 +44,8 @@ class SecurityConfig(
             UsernamePasswordJsonAuthenticationFilter("/*/login", manager),
             SecurityWebFiltersOrder.AUTHENTICATION
         )
-        httpSecurity.addFilterAfter(jwtGenerateFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-        httpSecurity.addFilterBefore(checkBlacklistTokenFilter, SecurityWebFiltersOrder.AUTHORIZATION)
-//        httpSecurity.addFilterBefore(removeBearerTokenAuthorizationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+        httpSecurity.addFilterAfter(JwtTokenGenerateFilter(jwtHelper, refreshTokenProperty), SecurityWebFiltersOrder.AUTHENTICATION)
+        httpSecurity.addFilterBefore(CheckBlacklistTokenFilter(redisTemplate), SecurityWebFiltersOrder.AUTHORIZATION)
         httpSecurity.csrf { csrf -> csrf.disable() }
         httpSecurity.authorizeExchange { exchange ->
             exchange

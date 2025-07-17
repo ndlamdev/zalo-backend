@@ -13,6 +13,16 @@ spring:
                 - Path=/auth/**
               filters:
                 - StripPrefix=1
+            - id: user-blacklist
+              uri: http://localhost:8003
+              predicates:
+                - Path=/user/**
+              filters:
+                - StripPrefix=1
+                - name: Authentication
+
+  profiles:
+    active: local
 
 server:
   port: ${GATEWAY_PORT:8000}

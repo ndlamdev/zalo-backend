@@ -30,7 +30,7 @@ ENV PATH=${JAVA_HOME}/bin:${PATH}
 ENV CHAT_WS_PORT=1305
 
 # Copy JAR ứng dụng vào container
-COPY ../../../build/libs/auth-0.0.1-SNAPSHOT.jar auth.jar
+COPY build/libs/auth-0.0.1-SNAPSHOT.jar auth.jar
 
 EXPOSE 8001
 

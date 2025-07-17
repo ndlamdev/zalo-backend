@@ -9,9 +9,13 @@
 package com.lamnguyen.auth.handlers
 
 import com.lamnguyen.auth.domain.requests.RegisterRequest
-import com.lamnguyen.auth.service.IAuthService
+import com.lamnguyen.auth.service.business.IAuthService
 import com.lamnguyen.auth.utils.helpers.ok
 import com.lamnguyen.auth.utils.helpers.validate
+import com.lamnguyen.auth.utils.properties.ApplicationProperty
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.context.ReactiveSecurityContextHolder
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Component
 import org.springframework.validation.Validator
 import org.springframework.web.reactive.function.server.ServerRequest
@@ -19,7 +23,11 @@ import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
 
 @Component
-class AuthenticationHandler(val authService: IAuthService, val validator: Validator) {
+class AuthenticationHandler(
+    val authService: IAuthService,
+    val validator: Validator,
+    val authProperty: ApplicationProperty.Companion.AuthProperty
+) {
     fun login(request: ServerRequest): Mono<ServerResponse?> {
 //        val accessToken = request.attributes()[HttpHeaders.AUTHORIZATION] ?: ""
         return ok("Login success!", null)
@@ -31,5 +39,16 @@ class AuthenticationHandler(val authService: IAuthService, val validator: Valida
                 validator.validate(it, authService::register)
             }
             .then(ok("Register success!"))
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_USER')")
+    fun validate(request: ServerRequest): Mono<ServerResponse?> {
+        return ReactiveSecurityContextHolder.getContext().flatMap { securityContext ->
+            val auth = securityContext.authentication as JwtAuthenticationToken
+            return@flatMap ok("Validate success!") { it ->
+                it.addAll(authProperty.userRoles, auth.authorities.map { it -> it.authority })
+                it.add(authProperty.userPhoneNumber, auth.name)
+            }
+        }
     }
 }

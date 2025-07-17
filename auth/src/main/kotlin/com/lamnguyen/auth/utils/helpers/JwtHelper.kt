@@ -13,26 +13,22 @@ import com.lamnguyen.auth.domain.dto.SimplePayload
 import com.lamnguyen.auth.utils.enums.JwtTokenType
 import com.lamnguyen.auth.utils.properties.ApplicationProperty
 import org.springframework.security.core.Authentication
-import org.springframework.security.oauth2.jwt.JwsHeader
-import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.security.oauth2.jwt.JwtClaimsSet
-import org.springframework.security.oauth2.jwt.JwtEncoder
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters
+import org.springframework.security.oauth2.jwt.*
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
-import java.util.UUID
+import java.util.*
 
 @Component
 class JwtHelper(
     private val jwtEncoder: JwtEncoder,
     private val jwsHeader: JwsHeader,
-    private val jwtProperty: ApplicationProperty.Companion.Auth.Companion.Jwt,
-    private val accessTokenProperty: ApplicationProperty.Companion.Auth.Companion.Jwt.Companion.AccessToken
+    private val jwtProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty,
+    private val accessTokenProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty.Companion.AccessTokenProperty
 ) {
     fun createAccessToken(auth: Authentication, refreshTokenId: String): Jwt {
-        val now = LocalDateTime.now().toInstant(ZoneOffset.UTC);
+        val now = LocalDateTime.now().toInstant(ZoneOffset.UTC)
         return jwtEncoder.encode(
             JwtEncoderParameters.from(
                 jwsHeader, JwtClaimsSet.builder()
@@ -44,11 +40,11 @@ class JwtHelper(
                     .expiresAt(now.plus(accessTokenProperty.expires, ChronoUnit.MINUTES))
                     .build()
             )
-        );
+        )
     }
 
     fun createRefreshToken(auth: Authentication): Jwt {
-        val now = LocalDateTime.now().toInstant(ZoneOffset.UTC);
+        val now = LocalDateTime.now().toInstant(ZoneOffset.UTC)
         return jwtEncoder.encode(
             JwtEncoderParameters.from(
                 jwsHeader, JwtClaimsSet.builder()
@@ -63,6 +59,6 @@ class JwtHelper(
                     .expiresAt(now.plus(accessTokenProperty.expires, ChronoUnit.MINUTES))
                     .build()
             )
-        );
+        )
     }
 }

@@ -1,5 +1,8 @@
 spring:
   application:
     name: notification
+  profiles:
+    active: local
 server:
   port: ${NOTIFICATION_PORT:8002}
+

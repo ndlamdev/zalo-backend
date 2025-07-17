@@ -14,7 +14,6 @@ import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher
 import reactor.core.publisher.Mono
@@ -33,10 +32,6 @@ class UsernamePasswordJsonAuthenticationFilter(path: String, manage: ReactiveAut
                     val loginRequest = ObjectMapper().readValue(bodyStr, LoginRequest::class.java)
                     UsernamePasswordAuthenticationToken(loginRequest.phoneNumber, loginRequest.password)
                 }
-        }
-        this.setAuthenticationSuccessHandler { webFilterExchange, authentication ->
-            SecurityContextHolder.getContext().authentication = authentication
-            webFilterExchange.chain.filter(webFilterExchange.exchange)
         }
         this.setAuthenticationFailureHandler { webFilterExchange, exception ->
             Mono.error(exception)

@@ -11,12 +11,26 @@ package com.lamnguyen.auth.utils.helpers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.lamnguyen.auth.domain.dto.ApiResponseError
 import com.lamnguyen.auth.domain.dto.ApiResponseSuccess
+import org.springframework.http.HttpHeaders
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
+import java.util.function.Consumer
 
 fun <T : Any> ok(data: T, message: String? = "Response Success!"): Mono<ServerResponse?> {
     return ServerResponse.ok().body(BodyInserters.fromValue(ApiResponseSuccess<Any>().apply {
+        code = 200
+        this.data = data
+        this.message = message ?: "Response Success!"
+    }))
+}
+
+fun <T : Any> ok(
+    data: T,
+    message: String? = "Response Success!",
+    headers: Consumer<HttpHeaders>
+): Mono<ServerResponse?> {
+    return ServerResponse.ok().headers(headers).body(BodyInserters.fromValue(ApiResponseSuccess<Any>().apply {
         code = 200
         this.data = data
         this.message = message ?: "Response Success!"

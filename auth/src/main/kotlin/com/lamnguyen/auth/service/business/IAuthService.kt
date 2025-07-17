@@ -1,4 +1,4 @@
-package com.lamnguyen.auth.service
+package com.lamnguyen.auth.service.business
 
 import com.lamnguyen.auth.domain.requests.RegisterRequest
 import reactor.core.publisher.Mono

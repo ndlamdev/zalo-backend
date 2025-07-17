@@ -23,6 +23,7 @@ class AuthenticationEntryPoint : ServerAuthenticationEntryPoint {
         exchange: ServerWebExchange,
         ex: AuthenticationException
     ): Mono<Void?>? {
+        exchange.response.statusCode = HttpStatus.UNAUTHORIZED
         val apiResponse = ApiResponseError<Any>().apply {
             code = HttpStatus.FORBIDDEN.value()
             trace = ex.stackTrace as Any

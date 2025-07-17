@@ -9,18 +9,16 @@
 package com.lamnguyen.auth.security.filters
 
 import com.lamnguyen.auth.domain.dto.JWTPayload
-import com.lamnguyen.auth.utils.Keyword
 import com.lamnguyen.auth.utils.enums.JwtTokenType
+import com.lamnguyen.auth.utils.enums.Keyword
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
-import org.springframework.stereotype.Component
 import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.server.WebFilter
 import org.springframework.web.server.WebFilterChain
 import reactor.core.publisher.Mono
 
-@Component
 class CheckBlacklistTokenFilter(val redisTemplate: ReactiveRedisTemplate<String, Any>) : WebFilter {
     override fun filter(
         exchange: ServerWebExchange,

@@ -1,8 +1,8 @@
-package com.lamnguyen.auth.service
+package com.lamnguyen.auth.service.business
 
 import com.lamnguyen.auth.repositories.IRoleRepository
 import com.lamnguyen.auth.repositories.IUserRepository
-import com.lamnguyen.auth.utils.Keyword
+import com.lamnguyen.auth.utils.enums.Keyword
 import formatPhoneNumber
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
@@ -28,7 +28,7 @@ class ReactiveUserDetailsServiceImpl(val userRepository: IUserRepository, val ro
         val userMono = userRepository.findByPhoneNumber(phoneNumber)
         val rolesFlux: Flux<SimpleGrantedAuthority> =
             roleRepository.findByUserPhoneNumber(phoneNumber)
-                .map { role -> SimpleGrantedAuthority("${Keyword.PREFIX_ROLE}${role?.name}") }
+                .map { role -> SimpleGrantedAuthority("${Keyword.PREFIX_ROLE.value}${role?.name}") }
 
         return Mono.zip(userMono, rolesFlux.collectList())
             .map { tuple ->

@@ -1,6 +1,6 @@
 package com.lamnguyen.auth.security
 
-import com.lamnguyen.auth.service.ReactiveUserDetailsServiceImpl
+import com.lamnguyen.auth.service.business.ReactiveUserDetailsServiceImpl
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.ReactiveAuthenticationManager

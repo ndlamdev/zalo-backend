@@ -8,9 +8,11 @@
 
 package com.lamnguyen.auth.security.convertors
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.lamnguyen.auth.domain.dto.JWTPayload
 import com.lamnguyen.auth.repositories.IPermissionRepository
-import com.lamnguyen.auth.utils.Keyword
+import com.lamnguyen.auth.utils.enums.Keyword
+import com.lamnguyen.auth.utils.properties.ApplicationProperty
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.convert.converter.Converter
 import org.springframework.security.authentication.AbstractAuthenticationToken
@@ -22,12 +24,15 @@ import reactor.core.publisher.Mono
 
 @Configuration
 class JwtAuthenticationConverterImpl(
-    private val permissionRepository: IPermissionRepository
+    private val permissionRepository: IPermissionRepository,
+    private val jwtProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty,
+    private val objectMapper: ObjectMapper
 ) : Converter<Jwt, Mono<AbstractAuthenticationToken>> {
     override fun convert(source: Jwt): Mono<AbstractAuthenticationToken>? {
-        val body = source.getClaim<JWTPayload>("payload")
+        val body = source.getClaim<Map<String, Any>>(jwtProperty.claimKey)
+        val payload =objectMapper.convertValue(body, JWTPayload::class.java)
 
-        return Flux.fromIterable(body.roles.orEmpty())
+        return Flux.fromIterable(payload.roles.orEmpty())
             .flatMap { roleName ->
                 val trimmed = roleName?.removePrefix(Keyword.PREFIX_ROLE.value).orEmpty()
 

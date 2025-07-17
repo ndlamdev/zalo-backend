@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
-import org.springframework.security.authentication.BadCredentialsException
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.server.ServerWebExchange
@@ -32,6 +32,7 @@ class GlobalException(
     ): Mono<Void?> {
         logger.error(ex.message, ex)
         exchange.response.statusCode = HttpStatus.BAD_REQUEST
+        exchange.response.headers.contentType = MediaType.APPLICATION_JSON
 
         val response = ApiResponseError<Any>().apply {
             error = ex.message

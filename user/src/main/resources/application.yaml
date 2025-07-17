@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: user
+
+  profiles:
+    active: local
+
+server:
+  port: ${USER_PORT:8003}
+

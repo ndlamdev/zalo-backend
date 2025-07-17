@@ -6,20 +6,25 @@
  *  User: kimin
  **/
 
-package com.lamnguyen.auth.service
+package com.lamnguyen.auth.service.business
 
 import com.lamnguyen.auth.domain.requests.RegisterRequest
 import com.lamnguyen.auth.exceptions.ApplicationException
 import com.lamnguyen.auth.exceptions.ExceptionEnum
 import com.lamnguyen.auth.model.User
 import com.lamnguyen.auth.repositories.IUserRepository
+import com.lamnguyen.auth.service.kafka.IUserKafkaService
 import formatPhoneNumber
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
 @Service
-class AuthServiceImpl(val userRepository: IUserRepository, val passwordEncoder: PasswordEncoder) : IAuthService {
+class AuthServiceImpl(
+    val userRepository: IUserRepository,
+    val passwordEncoder: PasswordEncoder,
+    val userKafkaService: IUserKafkaService
+) : IAuthService {
     override fun register(data: RegisterRequest): Mono<Void> {
         val phoneNumber = formatPhoneNumber(data.phoneNumber)
         if (phoneNumber == null) return Mono.error(ApplicationException(ExceptionEnum.REGISTER_ERROR))
@@ -30,7 +35,9 @@ class AuthServiceImpl(val userRepository: IUserRepository, val passwordEncoder: 
                 userRepository.save(User().apply {
                     this.phoneNumber = phoneNumber
                     this.password = passwordEncoder.encode(data.password)
-                }).then()
+                })
+                    .flatMap { userKafkaService.createUser(phoneNumber) }
+                    .then()
             )
     }
 }
