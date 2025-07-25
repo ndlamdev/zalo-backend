@@ -18,7 +18,12 @@ import reactor.core.publisher.Mono
 @Service
 class UserServiceImpl(val userRepository: IUserRepository) : IUserService {
     override fun createUser(phoneNumber: String): Mono<User> {
-        return userRepository.save(User().apply { this.phoneNumber = phoneNumber })
+        return userRepository.save(
+            User().apply {
+                this.phoneNumber = phoneNumber
+                this.isNewUser = true
+            }
+        )
             .onErrorResume {
                 Mono.error(ApplicationException(ExceptionEnum.CREATE_USER_FAILED))
             }

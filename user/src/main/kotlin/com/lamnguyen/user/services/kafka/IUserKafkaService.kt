@@ -8,10 +8,10 @@
 
 package com.lamnguyen.user.services.kafka
 
-import com.lamnguyen.user.messages.CreateUser
+import com.lamnguyen.user.messages.CreateUserMessage
 import org.springframework.kafka.annotation.KafkaListener
 
 interface IUserKafkaService {
     @KafkaListener(groupId = "user-service", topics = ["create-user"])
-    fun createUser(createUser: CreateUser)
+    fun createUser(createUser: CreateUserMessage)
 }

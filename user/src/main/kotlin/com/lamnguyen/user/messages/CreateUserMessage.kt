@@ -1,5 +1,5 @@
 package com.lamnguyen.user.messages
 
-data class CreateUser(
+data class CreateUserMessage(
     val phoneNumber: String
 )

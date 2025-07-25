@@ -1,0 +1,15 @@
+/**
+ * Nguyen Dinh Lam
+ * Email: kiminonawa1305@gmail.com
+ * Phone number: +84 855354919
+ * Create at: 12:51 PM-24/07/2025
+ *  User: kimin
+ **/
+
+package com.lamnguyen.user.services.business
+
+import reactor.core.publisher.Mono
+
+interface IInviteAddFriendService {
+    fun sendRequest(phoneNumberReceiver: String, message: String?): Mono<Void>
+}

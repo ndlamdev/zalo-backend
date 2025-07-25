@@ -11,4 +11,8 @@ package com.lamnguyen.user.exceptions
 class ApplicationException(enum: ExceptionEnum) : Throwable(enum.message) {
     var code: Int = enum.code
     var detail: Any? = null
+
+    constructor(enum: ExceptionEnum, detail: Any? = null) : this(enum) {
+        this.detail = detail
+    }
 }

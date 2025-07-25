@@ -8,13 +8,13 @@
 
 package com.lamnguyen.user.services.kafka
 
-import com.lamnguyen.user.messages.CreateUser
+import com.lamnguyen.user.messages.CreateUserMessage
 import com.lamnguyen.user.services.business.IUserService
 import org.springframework.stereotype.Service
 
 @Service
 class UserKafkaServiceImpl(val userService: IUserService) : IUserKafkaService {
-    override fun createUser(createUser: CreateUser) {
+    override fun createUser(createUser: CreateUserMessage) {
         userService
             .createUser(createUser.phoneNumber)
             .subscribe { println(it) }

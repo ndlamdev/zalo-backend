@@ -22,7 +22,10 @@ class UserRouter(val userHandler: UserHandler) {
     fun userRouter(): RouterFunction<ServerResponse> {
         return RouterFunctions
             .route()
-            .path("/v1") { v1 -> v1.GET("/search", userHandler::search) }
+            .path("/v1") { v1 ->
+                v1.GET("/search", userHandler::search)
+                    .POST("/add-friend", userHandler::addFriend)
+            }
             .build()
     }
 
