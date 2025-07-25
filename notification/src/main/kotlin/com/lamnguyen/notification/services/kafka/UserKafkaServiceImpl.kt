@@ -8,14 +8,20 @@
 
 package com.lamnguyen.notification.services.kafka
 
-import com.lamnguyen.notification.messages.CreateUser
-import com.lamnguyen.notification.services.business.IUserService
+import com.lamnguyen.notification.messages.CreateUserMessage
+import com.lamnguyen.notification.messages.InviteAddFriendMessage
+import com.lamnguyen.notification.services.business.INotificationService
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
 @Service
-class UserKafkaServiceImpl(val userService: IUserService) : IUserKafkaService {
-    override fun sendOtp(createUser: CreateUser): Mono<Void> {
-        return Mono.empty()
+class UserKafkaServiceImpl(val notificationService: INotificationService) : IUserKafkaService {
+    override fun sendOtp(message: CreateUserMessage) {
+    }
+
+    override fun inviteAddFriend(message: InviteAddFriendMessage) {
+        notificationService
+            .notifyInviteAddFriend(message)
+            .subscribe()
     }
 }

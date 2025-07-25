@@ -8,11 +8,15 @@
 
 package com.lamnguyen.notification.services.kafka
 
-import com.lamnguyen.notification.messages.CreateUser
+import com.lamnguyen.notification.messages.CreateUserMessage
+import com.lamnguyen.notification.messages.InviteAddFriendMessage
 import org.springframework.kafka.annotation.KafkaListener
 import reactor.core.publisher.Mono
 
 interface IUserKafkaService {
     @KafkaListener(groupId = "notification-service", topics = ["create-user"])
-    fun sendOtp(createUser: CreateUser): Mono<Void>
+    fun sendOtp(message: CreateUserMessage)
+
+    @KafkaListener(groupId = "notification-service", topics = ["invite-add-friend"])
+    fun inviteAddFriend(message: InviteAddFriendMessage)
 }
