@@ -10,7 +10,7 @@ import com.google.i18n.phonenumbers.Phonenumber
  **/
 
 fun initPhoneNumber(value: String?): Phonenumber.PhoneNumber? {
-    if (value == null) return null
+    if (value == null || value.isEmpty() || value.length > 15) return null
     val data = value.replace(Regex("[*?_\\-.,\\s]+"), "").split("/")
     if (data.size != 2) return null
     return try {

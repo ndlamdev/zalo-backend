@@ -31,8 +31,9 @@ class ReactiveUserDetailsServiceImpl(val userRepository: IUserRepository, val ro
                 .map { role -> SimpleGrantedAuthority("${Keyword.PREFIX_ROLE.value}${role?.name}") }
 
         return Mono.zip(userMono, rolesFlux.collectList())
-            .map { tuple ->
+            .mapNotNull { tuple ->
                 val user = tuple.t1
+                if (user == null) return@mapNotNull null
                 val authorities = tuple.t2
                 User(user.phoneNumber, user.password, user.active, true, true, true, authorities)
             }

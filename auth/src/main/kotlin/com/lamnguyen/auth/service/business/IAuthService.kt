@@ -5,4 +5,5 @@ import reactor.core.publisher.Mono
 
 interface IAuthService {
     fun register(data: RegisterRequest): Mono<Void>
+    fun hasPhoneNumber(phoneNumber: String?): Mono<Void>
 }

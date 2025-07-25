@@ -8,7 +8,7 @@
 
 package com.lamnguyen.auth.service.kafka
 
-import com.lamnguyen.auth.events.CreateUser
+import com.lamnguyen.auth.events.CreateUserEvent
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono
 @Service
 class UserKafkaServiceImpl(val kafkaTemplate: KafkaTemplate<String, Any>) : IUserKafkaService {
     override fun createUser(phoneNumber: String): Mono<Void> {
-        kafkaTemplate.send("create-user", CreateUser(phoneNumber))
+        kafkaTemplate.send("create-user", CreateUserEvent(phoneNumber))
         return Mono.empty()
     }
 }

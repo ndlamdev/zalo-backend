@@ -22,6 +22,7 @@ import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.server.WebFilter
 import org.springframework.web.server.WebFilterChain
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 class JwtTokenGenerateFilter(
     val jwtHelper: JwtHelper,
@@ -34,7 +35,6 @@ class JwtTokenGenerateFilter(
         exchange: ServerWebExchange,
         chain: WebFilterChain
     ): Mono<Void?> {
-        if (exchange !is SecurityContextServerWebExchange) return chain.filter(exchange)
         return requireServerWebExchangeMatcher
             .matches(exchange)
             .flatMap {
@@ -61,5 +61,6 @@ class JwtTokenGenerateFilter(
                         chain.filter(exchange)
                     }
             }
+            .switchIfEmpty { chain.filter(exchange) }
     }
 }

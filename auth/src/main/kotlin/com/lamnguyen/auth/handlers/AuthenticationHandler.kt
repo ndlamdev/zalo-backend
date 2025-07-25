@@ -8,6 +8,7 @@
 
 package com.lamnguyen.auth.handlers
 
+import com.lamnguyen.auth.domain.requests.PhoneNumberRequest
 import com.lamnguyen.auth.domain.requests.RegisterRequest
 import com.lamnguyen.auth.service.business.IAuthService
 import com.lamnguyen.auth.utils.helpers.ok
@@ -29,7 +30,6 @@ class AuthenticationHandler(
     val authProperty: ApplicationProperty.Companion.AuthProperty
 ) {
     fun login(request: ServerRequest): Mono<ServerResponse?> {
-//        val accessToken = request.attributes()[HttpHeaders.AUTHORIZATION] ?: ""
         return ok("Login success!", null)
     }
 
@@ -50,5 +50,14 @@ class AuthenticationHandler(
                 it.add(authProperty.userPhoneNumber, auth.name)
             }
         }
+    }
+
+    fun checkPhoneNumber(request: ServerRequest): Mono<ServerResponse?> {
+        return request.bodyToMono(PhoneNumberRequest::class.java)
+            .flatMap { it ->
+                validator.validate(it) { request ->
+                    authService.hasPhoneNumber(it.phoneNumber)
+                }
+            }.then(ok("User exists!"))
     }
 }

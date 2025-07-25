@@ -26,7 +26,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
 
 @Configuration
-@EnableReactiveMethodSecurity(useAuthorizationManager=true)
+@EnableReactiveMethodSecurity(useAuthorizationManager = true)
 class SecurityConfig(
     val applicationProperty: ApplicationProperty,
     var jwtAuthenticationConverter: JwtAuthenticationConverterImpl,
@@ -44,7 +44,10 @@ class SecurityConfig(
             UsernamePasswordJsonAuthenticationFilter("/*/login", manager),
             SecurityWebFiltersOrder.AUTHENTICATION
         )
-        httpSecurity.addFilterAfter(JwtTokenGenerateFilter(jwtHelper, refreshTokenProperty), SecurityWebFiltersOrder.AUTHENTICATION)
+        httpSecurity.addFilterAfter(
+            JwtTokenGenerateFilter(jwtHelper, refreshTokenProperty),
+            SecurityWebFiltersOrder.AUTHENTICATION
+        )
         httpSecurity.addFilterBefore(CheckBlacklistTokenFilter(redisTemplate), SecurityWebFiltersOrder.AUTHORIZATION)
         httpSecurity.csrf { csrf -> csrf.disable() }
         httpSecurity.authorizeExchange { exchange ->
@@ -65,24 +68,4 @@ class SecurityConfig(
         httpSecurity.securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
         return httpSecurity.build()
     }
-
-//    @Bean
-//    fun googleAuthorizationCodeTokenRequest(): GoogleAuthorizationCodeTokenRequest? {
-//        return GoogleAuthorizationCodeTokenRequest(
-//            NetHttpTransport(),
-//            GsonFactory(),
-//            "https://oauth2.googleapis.com/token",
-//            applicationProperty.getClientId(),
-//            applicationProperty.getClientSecret(),
-//            "",
-//            "postmessage" // or your redirect URI
-//        )
-//    }
-//
-//    @Bean
-//    fun googleIdTokenVerifier(): GoogleIdTokenVerifier {
-//        return Builder(NetHttpTransport(), GsonFactory())
-//            .setAudience(mutableListOf<T?>(applicationProperty.getClientId()))
-//            .build()
-//    }
 }

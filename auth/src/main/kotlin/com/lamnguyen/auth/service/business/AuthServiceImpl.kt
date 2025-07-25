@@ -18,6 +18,7 @@ import formatPhoneNumber
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 @Service
 class AuthServiceImpl(
@@ -31,13 +32,23 @@ class AuthServiceImpl(
         return userRepository.findByPhoneNumber(phoneNumber)
             .flatMap {
                 Mono.error<Void>(ApplicationException(ExceptionEnum.USER_EXISTED))
-            }.switchIfEmpty(
+            }.switchIfEmpty {
                 userRepository.save(User().apply {
                     this.phoneNumber = phoneNumber
                     this.password = passwordEncoder.encode(data.password)
                 })
                     .flatMap { userKafkaService.createUser(phoneNumber) }
                     .then()
-            )
+            }
+    }
+
+    override fun hasPhoneNumber(phoneNumber: String?): Mono<Void> {
+        val phoneNumberFormated = formatPhoneNumber(phoneNumber)
+        if (phoneNumberFormated == null) return Mono.error(ApplicationException(ExceptionEnum.USER_NOT_EXISTS))
+        return userRepository.existsUserByPhoneNumber(phoneNumberFormated)
+            .flatMap { result ->
+                if (!result) return@flatMap Mono.error(ApplicationException(ExceptionEnum.USER_NOT_EXISTS))
+                Mono.empty()
+            }
     }
 }
