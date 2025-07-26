@@ -17,7 +17,7 @@ import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
 import java.util.function.Consumer
 
-fun <T : Any> ok(data: T, message: String? = "Response Success!"): Mono<ServerResponse?> {
+fun <T : Any> ok(data: T?, message: String? = "Response Success!"): Mono<ServerResponse?> {
     return ServerResponse.ok().body(BodyInserters.fromValue(ApiResponseSuccess<Any>().apply {
         code = 200
         this.data = data
@@ -26,7 +26,7 @@ fun <T : Any> ok(data: T, message: String? = "Response Success!"): Mono<ServerRe
 }
 
 fun <T : Any> ok(
-    data: T,
+    data: T?,
     message: String? = "Response Success!",
     headers: Consumer<HttpHeaders>
 ): Mono<ServerResponse?> {

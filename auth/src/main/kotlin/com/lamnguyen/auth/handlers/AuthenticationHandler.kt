@@ -30,7 +30,13 @@ class AuthenticationHandler(
     val authProperty: ApplicationProperty.Companion.AuthProperty
 ) {
     fun login(request: ServerRequest): Mono<ServerResponse?> {
-        return ok("Login success!", null)
+        return ok(
+            mapOf(
+                "phone_number_code" to request.attributes()["PHONE_NUMBER_CODE"],
+                "phone_number" to request.attributes()["PHONE_NUMBER"],
+                "access_token" to request.attributes()["ACCESS_TOKEN"],
+            )
+        )
     }
 
     fun register(request: ServerRequest): Mono<ServerResponse?> {
@@ -45,7 +51,7 @@ class AuthenticationHandler(
     fun validate(request: ServerRequest): Mono<ServerResponse?> {
         return ReactiveSecurityContextHolder.getContext().flatMap { securityContext ->
             val auth = securityContext.authentication as JwtAuthenticationToken
-            return@flatMap ok("Validate success!") { it ->
+            return@flatMap ok(null) { it ->
                 it.addAll(authProperty.userRoles, auth.authorities.map { it -> it.authority })
                 it.add(authProperty.userPhoneNumber, auth.name)
             }
@@ -58,6 +64,6 @@ class AuthenticationHandler(
                 validator.validate(it) { request ->
                     authService.hasPhoneNumber(it.phoneNumber)
                 }
-            }.then(ok("User exists!"))
+            }.then(ok(null))
     }
 }

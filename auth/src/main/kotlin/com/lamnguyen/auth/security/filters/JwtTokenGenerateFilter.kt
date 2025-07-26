@@ -10,19 +10,16 @@ package com.lamnguyen.auth.security.filters
 
 import com.lamnguyen.auth.utils.helpers.JwtHelper
 import com.lamnguyen.auth.utils.properties.ApplicationProperty
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.ResponseCookie
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
-import org.springframework.security.web.server.context.SecurityContextServerWebExchange
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher
 import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.server.WebFilter
 import org.springframework.web.server.WebFilterChain
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 
 class JwtTokenGenerateFilter(
     val jwtHelper: JwtHelper,
@@ -56,11 +53,10 @@ class JwtTokenGenerateFilter(
                             }.build()
 
                         exchange.response.addCookie(refreshTokenCookie)
-                        exchange.response.headers.add(HttpHeaders.AUTHORIZATION, "Bearer ${accessToken.tokenValue}")
-
-                        chain.filter(exchange)
+                        exchange.attributes["ACCESS_TOKEN"] = accessToken.tokenValue
+                        Mono.just(it)
                     }
             }
-            .switchIfEmpty { chain.filter(exchange) }
+            .then(chain.filter(exchange))
     }
 }
