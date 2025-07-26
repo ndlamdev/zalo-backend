@@ -10,9 +10,9 @@ import com.google.i18n.phonenumbers.Phonenumber
  **/
 
 fun initPhoneNumber(value: String?): Phonenumber.PhoneNumber? {
-    if (value == null || value.isEmpty() || value.length > 15) return null
+    if (value.isNullOrEmpty()) return null
     val data = value.replace(Regex("[*?_\\-.,\\s]+"), "").split("/")
-    if (data.size != 2) return null
+    if (data.size != 2 || data[0].length > 5 || data[1].length > 15) return null
     return try {
         Phonenumber.PhoneNumber().apply {
             countryCode = data[0].toInt()
