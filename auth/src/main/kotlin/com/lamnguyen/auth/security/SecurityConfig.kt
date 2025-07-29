@@ -52,9 +52,8 @@ class SecurityConfig(
         httpSecurity.csrf { csrf -> csrf.disable() }
         httpSecurity.authorizeExchange { exchange ->
             exchange
-                .pathMatchers("/actuator/**").permitAll()
                 .pathMatchers(*applicationProperty.whitelist.toTypedArray<String>()).permitAll()
-                .pathMatchers("/**").permitAll()
+                .anyExchange().authenticated()
         }
         httpSecurity.oauth2ResourceServer { oAuth2ResourceServerConfigurer ->
             oAuth2ResourceServerConfigurer.apply {

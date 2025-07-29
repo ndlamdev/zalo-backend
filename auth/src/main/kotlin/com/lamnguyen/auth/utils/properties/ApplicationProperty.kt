@@ -28,9 +28,10 @@ class ApplicationProperty {
                 @ConfigurationProperties("application.auth.jwt")
                 class JwtProperty {
                     lateinit var secretKey: String
+                    lateinit var publicKey: String
+                    lateinit var privateKey: String
                     lateinit var iss: String
                     lateinit var claimKey: String
-                    lateinit var accessToken: AccessTokenProperty
 
                     companion object {
                         @Component
