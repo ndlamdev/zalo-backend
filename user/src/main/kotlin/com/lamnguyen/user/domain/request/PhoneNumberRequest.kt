@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.lamnguyen.user.utils.validations.ValidPhoneNumber
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-class PhoneNumberRequest {
-    @ValidPhoneNumber
-    lateinit var phoneNumber: String
+class PhoneNumberRequest(@ValidPhoneNumber var phoneNumber: String) {
+
 }

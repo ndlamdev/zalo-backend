@@ -23,6 +23,16 @@ class ApplicationProperty {
         class AuthProperty {
             lateinit var userPhoneNumber: String
             lateinit var userRoles: String
+
+            companion object {
+                @Component
+                @ConfigurationProperties("application.auth.jwt")
+                class JwtProperty {
+                    lateinit var publicKey: String
+                    lateinit var iss: String
+                    lateinit var claimKey: String
+                }
+            }
         }
     }
 }

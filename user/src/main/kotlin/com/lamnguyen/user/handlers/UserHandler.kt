@@ -12,7 +12,6 @@ import com.lamnguyen.user.domain.request.InviteAddFriendRequest
 import com.lamnguyen.user.domain.request.PhoneNumberRequest
 import com.lamnguyen.user.services.business.IInviteAddFriendService
 import com.lamnguyen.user.services.business.IUserService
-import com.lamnguyen.user.services.business.InviteAddFriendServiceImpl
 import com.lamnguyen.user.utils.helpers.ok
 import com.lamnguyen.user.utils.helpers.validate
 import formatPhoneNumber
@@ -34,14 +33,15 @@ class UserHandler(
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_SEARCH_BY_PHONE_NUMBER')")
     fun search(request: ServerRequest): Mono<ServerResponse?> {
         val phoneNumber = request.queryParam("phone_number").orElse("")
-        return validator.validate(PhoneNumberRequest().apply { this@apply.phoneNumber = phoneNumber ?: "" }) { it ->
+        return validator.validate(PhoneNumberRequest(phoneNumber))
+        {
             val phoneNumberFormat = formatPhoneNumber(it.phoneNumber)
             ReactiveSecurityContextHolder.getContext()
-                .filter { context -> context.authentication.principal != phoneNumberFormat }
+                .filter { context -> context.authentication.name != phoneNumberFormat }
                 .flatMap {
                     userService.findByPhoneNumber(phoneNumberFormat)
                 }
-        }.flatMap { it -> ok(it) }
+        }.flatMap { ok(it) }
             .switchIfEmpty(ok(null))
     }
 
@@ -49,7 +49,7 @@ class UserHandler(
     fun addFriend(request: ServerRequest): Mono<ServerResponse?> {
         return request
             .bodyToMono(InviteAddFriendRequest::class.java)
-            .flatMap { it ->
+            .flatMap {
                 validator.validate(it) { request ->
                     inviteAddFriendService.sendRequest(
                         request.phoneNumber,
