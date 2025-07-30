@@ -1,0 +1,16 @@
+package com.lamnguyen.chat.utils.validations
+
+import com.lamnguyen.chat.utils.validations.validators.PhoneNumberValidator
+import jakarta.validation.Constraint
+import jakarta.validation.Payload
+import kotlin.reflect.KClass
+
+@MustBeDocumented
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FIELD)
+@Constraint(validatedBy = [PhoneNumberValidator::class])
+annotation class ValidPhoneNumber(
+    val message: String = "Phone number invalid",
+    val groups: Array<KClass<*>> = [],
+    val payload: Array<KClass<out Payload>> = []
+)
