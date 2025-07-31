@@ -19,5 +19,4 @@ import org.springframework.context.annotation.Configuration
     bearerFormat = "JWT"
 )
 @Configuration
-class SwaggerConfig {
-}
+class SwaggerConfig

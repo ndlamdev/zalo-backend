@@ -35,6 +35,7 @@ class SecurityConfig(
     val redisTemplate: ReactiveRedisTemplate<String, Any>,
     var manager: ReactiveAuthenticationManager,
     var authenticationEntryPoint: AuthenticationEntryPoint,
+    var jwtProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty
 //    var removeBearerTokenAuthorizationFilter: RemoveBearerTokenAuthorizationFilter,
 ) {
 
@@ -48,7 +49,10 @@ class SecurityConfig(
             JwtTokenGenerateFilter(jwtHelper, refreshTokenProperty),
             SecurityWebFiltersOrder.AUTHENTICATION
         )
-        httpSecurity.addFilterBefore(CheckBlacklistTokenFilter(redisTemplate), SecurityWebFiltersOrder.AUTHORIZATION)
+        httpSecurity.addFilterBefore(
+            CheckBlacklistTokenFilter(redisTemplate, jwtProperty),
+            SecurityWebFiltersOrder.AUTHORIZATION
+        )
         httpSecurity.csrf { csrf -> csrf.disable() }
         httpSecurity.authorizeExchange { exchange ->
             exchange

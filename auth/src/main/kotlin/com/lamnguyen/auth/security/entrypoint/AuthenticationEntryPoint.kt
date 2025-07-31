@@ -11,6 +11,7 @@ package com.lamnguyen.auth.security.entrypoint
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.lamnguyen.auth.domain.dto.ApiResponseError
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.server.ServerAuthenticationEntryPoint
 import org.springframework.stereotype.Component
@@ -23,14 +24,17 @@ class AuthenticationEntryPoint : ServerAuthenticationEntryPoint {
         exchange: ServerWebExchange,
         ex: AuthenticationException
     ): Mono<Void?>? {
-        exchange.response.statusCode = HttpStatus.UNAUTHORIZED
+        exchange.response.statusCode = HttpStatus.FORBIDDEN
+        exchange.response.headers.contentType = MediaType.APPLICATION_JSON
         val apiResponse = ApiResponseError<Any>().apply {
             code = HttpStatus.FORBIDDEN.value()
+            detail = ex.message
             trace = ex.stackTrace as Any
-            error = ex.message
+            error = HttpStatus.FORBIDDEN.reasonPhrase
         }
 
         val dataBuffer = exchange.response.bufferFactory().wrap(ObjectMapper().writeValueAsBytes(apiResponse))
-        return exchange.response.writeWith(Mono.just(dataBuffer))
+        return exchange.response
+            .writeWith(Mono.just(dataBuffer))
     }
 }

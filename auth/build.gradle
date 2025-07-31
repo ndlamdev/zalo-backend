@@ -56,6 +56,8 @@ dependencies {
     implementation 'com.googlecode.libphonenumber:libphonenumber:9.0.9'
     // https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webflux-ui
     implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.9'
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
+    implementation 'org.apache.commons:commons-lang3:3.18.0'
 }
 
 allOpen {

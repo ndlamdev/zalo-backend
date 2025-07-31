@@ -40,7 +40,7 @@ class JwtTokenGenerateFilter(
                     .flatMap { it ->
                         val auth = it.authentication
                         if (auth == null || auth !is UsernamePasswordAuthenticationToken)
-                            return@flatMap chain.filter(exchange)
+                            return@flatMap Mono.just(it)
 
                         val refreshToken = jwtHelper.createRefreshToken(auth)
                         val accessToken = jwtHelper.createAccessToken(auth, refreshToken.id)
