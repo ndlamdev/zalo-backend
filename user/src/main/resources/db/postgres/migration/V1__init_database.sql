@@ -17,26 +17,31 @@ CREATE TABLE "friend_ships"
 (
     phone_number_user_1 VARCHAR(255) NOT NULL,
     phone_number_user_2 VARCHAR(255) NOT NULL,
-    created_at   TIMESTAMP,
-    created_by   VARCHAR(255),
-    updated_at   TIMESTAMP,
-    updated_by   VARCHAR(255),
-    locked       BOOL DEFAULT false,
-    deleted      BOOL DEFAULT false,
-    CONSTRAINT "friend_ships_pk" PRIMARY KEY (phone_number_user_1, phone_number_user_2)
+    created_at          TIMESTAMP,
+    created_by          VARCHAR(255),
+    updated_at          TIMESTAMP,
+    updated_by          VARCHAR(255),
+    locked              BOOL DEFAULT false,
+    deleted             BOOL DEFAULT false,
+    CONSTRAINT "friend_ships_pk" PRIMARY KEY (phone_number_user_1, phone_number_user_2),
+    CONSTRAINT "friend_ships_users_phone_number_1_fk" FOREIGN KEY (phone_number_user_1) REFERENCES users (phone_number),
+    CONSTRAINT "friend_ships_users_phone_number_2_fk" FOREIGN KEY (phone_number_user_2) REFERENCES users (phone_number)
 );
 
 CREATE TABLE "invite_add_friends"
 (
     phone_number_sender   VARCHAR(255) NOT NULL,
     phone_number_receiver VARCHAR(255) NOT NULL,
-    accepted               BOOL default false,
-    message VARCHAR(255) NULL DEFAULT 'Xin chào bạn! Chúng mình kết bạn làm quen nhé!',
-    created_at   TIMESTAMP,
-    created_by   VARCHAR(255),
-    updated_at   TIMESTAMP,
-    updated_by   VARCHAR(255),
-    locked       BOOL DEFAULT false,
-    deleted      BOOL DEFAULT false,
-    CONSTRAINT "invite_add_friends_pk" PRIMARY KEY (phone_number_sender, phone_number_receiver)
+    accepted              BOOL              default false,
+    message               VARCHAR(255) NULL DEFAULT 'Xin chào bạn! Chúng mình kết bạn làm quen nhé!',
+    created_at            TIMESTAMP,
+    created_by            VARCHAR(255),
+    updated_at            TIMESTAMP,
+    updated_by            VARCHAR(255),
+    locked                BOOL              DEFAULT false,
+    deleted               BOOL              DEFAULT false,
+    CONSTRAINT "invite_add_friends_pk" PRIMARY KEY (phone_number_sender, phone_number_receiver),
+    CONSTRAINT "friend_ships_users_phone_number_sender_fk" FOREIGN KEY (phone_number_sender) REFERENCES users (phone_number),
+    CONSTRAINT "friend_ships_users_phone_number_receiver_fk" FOREIGN KEY (phone_number_receiver) REFERENCES users (phone_number)
+
 );

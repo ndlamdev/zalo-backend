@@ -6,5 +6,5 @@ spring:
     active: local
 
 server:
-  port: ${USER_PORT:8003}
+  port: ${SERVER_PORT:8003}
 

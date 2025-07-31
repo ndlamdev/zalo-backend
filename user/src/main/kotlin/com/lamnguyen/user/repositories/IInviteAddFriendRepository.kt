@@ -10,6 +10,7 @@ package com.lamnguyen.user.repositories
 
 import com.lamnguyen.user.models.InviteAddFriend
 import org.springframework.data.r2dbc.repository.R2dbcRepository
+import org.springframework.stereotype.Repository
 
-interface IInviteAddFriendRepository : R2dbcRepository<InviteAddFriend, String> {
-}
+@Repository
+interface IInviteAddFriendRepository : R2dbcRepository<InviteAddFriend, String>

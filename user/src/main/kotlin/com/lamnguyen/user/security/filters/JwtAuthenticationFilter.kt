@@ -8,17 +8,16 @@
 
 package com.lamnguyen.user.security.filters
 
-import com.auth0.jwt.JWT
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.lamnguyen.user.domain.dto.JWTPayload
+import com.lamnguyen.user.domain.dto.ApiResponseError
+import com.lamnguyen.user.utils.helpers.JwtHelper
 import com.lamnguyen.user.utils.properties.ApplicationProperty
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
-import org.springframework.security.oauth2.jwt.JwsHeader
-import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.server.WebFilter
 import org.springframework.web.server.WebFilterChain
@@ -27,74 +26,46 @@ import reactor.core.publisher.Mono
 
 class JwtAuthenticationFilter(
     val authProperty: ApplicationProperty.Companion.AuthProperty,
-    val jwtProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty,
-    val jwsHeader: JwsHeader,
+    val jwtHelper: JwtHelper
 ) : WebFilter {
     override fun filter(
         exchange: ServerWebExchange,
         chain: WebFilterChain
     ): Mono<Void?> {
-        val jwt = intJwt(exchange)
-
-        if (jwt == null) {
-            return chain.filter(exchange)
-        }
-
-
-        val authorities = exchange
-            .request
-            .headers[authProperty.userRoles]
-            ?.map { it -> SimpleGrantedAuthority(it) }?.toMutableSet()
-            ?: mutableSetOf()
-
-
-        val payload = ObjectMapper()
-            .convertValue(
-                jwt.claims[jwtProperty.claimKey],
-                JWTPayload::class.java
-            )
-
-        payload.roles?.forEach { role ->
-            authorities.add(SimpleGrantedAuthority(role))
-        }
-
-
-        val authentication = JwtAuthenticationToken(
-            jwt,
-            authorities
-        )
-
-        val context = SecurityContextImpl(authentication)
-        val contextHolder = ReactiveSecurityContextHolder
-            .withSecurityContext(Mono.just(context))
-        return chain.filter(exchange)
-            .contextWrite(contextHolder)
-    }
-
-    fun intJwt(exchange: ServerWebExchange): Jwt? {
         val tokens = exchange.request.headers[HttpHeaders.AUTHORIZATION]
         if (tokens == null || tokens.isEmpty()) {
-            return null
+            return chain.filter(exchange)
         }
 
         val token = tokens.first().substring(7)
 
-        val decoded = JWT.decode(token)
+        try {
+            val authorities = exchange
+                .request
+                .headers[authProperty.userRoles]
+                ?.map { it -> SimpleGrantedAuthority(it) }
+                ?.toMutableSet()
+                ?: mutableSetOf()
 
-        val payload = decoded
-            .claims[jwtProperty.claimKey]
-            ?.asMap() ?: mapOf()
+            val authentication = jwtHelper.initJwtAuthenticationToken(token, authorities)
 
-        return Jwt
-            .withTokenValue(token)
-            .jti(decoded.id)
-            .expiresAt(decoded.expiresAtAsInstant)
-            .issuedAt(decoded.issuedAtAsInstant)
-            .subject(decoded.subject)
-            .issuer(decoded.issuer)
-            .headers { map ->
-                map.putAll(jwsHeader.headers)
-            }.claim(jwtProperty.claimKey, payload)
-            .build()
+            val context = SecurityContextImpl(authentication)
+            val contextHolder = ReactiveSecurityContextHolder
+                .withSecurityContext(Mono.just(context))
+            return chain.filter(exchange)
+                .contextWrite(contextHolder)
+        } catch (e: Exception) {
+            val bufferFactory = exchange.response.bufferFactory()
+            exchange.response.statusCode = HttpStatus.FORBIDDEN
+            exchange.response.headers.contentType = MediaType.APPLICATION_JSON
+            val bodyResponse = ApiResponseError<Any>().apply {
+                code = HttpStatus.FORBIDDEN.value()
+                error = HttpStatus.FORBIDDEN.reasonPhrase
+                detail = e.localizedMessage
+                trace = e.stackTrace
+            }
+            val response = bufferFactory.wrap(ObjectMapper().writeValueAsBytes(bodyResponse))
+            return exchange.response.writeWith(Mono.just(response))
+        }
     }
 }

@@ -14,11 +14,9 @@ import com.lamnguyen.user.exceptions.ExceptionEnum
 import com.lamnguyen.user.models.InviteAddFriend
 import com.lamnguyen.user.repositories.IInviteAddFriendRepository
 import com.lamnguyen.user.services.kafka.INotificationKafkaProducer
-import com.lamnguyen.user.services.kafka.NotificationKafkaProducerImpl
 import formatPhoneNumber
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.stereotype.Service
-import org.springframework.validation.Validator
 import reactor.core.publisher.Mono
 
 @Service
