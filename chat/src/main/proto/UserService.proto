@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.lamnguyen.chat.protos";
+option java_outer_classname = "UserProto";
+
+service UserService {
+  rpc CheckFriendShip(FriendShipCheckRequest) returns(FriendShipCheckResponse);
+}
+
+message FriendShipCheck{
+  string phone_number_checker = 1;
+  string phone_number_friend = 2;
+}
+
+message FriendShipCheckRequest{
+  repeated FriendShipCheck friend_ships = 1;
+}
+
+message FriendShipCheckResult {
+  string phone_number_checker = 1;
+  string phone_number_friend = 2;
+  bool result = 3;
+}
+
+message FriendShipCheckResponse {
+  repeated FriendShipCheckResult result = 1;
+}
