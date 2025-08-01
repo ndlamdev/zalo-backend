@@ -14,7 +14,7 @@ import com.lamnguyen.user.protos.UserServiceGrpc
 import com.lamnguyen.user.services.business.IFriendShipService
 import com.lamnguyen.user.utils.annotation.GrpcPreAuthorizeHasAnyAuthority
 import io.grpc.stub.StreamObserver
-import org.springframework.grpc.server.service.GrpcService
+import net.devh.boot.grpc.server.service.GrpcService
 
 @GrpcService
 class UserGrpcServiceImpl(

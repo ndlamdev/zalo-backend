@@ -8,7 +8,7 @@
 
 package com.lamnguyen.user.configs.grpc.interceptors
 
-import com.lamnguyen.user.services.grpc.UserGrpcServiceImpl
+import com.lamnguyen.user.configs.grpc.registor.GrpcAuthorizationInterceptorManager
 import com.lamnguyen.user.utils.annotation.GrpcPreAuthorizeHasAnyAuthority
 import io.grpc.*
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -16,18 +16,30 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 
 @Component
-class AuthorizationInterceptor : ServerInterceptor {
+class AuthorizationInterceptor(
+    var grpcAuthenticationRegister: GrpcAuthorizationInterceptorManager = GrpcAuthorizationInterceptorManager()
+) : ServerInterceptor {
     override fun <ReqT : Any?, RespT : Any?> interceptCall(
         serverCall: ServerCall<ReqT, RespT>,
         metaData: Metadata,
         serverCallHandler: ServerCallHandler<ReqT, RespT>
     ): ServerCall.Listener<ReqT?>? {
-        val annotation = serverCall.methodDescriptor.bareMethodName?.let {
-            val clazz = UserGrpcServiceImpl::class.java
-            clazz.methods.find { method ->
-                method.name.equals(it, true)
-            }?.getAnnotation(GrpcPreAuthorizeHasAnyAuthority::class.java)
-        }
+        val clazz = serverCall.methodDescriptor
+            .serviceName
+            ?.let {
+                grpcAuthenticationRegister.getClass(it)
+            }
+
+        if (clazz == null)
+            return serverCallHandler.startCall(serverCall, metaData)
+
+        val annotation = serverCall.methodDescriptor
+            .bareMethodName
+            ?.let {
+                clazz.methods.find { method ->
+                    method.name.equals(it, true)
+                }?.getAnnotation(GrpcPreAuthorizeHasAnyAuthority::class.java)
+            }
 
         if (annotation == null)
             return serverCallHandler.startCall(serverCall, metaData)

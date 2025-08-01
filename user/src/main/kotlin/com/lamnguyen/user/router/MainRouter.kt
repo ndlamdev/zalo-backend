@@ -27,7 +27,7 @@ import org.springframework.web.reactive.function.server.RouterFunctions
 import org.springframework.web.reactive.function.server.ServerResponse
 
 @Configuration(proxyBeanMethods = false)
-class UserRouter(val userHandler: UserHandler) {
+class MainRouter(val userHandler: UserHandler) {
 
     @RouterOperations(
         RouterOperation(

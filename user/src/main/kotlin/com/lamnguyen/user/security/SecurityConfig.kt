@@ -17,6 +17,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.web.server.SecurityWebFilterChain
+import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
 
 @Configuration
 @EnableReactiveMethodSecurity
@@ -36,6 +37,8 @@ class SecurityConfig(
                 exchange.pathMatchers(*applicationProperty.whitelist.toTypedArray()).permitAll()
                     .anyExchange().authenticated()
             }
+            .csrf { csrf -> csrf.disable() }
+            .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
             .build()
     }
 

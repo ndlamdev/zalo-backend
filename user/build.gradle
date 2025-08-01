@@ -45,7 +45,6 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.grpc:spring-grpc-spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
     compileOnly 'org.projectlombok:lombok'
@@ -60,18 +59,13 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.10.1'
     implementation 'com.googlecode.libphonenumber:libphonenumber:9.0.9'
-    // https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webflux-ui
     implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.9'
-    // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
     implementation 'org.apache.commons:commons-lang3:3.18.0'
-    // https://mvnrepository.com/artifact/com.auth0/java-jwt
+    implementation 'net.devh:grpc-server-spring-boot-starter:3.1.0.RELEASE'
     implementation "com.google.protobuf:protobuf-java:${protobufVersion}"
-    // https://mvnrepository.com/artifact/io.grpc/grpc-stub
     implementation "io.grpc:grpc-stub:${grpcVersion}"
-    // https://mvnrepository.com/artifact/org.mapstruct/mapstruct
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
-    // https://mvnrepository.com/artifact/org.mapstruct/mapstruct-processor
-    kapt  "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+    kapt "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 }
 
 kotlin {

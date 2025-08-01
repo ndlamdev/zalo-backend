@@ -11,9 +11,8 @@ package com.lamnguyen.user.configs.grpc.interceptors
 import com.lamnguyen.user.utils.helpers.JwtHelper
 import com.lamnguyen.user.utils.properties.ApplicationProperty
 import io.grpc.*
+import net.devh.boot.grpc.server.interceptor.GrpcGlobalServerInterceptor
 import org.springframework.core.Ordered
-import org.springframework.grpc.server.GlobalServerInterceptor
-import org.springframework.grpc.server.security.GrpcSecurity
 import org.springframework.http.HttpHeaders
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -21,7 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 
 @Component
-@GlobalServerInterceptor
+@GrpcGlobalServerInterceptor
 class AuthenticationInterceptor(
     val authProperty: ApplicationProperty.Companion.AuthProperty,
     val jwtHelper: JwtHelper,
@@ -45,7 +44,7 @@ class AuthenticationInterceptor(
         }
     }
 
-    override fun getOrder(): Int = GrpcSecurity.CONTEXT_FILTER_ORDER - 10
+    override fun getOrder(): Int = -10
 
     private fun extractToken(metaData: Metadata): Authentication? {
         val bearerToken = metaData.get(
