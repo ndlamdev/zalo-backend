@@ -6,10 +6,10 @@
  *  User: kimin
  **/
 
-package com.lamnguyen.user.exceptions
+package com.lamnguyen.chat.exceptions
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.lamnguyen.user.domain.dto.ApiResponseError
+import com.lamnguyen.chat.domain.dto.ApiResponseError
 import io.grpc.StatusRuntimeException
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler
@@ -62,7 +62,7 @@ class GlobalException(
 
             is StatusRuntimeException -> {
                 response.code = ex.status.code.value()
-                response.error = ex.status.code.name
+                response.error = "Grpc error: ${ex.status.code.name}"
                 response.detail = ex.localizedMessage
             }
 

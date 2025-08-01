@@ -16,6 +16,7 @@ import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
+import org.springframework.web.reactive.resource.NoResourceFoundException
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
@@ -44,7 +45,15 @@ class GlobalException(
                 response.detail = ex.detail
             }
 
+            is NoResourceFoundException -> {
+                exchange.response.statusCode = HttpStatus.NOT_FOUND
+                response.code = HttpStatus.NOT_FOUND.value()
+                response.error = HttpStatus.NOT_FOUND.name
+                response.detail = ex.reason
+            }
+
             is ResponseStatusException -> {
+                exchange.response.statusCode = HttpStatus.PAYMENT_REQUIRED
                 response.code = HttpStatus.PAYMENT_REQUIRED.value()
                 response.error = HttpStatus.PAYMENT_REQUIRED.name
                 response.detail = ObjectMapper().readValue(ex.reason, Any::class.java)
