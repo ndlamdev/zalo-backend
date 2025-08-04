@@ -24,13 +24,13 @@ class AuthenticationEntryPoint : ServerAuthenticationEntryPoint {
         exchange: ServerWebExchange,
         ex: AuthenticationException
     ): Mono<Void?>? {
-        exchange.response.statusCode = HttpStatus.FORBIDDEN
+        exchange.response.statusCode = HttpStatus.UNAUTHORIZED
         exchange.response.headers.contentType = MediaType.APPLICATION_JSON
         val apiResponse = ApiResponseError<Any>().apply {
-            code = HttpStatus.FORBIDDEN.value()
+            code = HttpStatus.UNAUTHORIZED.value()
             detail = ex.message
             trace = ex.stackTrace as Any
-            error = HttpStatus.FORBIDDEN.reasonPhrase
+            error = HttpStatus.UNAUTHORIZED.reasonPhrase
         }
 
         val dataBuffer = exchange.response.bufferFactory().wrap(ObjectMapper().writeValueAsBytes(apiResponse))

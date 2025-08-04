@@ -56,11 +56,11 @@ class JwtAuthenticationFilter(
                 .contextWrite(contextHolder)
         } catch (e: Exception) {
             val bufferFactory = exchange.response.bufferFactory()
-            exchange.response.statusCode = HttpStatus.FORBIDDEN
+            exchange.response.statusCode = HttpStatus.UNAUTHORIZED
             exchange.response.headers.contentType = MediaType.APPLICATION_JSON
             val bodyResponse = ApiResponseError<Any>().apply {
-                code = HttpStatus.FORBIDDEN.value()
-                error = HttpStatus.FORBIDDEN.reasonPhrase
+                code = HttpStatus.UNAUTHORIZED.value()
+                error = HttpStatus.UNAUTHORIZED.reasonPhrase
                 detail = e.localizedMessage
                 trace = e.stackTrace
             }

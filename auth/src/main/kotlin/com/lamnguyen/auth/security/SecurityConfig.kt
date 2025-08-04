@@ -13,6 +13,7 @@ import com.lamnguyen.auth.security.entrypoint.AuthenticationEntryPoint
 import com.lamnguyen.auth.security.filters.CheckBlacklistTokenFilter
 import com.lamnguyen.auth.security.filters.JwtTokenGenerateFilter
 import com.lamnguyen.auth.security.filters.UsernamePasswordJsonAuthenticationFilter
+import com.lamnguyen.auth.security.handler.CustomAccessDeniedHandler
 import com.lamnguyen.auth.service.redis.v1.AccessTokenManager
 import com.lamnguyen.auth.utils.helpers.JwtHelper
 import com.lamnguyen.auth.utils.properties.ApplicationProperty
@@ -35,6 +36,7 @@ class SecurityConfig(
     var manager: ReactiveAuthenticationManager,
     var authenticationEntryPoint: AuthenticationEntryPoint,
     val accessTokenManager: AccessTokenManager,
+    val customAccessDeniedHandler: CustomAccessDeniedHandler
 //    var removeBearerTokenAuthorizationFilter: RemoveBearerTokenAuthorizationFilter,
 ) {
 
@@ -65,6 +67,10 @@ class SecurityConfig(
                 }
                 authenticationEntryPoint(authenticationEntryPoint)
             }
+        }
+        httpSecurity.exceptionHandling {
+            it.accessDeniedHandler(customAccessDeniedHandler)
+            it.authenticationEntryPoint(authenticationEntryPoint)
         }
         httpSecurity.httpBasic { httpBasic -> httpBasic.authenticationEntryPoint(authenticationEntryPoint) }
         httpSecurity.securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
