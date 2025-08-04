@@ -87,7 +87,7 @@ class AuthServiceImpl(
 
                 val accessTokenId = UUID.randomUUID().toString()
                 val refreshTokenId = UUID.randomUUID().toString()
-                val monoAccessToken = createToken(accessTokenId, phoneNumberFormated, refreshToken)
+                val monoAccessToken = createToken(accessTokenId, phoneNumberFormated, refreshTokenId)
                 val newRefreshToken = jwtHelper.createRefreshToken(refreshTokenId, phoneNumberFormated, accessTokenId)
                 return@flatMap Mono.zip(
                     accessTokenManager.saveTokenInBlackList(payload.accessTokenId ?: ""),

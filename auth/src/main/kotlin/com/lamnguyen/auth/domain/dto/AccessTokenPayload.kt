@@ -9,6 +9,7 @@
 package com.lamnguyen.auth.domain.dto
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.lamnguyen.auth.utils.enums.Keyword
 import org.springframework.security.core.Authentication
 import java.util.stream.Collectors
 
@@ -24,6 +25,7 @@ class AccessTokenPayload : SimplePayload() {
                 this@apply.phoneNumber = phoneNumber
                 this@apply.refreshTokenId = refreshTokenId
                 this@apply.roles = roles.stream()
+                    .map { "${Keyword.PREFIX_ROLE.value}${it}" }
                     .collect(Collectors.toSet())
             }
         }
