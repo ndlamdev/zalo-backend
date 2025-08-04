@@ -8,6 +8,7 @@
 
 package com.lamnguyen.auth.security.filters
 
+import com.lamnguyen.auth.domain.responses.TokenResponse
 import com.lamnguyen.auth.utils.helpers.JwtHelper
 import com.lamnguyen.auth.utils.properties.ApplicationProperty
 import org.springframework.http.HttpMethod
@@ -19,7 +20,9 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.server.WebFilter
 import org.springframework.web.server.WebFilterChain
+import parsePhoneNumber
 import reactor.core.publisher.Mono
+import java.util.*
 
 class JwtTokenGenerateFilter(
     val jwtHelper: JwtHelper,
@@ -37,24 +40,33 @@ class JwtTokenGenerateFilter(
             .flatMap {
                 ReactiveSecurityContextHolder
                     .getContext()
-                    .flatMap { it ->
+                    .map {
                         val auth = it.authentication
                         if (auth == null || auth !is UsernamePasswordAuthenticationToken)
-                            return@flatMap Mono.just(it)
+                            return@map it
 
-                        val refreshToken = jwtHelper.createRefreshToken(auth)
-                        val accessToken = jwtHelper.createAccessToken(auth, refreshToken.id)
+                        val refreshTokenId = UUID.randomUUID().toString()
+                        val accessTokenId = UUID.randomUUID().toString()
+                        val refreshToken = jwtHelper.createRefreshToken(refreshTokenId, auth.name, accessTokenId)
+                        val accessToken = jwtHelper.createAccessToken(accessTokenId, auth, refreshTokenId)
 
                         val refreshTokenCookie =
-                            ResponseCookie.from("REFRESH-TOKEN", refreshToken.tokenValue).apply {
+                            ResponseCookie.from("REFRESH_TOKEN", refreshToken.tokenValue).apply {
                                 maxAge(refreshTokenProperty.expires * 60000)
                                 httpOnly(true)
                                 secure(true)
                             }.build()
 
                         exchange.response.addCookie(refreshTokenCookie)
-                        exchange.attributes["ACCESS_TOKEN"] = accessToken.tokenValue
-                        Mono.just(it)
+                        val phoneNumber = parsePhoneNumber(auth.name)
+                        val response = TokenResponse(
+                            phoneNumber.nationalNumber,
+                            phoneNumber.countryCode,
+                            accessToken.tokenValue,
+                            ""
+                        )
+                        exchange.attributes["TOKEN_RESPONSE"] = response
+                        it
                     }
             }
             .then(chain.filter(exchange))

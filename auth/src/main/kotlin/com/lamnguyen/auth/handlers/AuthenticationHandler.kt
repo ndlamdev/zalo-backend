@@ -10,10 +10,15 @@ package com.lamnguyen.auth.handlers
 
 import com.lamnguyen.auth.domain.requests.PhoneNumberRequest
 import com.lamnguyen.auth.domain.requests.RegisterRequest
+import com.lamnguyen.auth.exceptions.ApplicationException
+import com.lamnguyen.auth.exceptions.ExceptionEnum
 import com.lamnguyen.auth.service.business.IAuthService
+import com.lamnguyen.auth.utils.helpers.error
 import com.lamnguyen.auth.utils.helpers.ok
 import com.lamnguyen.auth.utils.helpers.validate
 import com.lamnguyen.auth.utils.properties.ApplicationProperty
+import org.springframework.http.HttpHeaders
+import org.springframework.http.ResponseCookie
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
@@ -27,15 +32,12 @@ import reactor.core.publisher.Mono
 class AuthenticationHandler(
     val authService: IAuthService,
     val validator: Validator,
-    val authProperty: ApplicationProperty.Companion.AuthProperty
+    val authProperty: ApplicationProperty.Companion.AuthProperty,
+    val refreshTokenProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty.Companion.RefreshTokenProperty
 ) {
     fun login(request: ServerRequest): Mono<ServerResponse?> {
         return ok(
-            mapOf(
-                "phone_number_code" to request.attributes()["PHONE_NUMBER_CODE"],
-                "phone_number" to request.attributes()["PHONE_NUMBER"],
-                "access_token" to request.attributes()["ACCESS_TOKEN"],
-            )
+            request.attributes()["TOKEN_RESPONSE"],
         )
     }
 
@@ -65,5 +67,23 @@ class AuthenticationHandler(
                     authService.hasPhoneNumber(it.phoneNumber)
                 }
             }.then(ok(null))
+    }
+
+    fun resign(request: ServerRequest): Mono<ServerResponse?> {
+        val refreshToken = request.cookies().getOrDefault("REFRESH_TOKEN", null)?.get(0)
+        if (refreshToken == null)
+            return error(ApplicationException(ExceptionEnum.MISSING_REFRESH_TOKEN), null, null, null)
+        return authService.resign(refreshToken.value)
+            .flatMap { tokenResponse ->
+                val refreshTokenCookie =
+                    ResponseCookie.from("REFRESH_TOKEN", tokenResponse.refreshToken).apply {
+                        maxAge(refreshTokenProperty.expires * 60000)
+                        httpOnly(true)
+                        secure(true)
+                    }.build()
+                ok(tokenResponse) {
+                    it.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                }
+            }
     }
 }

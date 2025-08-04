@@ -6,30 +6,30 @@
  *  User: kimin
  **/
 
-package com.lamnguyen.chat.domain.dto
+package com.lamnguyen.auth.domain.dto
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.GrantedAuthority
 import java.util.stream.Collectors
 
-class JWTPayload : SimplePayload() {
+class AccessTokenPayload : SimplePayload() {
     var refreshTokenId: String? = null
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     var roles: MutableSet<String?>? = null
 
     companion object {
-        fun generateForAccessToken(authentication: Authentication): JWTPayload {
-            return JWTPayload().apply {
-                phoneNumber = authentication.name
-                roles = authentication.authorities.stream().map { obj: GrantedAuthority? -> obj!!.authority }
+        fun generateToken(phoneNumber: String, roles: List<String>, refreshTokenId: String): AccessTokenPayload {
+            return AccessTokenPayload().apply {
+                this@apply.phoneNumber = phoneNumber
+                this@apply.refreshTokenId = refreshTokenId
+                this@apply.roles = roles.stream()
                     .collect(Collectors.toSet())
             }
         }
 
-        fun generateForAccessToken(authentication: Authentication, refreshTokenId: String?): JWTPayload {
-            return JWTPayload().apply {
+        fun generateToken(authentication: Authentication, refreshTokenId: String?): AccessTokenPayload {
+            return AccessTokenPayload().apply {
                 phoneNumber = authentication.name
                 this@apply.refreshTokenId = refreshTokenId
                 this@apply.roles =

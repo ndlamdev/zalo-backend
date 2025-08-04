@@ -95,6 +95,16 @@ class AuthenticationRouter {
                 )
             )
         ),
+        RouterOperation(
+            path = "/v1/resign",
+            method = [RequestMethod.POST],
+            beanClass = AuthenticationHandler::class,
+            beanMethod = "resign",
+            operation = Operation(
+                operationId = "resign",
+                security = [SecurityRequirement(name = "cookie-auth")],
+            )
+        ),
     )
     fun authenticationRoute(authenticationHandler: AuthenticationHandler): RouterFunction<ServerResponse?> {
         return RouterFunctions
@@ -104,6 +114,7 @@ class AuthenticationRouter {
                 v1.POST("/register", authenticationHandler::register)
                 v1.POST("/validate", authenticationHandler::validate)
                 v1.POST("/check-phone-number", authenticationHandler::checkPhoneNumber)
+                v1.POST("/resign", authenticationHandler::resign)
             }
             .build()
     }

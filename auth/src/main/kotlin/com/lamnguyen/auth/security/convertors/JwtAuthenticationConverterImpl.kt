@@ -9,7 +9,7 @@
 package com.lamnguyen.auth.security.convertors
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.lamnguyen.auth.domain.dto.JWTPayload
+import com.lamnguyen.auth.domain.dto.AccessTokenPayload
 import com.lamnguyen.auth.repositories.IPermissionRepository
 import com.lamnguyen.auth.utils.enums.Keyword
 import com.lamnguyen.auth.utils.properties.ApplicationProperty
@@ -30,7 +30,7 @@ class JwtAuthenticationConverterImpl(
 ) : Converter<Jwt, Mono<AbstractAuthenticationToken>> {
     override fun convert(source: Jwt): Mono<AbstractAuthenticationToken>? {
         val body = source.getClaim<Map<String, Any>>(jwtProperty.claimKey)
-        val payload =objectMapper.convertValue(body, JWTPayload::class.java)
+        val payload = objectMapper.convertValue(body, AccessTokenPayload::class.java)
 
         return Flux.fromIterable(payload.roles.orEmpty())
             .flatMap { roleName ->

@@ -8,22 +8,20 @@
 
 package com.lamnguyen.auth.security.filters
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.lamnguyen.auth.domain.dto.JWTPayload
-import com.lamnguyen.auth.utils.enums.JwtTokenType
-import com.lamnguyen.auth.utils.enums.Keyword
-import com.lamnguyen.auth.utils.properties.ApplicationProperty
-import org.springframework.data.redis.core.ReactiveRedisTemplate
+import com.lamnguyen.auth.exceptions.ApplicationException
+import com.lamnguyen.auth.exceptions.ExceptionEnum
+import com.lamnguyen.auth.service.redis.v1.AccessTokenManager
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.server.WebFilter
 import org.springframework.web.server.WebFilterChain
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 class CheckBlacklistTokenFilter(
-    val redisTemplate: ReactiveRedisTemplate<String, Any>,
-    val jwtProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty
+    val accessTokenManager: AccessTokenManager,
 ) : WebFilter {
     override fun filter(
         exchange: ServerWebExchange,
@@ -35,35 +33,19 @@ class CheckBlacklistTokenFilter(
             if (authentication !is JwtAuthenticationToken)
                 return@flatMap Mono.empty()
 
-            val payload =
-                ObjectMapper().convertValue(authentication.token.getClaim(jwtProperty.claimKey), JWTPayload::class.java)
-                    ?: return@flatMap Mono.error(RuntimeException("Missing JWT payload"))
-
             val issuedAt = authentication.token.issuedAt?.epochSecond
                 ?: return@flatMap Mono.error(RuntimeException("Missing token issuedAt"))
 
             Mono.zip(
-                redisTemplate.opsForValue()
-                    .get(Keyword.CHANGE_PASSWORD.name)
-                    .cast(Long::class.java),
-
-                redisTemplate.opsForValue()
-                    .get("${JwtTokenType.ACCESS.name}_${payload.phoneNumber}")
-                    .cast(Long::class.java)
+                accessTokenManager.hasChangePassword(authentication.name, issuedAt).defaultIfEmpty(false),
+                accessTokenManager.existsTokenInBlackList(authentication.token.id).defaultIfEmpty(false),
             )
-                .flatMap { tuple ->
-                    val changePassword = tuple.t1
-                    val blacklistedToken = tuple.t2
-
-                    if (issuedAt <= changePassword) {
-                        return@flatMap Mono.error(RuntimeException("Token issued before password change"))
+                .flatMap { (hasChangedPassword, isBlacklisted) ->
+                    when {
+                        hasChangedPassword -> Mono.error(ApplicationException(ExceptionEnum.WRONG_TOKEN_EXPIRED))
+                        isBlacklisted -> Mono.error(ApplicationException(ExceptionEnum.BLACKLIST_TOKEN))
+                        else -> Mono.empty<Void>()
                     }
-
-                    if (blacklistedToken != null) {
-                        return@flatMap Mono.error(RuntimeException("Token has been blacklisted"))
-                    }
-
-                    return@flatMap Mono.empty<Void>()
                 }
         }.then(chain.filter(exchange))
     }

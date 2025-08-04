@@ -8,7 +8,9 @@
 
 package com.lamnguyen.auth.exceptions
 
-class ApplicationException(enum: ExceptionEnum) : Throwable(enum.message) {
+import com.fasterxml.jackson.annotation.JsonInclude
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+class ApplicationException(enum: ExceptionEnum, val detail: Any? = null) : Throwable(enum.message) {
     var code: Int = enum.code
-    var detail: Any? = null
 }

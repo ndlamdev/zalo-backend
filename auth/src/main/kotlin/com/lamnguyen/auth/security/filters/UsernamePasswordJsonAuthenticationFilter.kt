@@ -30,9 +30,6 @@ class UsernamePasswordJsonAuthenticationFilter(path: String, manage: ReactiveAut
                 .map { dataBuffer ->
                     val bodyStr = dataBuffer.toString(UTF_8)
                     val loginRequest = ObjectMapper().readValue(bodyStr, LoginRequest::class.java)
-                    val phoneNumberData = loginRequest.phoneNumber.split("/")
-                    ex.request.attributes["PHONE_NUMBER_CODE"] = phoneNumberData[0]
-                    ex.request.attributes["PHONE_NUMBER"] = phoneNumberData[1]
                     UsernamePasswordAuthenticationToken(loginRequest.phoneNumber, loginRequest.password)
                 }
         }

@@ -13,11 +13,11 @@ import com.lamnguyen.auth.security.entrypoint.AuthenticationEntryPoint
 import com.lamnguyen.auth.security.filters.CheckBlacklistTokenFilter
 import com.lamnguyen.auth.security.filters.JwtTokenGenerateFilter
 import com.lamnguyen.auth.security.filters.UsernamePasswordJsonAuthenticationFilter
+import com.lamnguyen.auth.service.redis.v1.AccessTokenManager
 import com.lamnguyen.auth.utils.helpers.JwtHelper
 import com.lamnguyen.auth.utils.properties.ApplicationProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
@@ -32,10 +32,9 @@ class SecurityConfig(
     var jwtAuthenticationConverter: JwtAuthenticationConverterImpl,
     val jwtHelper: JwtHelper,
     val refreshTokenProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty.Companion.RefreshTokenProperty,
-    val redisTemplate: ReactiveRedisTemplate<String, Any>,
     var manager: ReactiveAuthenticationManager,
     var authenticationEntryPoint: AuthenticationEntryPoint,
-    var jwtProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty
+    val accessTokenManager: AccessTokenManager,
 //    var removeBearerTokenAuthorizationFilter: RemoveBearerTokenAuthorizationFilter,
 ) {
 
@@ -50,7 +49,7 @@ class SecurityConfig(
             SecurityWebFiltersOrder.AUTHENTICATION
         )
         httpSecurity.addFilterBefore(
-            CheckBlacklistTokenFilter(redisTemplate, jwtProperty),
+            CheckBlacklistTokenFilter(accessTokenManager),
             SecurityWebFiltersOrder.AUTHORIZATION
         )
         httpSecurity.csrf { csrf -> csrf.disable() }

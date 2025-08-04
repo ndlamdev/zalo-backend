@@ -37,16 +37,16 @@ fun <T : Any> ok(
     }))
 }
 
-fun <T : Any> error(
+inline fun <reified T : Any> error(
     ex: Throwable,
     code: Int?,
     message: String?,
     detail: T?
-): Mono<ServerResponse> {
+): Mono<ServerResponse?> {
     return ServerResponse.ok().body(BodyInserters.fromValue(ApiResponseError<T>().apply {
         this.code = code ?: 400
         error = message ?: ex.message
-        this.detail = ObjectMapper().readValue(detail?.toString() ?: "{}", Any::class.java) as T?
+        this.detail = ObjectMapper().readValue(detail?.toString() ?: "{}", T::class.java)
         trace = ex.stackTrace
     }))
 }

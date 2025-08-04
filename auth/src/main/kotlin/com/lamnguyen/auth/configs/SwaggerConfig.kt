@@ -8,6 +8,7 @@
 
 package com.lamnguyen.auth.configs
 
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType
 import io.swagger.v3.oas.annotations.security.SecurityScheme
 import org.springframework.context.annotation.Configuration
@@ -17,6 +18,11 @@ import org.springframework.context.annotation.Configuration
     type = SecuritySchemeType.HTTP,
     scheme = "bearer",
     bearerFormat = "JWT"
+)
+@SecurityScheme(
+    name = "cookie-auth",
+    type = SecuritySchemeType.APIKEY,
+    `in` = SecuritySchemeIn.COOKIE
 )
 @Configuration
 class SwaggerConfig
