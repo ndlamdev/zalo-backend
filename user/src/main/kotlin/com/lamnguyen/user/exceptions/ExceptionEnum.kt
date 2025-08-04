@@ -9,9 +9,10 @@
 package com.lamnguyen.user.exceptions
 
 enum class ExceptionEnum(val code: Int, val message: String) {
-    CREATE_USER_FAILED(11, "Create User Failed"),
-    UNAUTHENTICATED(12, "Unauthenticated"),
-    INVITE_ADD_FRIEND_FAILED(13, "Add Friend Failed"),
-    USER_NOT_FOUND(14, "User Not Found"),
-    INVITE_EXISTS(15, "Invite Exists"),
+    CREATE_USER_FAILED(3001, "Create User Failed"),
+    UNAUTHENTICATED(3002, "Unauthenticated"),
+    INVITE_ADD_FRIEND_FAILED(3003, "Add Friend Failed"),
+    USER_NOT_FOUND(3004, "User Not Found"),
+    INVITE_EXISTS(3005, "Invite Exists"),
+    ERROR_FORMAT_PHONE_NUMBER(3006, "User already exists!"),
 }

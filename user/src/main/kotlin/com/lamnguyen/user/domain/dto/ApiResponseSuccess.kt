@@ -8,6 +8,9 @@
 
 package com.lamnguyen.user.domain.dto
 
+import com.fasterxml.jackson.annotation.JsonInclude
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 class ApiResponseSuccess<T : Any> : ApiResponse<T>() {
     lateinit var message: String
     var data: T? = null

@@ -8,6 +8,9 @@
 
 package com.lamnguyen.chat.exceptions
 
+import com.fasterxml.jackson.annotation.JsonInclude
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 class ApplicationException(enum: ExceptionEnum) : Throwable(enum.message) {
     var code: Int = enum.code
     var detail: Any? = null

@@ -9,7 +9,7 @@
 package com.lamnguyen.chat.utils.helpers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.lamnguyen.chat.domain.dto.JWTPayload
+import com.lamnguyen.chat.domain.dto.AccessTokenPayload
 import com.lamnguyen.chat.utils.properties.ApplicationProperty
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.jwt.Jwt
@@ -39,7 +39,7 @@ class JwtHelper(
         val payload = ObjectMapper()
             .convertValue(
                 jwt.claims[jwtProperty.claimKey],
-                JWTPayload::class.java
+                AccessTokenPayload::class.java
             )
 
         payload.roles?.forEach { role ->

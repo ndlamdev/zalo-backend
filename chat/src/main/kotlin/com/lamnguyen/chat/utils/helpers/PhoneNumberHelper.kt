@@ -1,5 +1,7 @@
 import com.google.i18n.phonenumbers.PhoneNumberUtil
 import com.google.i18n.phonenumbers.Phonenumber
+import com.lamnguyen.chat.exceptions.ApplicationException
+import com.lamnguyen.chat.exceptions.ExceptionEnum
 
 /**
  * Nguyen Dinh Lam
@@ -9,28 +11,35 @@ import com.google.i18n.phonenumbers.Phonenumber
  *  User: kimin
  **/
 
-fun initPhoneNumber(value: String?): Phonenumber.PhoneNumber? {
-    if (value == null) return null
-    val data = value.replace(Regex("[*?_\\-.,\\s]+"), "").split("/")
-    if (data.size != 2) return null
+fun initPhoneNumber(value: String?): Phonenumber.PhoneNumber {
     return try {
-        Phonenumber.PhoneNumber().apply {
-            countryCode = data[0].toInt()
-            nationalNumber = data[1].toLong()
+        parsePhoneNumber(value)
+    } catch (_: Exception) {
+        val data = value!!.replace(Regex("[*?_\\-.,\\s]+"), "").split("/")
+        try {
+            Phonenumber.PhoneNumber().apply {
+                countryCode = data[0].toInt()
+                nationalNumber = data[1].toLong()
+            }
+        } catch (_: Exception) {
+            throw ApplicationException(ExceptionEnum.ERROR_FORMAT_PHONE_NUMBER)
         }
-    } catch (e: NumberFormatException) {
-        null
     }
 }
 
-fun formatPhoneNumber(value: String?): String? {
+fun parsePhoneNumber(value: String?): Phonenumber.PhoneNumber {
+    val phoneUtil = PhoneNumberUtil.getInstance()
+    if (value == null || !value.startsWith("+"))
+        throw ApplicationException(ExceptionEnum.ERROR_FORMAT_PHONE_NUMBER)
+    return phoneUtil.parse(value, null)
+}
+
+fun formatPhoneNumber(value: String?): String {
     val phoneNumber = initPhoneNumber(value)
-    if (phoneNumber == null) return null
     return PhoneNumberUtil.getInstance().format(phoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164)
 }
 
 fun validatePhoneNumber(value: String?): Boolean {
     val phoneNumber = initPhoneNumber(value)
-    if (phoneNumber == null) return false
     return PhoneNumberUtil.getInstance().isPossibleNumberForType(phoneNumber, PhoneNumberUtil.PhoneNumberType.MOBILE)
 }

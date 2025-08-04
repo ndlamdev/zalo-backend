@@ -8,11 +8,9 @@
 
 package com.lamnguyen.user.exceptions
 
-class ApplicationException(enum: ExceptionEnum) : Throwable(enum.message) {
-    var code: Int = enum.code
-    var detail: Any? = null
+import com.fasterxml.jackson.annotation.JsonInclude
 
-    constructor(enum: ExceptionEnum, detail: Any? = null) : this(enum) {
-        this.detail = detail
-    }
+@JsonInclude(JsonInclude.Include.NON_NULL)
+class ApplicationException(enum: ExceptionEnum, val detail: Any? = null) : Throwable(enum.message) {
+    var code: Int = enum.code
 }

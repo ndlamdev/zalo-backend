@@ -9,5 +9,6 @@
 package com.lamnguyen.chat.exceptions
 
 enum class ExceptionEnum(val code: Int, val message: String) {
-    LIST_MEMBER_IS_EMPTY(44, "List member is empty!"),
+    ERROR_FORMAT_PHONE_NUMBER(4001, "User already exists!"),
+    LIST_MEMBER_IS_EMPTY(4002, "List member is empty!"),
 }

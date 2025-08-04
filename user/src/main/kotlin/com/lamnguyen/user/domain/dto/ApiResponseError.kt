@@ -8,6 +8,9 @@
 
 package com.lamnguyen.user.domain.dto
 
+import com.fasterxml.jackson.annotation.JsonInclude
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 class ApiResponseError<T : Any> : ApiResponse<T>() {
     var error: String? = null
     var detail: T? = null

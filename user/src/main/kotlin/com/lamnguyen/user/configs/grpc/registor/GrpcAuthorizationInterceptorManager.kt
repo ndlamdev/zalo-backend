@@ -6,9 +6,9 @@
  *  User: kimin
  **/
 
-package com.lamnguyen.user.configs.grpc.registor;
+package com.lamnguyen.user.configs.grpc.registor
 
-class GrpcAuthorizationInterceptorManager(vararg val clazzRegister: Class<*>) {
+class GrpcAuthorizationInterceptorManager(vararg clazzRegister: Class<*>) {
     private val mapper = mutableMapOf<String, Class<*>>()
 
     init {

@@ -65,7 +65,7 @@ class ChatHandler(
                             }.flatMap {
                                 roomChatMemberService
                                     .addMember(romChat.id ?: 0, auth.name)
-                                    .map { romChat }
+                                    .thenReturn(romChat)
                             }
                             .onErrorResume {
                                 roomChatSerVice
