@@ -70,36 +70,38 @@ class AuthServiceImpl(
             .decodeAndVerifyJwt(refreshToken)
             .flatMap { jwt ->
                 refreshTokenManager.existsTokenInBlackList(jwt.id)
+                    .defaultIfEmpty(false)
                     .filter { !it }
                     .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.RESIGN_FAILED)))
                     .flatMap {
-                        refreshTokenManager.saveTokenInBlackList(jwt.id)
-                    }
-                    .map {
-                        ObjectMapper().convertValue(jwt.claims[jwtProperty.claimKey], RefreshTokenPayload::class.java)
+                        val payload = ObjectMapper().convertValue(
+                            jwt.claims[jwtProperty.claimKey],
+                            RefreshTokenPayload::class.java
+                        )
+                        Mono.zip(
+                            refreshTokenManager.saveTokenInBlackList(jwt.id),
+                            accessTokenManager.saveTokenInBlackList(payload.accessTokenId ?: ""),
+                        ).then(Mono.just(payload))
                     }
             }
+            .filter { it.type == JwtTokenType.REFRESH }
+            .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.MISSING_REFRESH_TOKEN)))
             .flatMap { payload ->
                 val phoneNumberFormated = formatPhoneNumber(payload.phoneNumber)
                 val phoneNumber = parsePhoneNumber(phoneNumberFormated)
-                if (payload.type != JwtTokenType.REFRESH)
-                    return@flatMap Mono.error(ApplicationException(ExceptionEnum.MISSING_REFRESH_TOKEN))
-
                 val accessTokenId = UUID.randomUUID().toString()
                 val refreshTokenId = UUID.randomUUID().toString()
                 val monoAccessToken = createToken(accessTokenId, phoneNumberFormated, refreshTokenId)
                 val newRefreshToken = jwtHelper.createRefreshToken(refreshTokenId, phoneNumberFormated, accessTokenId)
-                return@flatMap Mono.zip(
-                    accessTokenManager.saveTokenInBlackList(payload.accessTokenId ?: ""),
-                    monoAccessToken
-                ).map {
-                    TokenResponse(
-                        phoneNumber.nationalNumber,
-                        phoneNumber.countryCode,
-                        it.t2,
-                        newRefreshToken.tokenValue
-                    )
-                }
+                return@flatMap monoAccessToken
+                    .map {
+                        TokenResponse(
+                            phoneNumber.nationalNumber,
+                            phoneNumber.countryCode,
+                            it,
+                            newRefreshToken.tokenValue
+                        )
+                    }
             }
             .onErrorResume { Mono.error(it) }
     }

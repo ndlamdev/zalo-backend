@@ -49,7 +49,7 @@ class AuthenticationHandler(
             .then(ok("Register success!"))
     }
 
-    @PreAuthorize("hasAnyAuthority('ROLE_USER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN')")
     fun validate(request: ServerRequest): Mono<ServerResponse?> {
         return ReactiveSecurityContextHolder.getContext().flatMap { securityContext ->
             val auth = securityContext.authentication as JwtAuthenticationToken
