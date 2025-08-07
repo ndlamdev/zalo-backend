@@ -31,12 +31,14 @@ class AuthenticationGatewayFilterFactory(
     override fun apply(config: Any?): GatewayFilter? {
         return GatewayFilter { exchange, chain ->
             val token = exchange.request.headers[HttpHeaders.AUTHORIZATION]?.firstOrNull()
-            if (token.isNullOrEmpty()) return@GatewayFilter chain.filter(exchange)
+            if (token.isNullOrEmpty()) return@GatewayFilter onUnauthorized(exchange)
             WebClient.create("http://localhost:8000")
                 .post()
                 .uri("/auth/v1/validate")
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .exchangeToMono { clientResponse ->
+                    exchange.response.headers.contentType = MediaType.APPLICATION_JSON
+                    exchange.response.statusCode = clientResponse.statusCode()
                     if (clientResponse.statusCode().is4xxClientError)
                         return@exchangeToMono onResponseErrorFromServer(clientResponse, exchange)
 
@@ -49,12 +51,13 @@ class AuthenticationGatewayFilterFactory(
                     return@exchangeToMono chain.filter(exchange)
                 }.onErrorResume { err ->
                     val bufferFactory = exchange.response.bufferFactory()
-                    val response = mapOf<String, Any?>(
-                        "code" to HttpStatus.BAD_REQUEST.value(),
-                        "error" to HttpStatus.BAD_REQUEST.reasonPhrase,
-                        "detail" to err.message,
-                        "trace" to err.stackTrace
-                    )
+                    val response = ApiResponseError<Any>()
+                        .apply {
+                            code = HttpStatus.BAD_REQUEST.value()
+                            error = HttpStatus.BAD_REQUEST.reasonPhrase
+                            detail = err.message
+                            trace = err.stackTrace
+                        }
                     exchange.response.headers.contentType = MediaType.APPLICATION_JSON
                     exchange.response.statusCode = HttpStatus.BAD_REQUEST
                     exchange.response.writeWith(Mono.just(bufferFactory.wrap(ObjectMapper().writeValueAsBytes(response))))
@@ -64,8 +67,6 @@ class AuthenticationGatewayFilterFactory(
 
     private fun onResponseErrorFromServer(clientResponse: ClientResponse, exchange: ServerWebExchange): Mono<Void> {
         val bufferFactory = exchange.response.bufferFactory()
-        exchange.response.headers.contentType = MediaType.APPLICATION_JSON
-        exchange.response.statusCode = HttpStatus.BAD_REQUEST
         return clientResponse.bodyToMono(Any::class.java)
             .flatMap {
                 val response = Mono.just(
@@ -73,19 +74,17 @@ class AuthenticationGatewayFilterFactory(
                         ObjectMapper().writeValueAsBytes(it)
                     )
                 )
-                exchange.response.statusCode = HttpStatus.BAD_REQUEST
+                exchange.response.headers["X-Jwt-Expired"] = clientResponse.headers().header("X-Jwt-Expired")
                 exchange.response.writeWith(response)
             }
     }
 
     private fun onServerException(clientResponse: ClientResponse, exchange: ServerWebExchange): Mono<Void> {
         val bufferFactory = exchange.response.bufferFactory()
-        exchange.response.headers.contentType = MediaType.APPLICATION_JSON
-        exchange.response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR
         return clientResponse.bodyToMono(Exception::class.java)
             .flatMap {
                 val bodyResponse = ApiResponseError<Any>().apply {
-                    code = HttpStatus.INTERNAL_SERVER_ERROR.value()
+                    code = clientResponse.statusCode().value()
                     error = HttpStatus.INTERNAL_SERVER_ERROR.reasonPhrase
                     detail = it.localizedMessage
                     trace = it.stackTrace
@@ -111,8 +110,20 @@ class AuthenticationGatewayFilterFactory(
             .header(authProperty.userPhoneNumber, phoneNumber)
             .header(authProperty.userRoles, *roles.toTypedArray())
             .build()
-
         return chain.filter(exchange.mutate().request(request).build())
+    }
+
+    private fun onUnauthorized(exchange: ServerWebExchange): Mono<Void> {
+        val bufferFactory = exchange.response.bufferFactory()
+        val response = ApiResponseError<Any>()
+            .apply {
+                code = HttpStatus.UNAUTHORIZED.value()
+                error = HttpStatus.UNAUTHORIZED.reasonPhrase
+                detail = "No Authentication"
+            }
+        exchange.response.headers.contentType = MediaType.APPLICATION_JSON
+        exchange.response.statusCode = HttpStatus.UNAUTHORIZED
+        return exchange.response.writeWith(Mono.just(bufferFactory.wrap(ObjectMapper().writeValueAsBytes(response))))
     }
 }
 

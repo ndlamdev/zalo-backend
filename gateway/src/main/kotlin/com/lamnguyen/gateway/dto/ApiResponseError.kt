@@ -8,8 +8,11 @@
 
 package com.lamnguyen.gateway.dto
 
+import com.fasterxml.jackson.annotation.JsonInclude
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 class ApiResponseError<T : Any> : ApiResponse<T>() {
     var error: String? = null
     var detail: T? = null
-    lateinit var trace: Any
+    var trace: Any? = null
 }
