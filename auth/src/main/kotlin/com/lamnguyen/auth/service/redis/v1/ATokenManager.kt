@@ -18,10 +18,8 @@ abstract class ATokenManager(
     redisTemple: ReactiveStringRedisTemplate,
 ) : ACacheRedis<String>(redissonClient, redisTemple), ITokenManager {
     companion object {
-        private const val ACCESS_TOKEN = "access_token"
-        private const val REFRESH_TOKEN = "refresh_token"
         private const val PREFIX_BLACKLIST = "blacklist"
-        const val BLACKLIST_ACCESS_TOKEN = "$PREFIX_BLACKLIST:$ACCESS_TOKEN"
-        const val BLACKLIST_REFRESH_TOKEN = "$PREFIX_BLACKLIST:$REFRESH_TOKEN"
+        const val BLACKLIST_ACCESS_TOKEN = "$PREFIX_BLACKLIST:access_token"
+        const val BLACKLIST_REFRESH_TOKEN = "$PREFIX_BLACKLIST:refresh_token"
     }
 }

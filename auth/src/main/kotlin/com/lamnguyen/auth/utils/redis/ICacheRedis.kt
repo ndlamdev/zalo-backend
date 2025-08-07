@@ -14,7 +14,7 @@ import java.time.temporal.ChronoUnit
 import java.util.function.Supplier
 
 interface ICacheRedis<T> {
-    fun  cacheData(
+    fun cacheData(
         key: String,
         data: Supplier<Mono<T>>,
         amount: Long? = 60,
@@ -30,12 +30,14 @@ interface ICacheRedis<T> {
 
     fun getData(
         key: String,
+        expire: Boolean? = true,
         amount: Long? = 60,
         unit: ChronoUnit? = ChronoUnit.MINUTES
     ): Mono<T>
 
     fun getAllData(
         key: String,
+        expire: Boolean? = true,
         amount: Long? = 60,
         unit: ChronoUnit? = ChronoUnit.MINUTES
     ): Flux<T>

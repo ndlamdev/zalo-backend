@@ -21,6 +21,7 @@ class AccessTokenManager(
     override fun existsTokenInBlackList(tokenId: String): Mono<Boolean> {
         return super.getData(
             ICacheRedis.hashKeys(BLACKLIST_ACCESS_TOKEN, tokenId),
+            false,
             null,
             null
         )
@@ -42,6 +43,7 @@ class AccessTokenManager(
     fun hasChangePassword(phoneNumber: String, issuedAt: Long): Mono<Boolean> {
         return super.getData(
             ICacheRedis.hashKeys(Keyword.CHANGE_PASSWORD.name, phoneNumber),
+            false,
             null,
             null
         )

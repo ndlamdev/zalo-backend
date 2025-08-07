@@ -17,6 +17,7 @@ class RefreshTokenManager(
     override fun existsTokenInBlackList(tokenId: String): Mono<Boolean> {
         return super.getData(
             ICacheRedis.hashKeys(BLACKLIST_REFRESH_TOKEN, tokenId),
+            false,
             null,
             null
         )

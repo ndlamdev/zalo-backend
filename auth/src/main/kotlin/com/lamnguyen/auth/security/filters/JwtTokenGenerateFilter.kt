@@ -55,6 +55,7 @@ class JwtTokenGenerateFilter(
                                 maxAge(refreshTokenProperty.expires * 60000)
                                 httpOnly(true)
                                 secure(true)
+                                path("/")
                             }.build()
 
                         exchange.response.addCookie(refreshTokenCookie)

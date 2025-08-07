@@ -12,6 +12,7 @@ import com.lamnguyen.auth.security.convertors.JwtAuthenticationConverterImpl
 import com.lamnguyen.auth.security.entrypoint.AuthenticationEntryPoint
 import com.lamnguyen.auth.security.filters.CheckBlacklistTokenFilter
 import com.lamnguyen.auth.security.filters.JwtTokenGenerateFilter
+import com.lamnguyen.auth.security.filters.RemoveBearerTokenAuthorizationFilter
 import com.lamnguyen.auth.security.filters.UsernamePasswordJsonAuthenticationFilter
 import com.lamnguyen.auth.security.handler.CustomAccessDeniedHandler
 import com.lamnguyen.auth.service.redis.v1.AccessTokenManager
@@ -36,12 +37,15 @@ class SecurityConfig(
     var manager: ReactiveAuthenticationManager,
     var authenticationEntryPoint: AuthenticationEntryPoint,
     val accessTokenManager: AccessTokenManager,
-    val customAccessDeniedHandler: CustomAccessDeniedHandler
-//    var removeBearerTokenAuthorizationFilter: RemoveBearerTokenAuthorizationFilter,
+    val customAccessDeniedHandler: CustomAccessDeniedHandler,
 ) {
 
     @Bean
     fun securityFilterChain(httpSecurity: ServerHttpSecurity): SecurityWebFilterChain? {
+        httpSecurity.addFilterBefore(
+            RemoveBearerTokenAuthorizationFilter(applicationProperty),
+            SecurityWebFiltersOrder.AUTHENTICATION
+        )
         httpSecurity.addFilterAt(
             UsernamePasswordJsonAuthenticationFilter("/*/login", manager),
             SecurityWebFiltersOrder.AUTHENTICATION

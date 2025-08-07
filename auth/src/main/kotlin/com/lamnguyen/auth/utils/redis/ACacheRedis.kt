@@ -84,22 +84,30 @@ abstract class ACacheRedis<T>(
 
     override fun getData(
         key: String,
+        expire: Boolean?,
         amount: Long?,
         unit: ChronoUnit?
     ): Mono<T> {
-        return redisTemple.opsForValue().getAndExpire(key, Duration.of(amount ?: 60, unit ?: ChronoUnit.MINUTES))
+        if (expire == true)
+            return redisTemple.opsForValue().getAndExpire(key, Duration.of(amount ?: 60, unit ?: ChronoUnit.MINUTES))
+
+        return redisTemple.opsForValue().get(key)
     }
 
     override fun getAllData(
         key: String,
+        expire: Boolean?,
         amount: Long?,
         unit: ChronoUnit?
     ): Flux<T> {
+        if (expire == true)
+            return redisTemple.opsForList().range(key, 0, -1)
+                .flatMap { data ->
+                    redisTemple.expire(key, Duration.of(amount ?: 60, unit ?: ChronoUnit.MINUTES))
+                        .thenReturn(data!!)
+                }
+
         return redisTemple.opsForList().range(key, 0, -1)
-            .flatMap { data ->
-                redisTemple.expire(key, Duration.of(amount ?: 60, unit ?: ChronoUnit.MINUTES))
-                    .thenReturn(data!!)
-            }
     }
 
     @Suppress("UNCHECKED_CAST")

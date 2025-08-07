@@ -33,6 +33,11 @@ class AuthenticationEntryPoint : ServerAuthenticationEntryPoint {
             error = HttpStatus.UNAUTHORIZED.reasonPhrase
         }
 
+        if (ex.message?.startsWith("Jwt expired") == true) {
+            apiResponse.code = 9999
+            exchange.response.headers["X-Jwt-Expired"] = "9999"
+        }
+
         val dataBuffer = exchange.response.bufferFactory().wrap(ObjectMapper().writeValueAsBytes(apiResponse))
         return exchange.response
             .writeWith(Mono.just(dataBuffer))

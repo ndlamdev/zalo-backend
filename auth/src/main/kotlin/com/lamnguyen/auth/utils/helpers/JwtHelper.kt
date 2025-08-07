@@ -17,7 +17,9 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.jwt.*
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
-import java.time.LocalDateTime
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
@@ -27,10 +29,11 @@ class JwtHelper(
     private val jwtDecode: ReactiveJwtDecoder,
     private val jwsHeader: JwsHeader,
     private val jwtProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty,
-    private val accessTokenProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty.Companion.AccessTokenProperty
+    private val accessTokenProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty.Companion.AccessTokenProperty,
+    private val refreshTokenProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty.Companion.RefreshTokenProperty
 ) {
     fun createAccessToken(id: String, auth: Authentication, refreshTokenId: String): Jwt {
-        val now = LocalDateTime.now().toInstant(ZoneOffset.UTC)
+        val now = now()
         return jwtEncoder.encode(
             JwtEncoderParameters.from(
                 jwsHeader, JwtClaimsSet.builder()
@@ -46,7 +49,7 @@ class JwtHelper(
     }
 
     fun createAccessToken(id: String, user: User, roles: List<String>, refreshTokenId: String): Jwt {
-        val now = LocalDateTime.now().toInstant(ZoneOffset.UTC)
+        val now = now()
         return jwtEncoder.encode(
             JwtEncoderParameters.from(
                 jwsHeader, JwtClaimsSet.builder()
@@ -65,7 +68,7 @@ class JwtHelper(
     }
 
     fun createRefreshToken(id: String, phoneNumber: String, accessTokenId: String): Jwt {
-        val now = LocalDateTime.now().toInstant(ZoneOffset.UTC)
+        val now = now()
         return jwtEncoder.encode(
             JwtEncoderParameters.from(
                 jwsHeader, JwtClaimsSet.builder()
@@ -74,7 +77,7 @@ class JwtHelper(
                     .subject(phoneNumber)
                     .issuedAt(now)
                     .claim(jwtProperty.claimKey, RefreshTokenPayload.generateToken(phoneNumber, accessTokenId))
-                    .expiresAt(now.plus(accessTokenProperty.expires, ChronoUnit.MINUTES))
+                    .expiresAt(now.plus(refreshTokenProperty.expires, ChronoUnit.MINUTES))
                     .build()
             )
         )
@@ -89,5 +92,13 @@ class JwtHelper(
             .map {
                 ObjectMapper().convertValue(it.claims[jwt], RefreshTokenPayload::class.java)
             }
+    }
+
+    companion object {
+        @JvmStatic
+        fun now(): Instant {
+            return Instant.now(Clock.system(ZoneOffset.UTC))
+                .minus(Duration.parse("PT1M"))
+        }
     }
 }
