@@ -1,7 +1,5 @@
 package com.lamnguyen.auth.service.business
 
-import com.lamnguyen.auth.exceptions.ApplicationException
-import com.lamnguyen.auth.exceptions.ExceptionEnum
 import com.lamnguyen.auth.repositories.IRoleRepository
 import com.lamnguyen.auth.repositories.IUserRepository
 import com.lamnguyen.auth.utils.enums.Keyword
@@ -26,8 +24,6 @@ class ReactiveUserDetailsServiceImpl(val userRepository: IUserRepository, val ro
     ReactiveUserDetailsService {
     override fun findByUsername(username: String?): Mono<UserDetails?>? {
         val phoneNumber = formatPhoneNumber(username)
-        if (phoneNumber == null)
-            throw ApplicationException(ExceptionEnum.ERROR_FORMAT_PHONE_NUMBER)
         val userMono = userRepository.findByPhoneNumber(phoneNumber)
         val rolesFlux: Flux<SimpleGrantedAuthority> =
             roleRepository.findByUserPhoneNumber(phoneNumber)

@@ -14,5 +14,5 @@ enum class ExceptionEnum(val code: Int, val message: String) {
     INVITE_ADD_FRIEND_FAILED(3003, "Add Friend Failed"),
     USER_NOT_FOUND(3004, "User Not Found"),
     INVITE_EXISTS(3005, "Invite Exists"),
-    ERROR_FORMAT_PHONE_NUMBER(3006, "User already exists!"),
+    ERROR_FORMAT_PHONE_NUMBER(3006, "Invalid phone number!"),
 }
