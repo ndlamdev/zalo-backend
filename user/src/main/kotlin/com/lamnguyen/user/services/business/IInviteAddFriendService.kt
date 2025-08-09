@@ -8,8 +8,11 @@
 
 package com.lamnguyen.user.services.business
 
+import com.lamnguyen.user.models.InviteAddFriend
 import reactor.core.publisher.Mono
 
 interface IInviteAddFriendService {
     fun sendRequest(phoneNumberReceiver: String, message: String?): Mono<Void>
+
+    fun findInviteAddFriend(phoneNumberSender: String, phoneNumberReceiver: String): Mono<InviteAddFriend>
 }

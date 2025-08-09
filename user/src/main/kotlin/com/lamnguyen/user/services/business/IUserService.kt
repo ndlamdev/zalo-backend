@@ -9,6 +9,7 @@
 package com.lamnguyen.user.services.business
 
 import com.lamnguyen.user.models.User
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 interface IUserService {

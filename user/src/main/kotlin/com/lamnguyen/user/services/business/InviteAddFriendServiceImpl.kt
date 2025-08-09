@@ -21,18 +21,17 @@ import reactor.core.publisher.Mono
 
 @Service
 class InviteAddFriendServiceImpl(
-    val iInviteAddFriendRepository: IInviteAddFriendRepository,
-    val userService: IUserService,
+    val inviteAddFriendRepository: IInviteAddFriendRepository,
     val notificationKafkaProducer: INotificationKafkaProducer
 ) : IInviteAddFriendService {
     override fun sendRequest(phoneNumberReceiver: String, message: String?): Mono<Void> {
-        val phoneNumberReceiverFormated = formatPhoneNumber(phoneNumberReceiver)!!
+        val phoneNumberReceiverFormated = formatPhoneNumber(phoneNumberReceiver)
         return ReactiveSecurityContextHolder
             .getContext()
-            .filter { securityContext -> securityContext.authentication.principal.toString() != phoneNumberReceiverFormated }
+            .filter { securityContext -> securityContext.authentication.name != phoneNumberReceiverFormated }
             .flatMap { securityContext ->
                 inviteAddFriend(
-                    securityContext.authentication.principal.toString(),
+                    securityContext.authentication.name,
                     phoneNumberReceiverFormated,
                     message
                 )
@@ -53,23 +52,29 @@ class InviteAddFriendServiceImpl(
         phoneNumberReceiver: String,
         message: String?
     ): Mono<InviteAddFriend> {
-        return userService.findByPhoneNumber(phoneNumberReceiver)
-            .flatMap { userReceiver ->
-                val data = InviteAddFriend().apply {
-                    this.phoneNumberReceiver = userReceiver.phoneNumber
-                    this.phoneNumberSender = phoneNumberSender
-                    this.message = message
-                }
-                iInviteAddFriendRepository
-                    .save(data)
-                    .flatMap { it ->
-                        notificationKafkaProducer.sendNotification(InviteAddFriendEvent(phoneNumberSender))
-                        Mono.just(it)
-                    }
-                    .onErrorResume { error ->
-                        Mono.error(ApplicationException(ExceptionEnum.INVITE_EXISTS))
-                    }
+        val data = InviteAddFriend().apply {
+            this.phoneNumberReceiver = formatPhoneNumber(phoneNumberReceiver)
+            this.phoneNumberSender = formatPhoneNumber(phoneNumberSender)
+            this.message = message
+        }
+        return inviteAddFriendRepository
+            .save(data)
+            .flatMap { it ->
+                notificationKafkaProducer.sendNotification(InviteAddFriendEvent(phoneNumberSender))
+                Mono.just(it)
+            }
+            .onErrorResume { error ->
+                Mono.error(ApplicationException(ExceptionEnum.INVITE_EXISTS))
             }.switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.USER_NOT_FOUND)))
+    }
 
+    override fun findInviteAddFriend(
+        phoneNumberSender: String,
+        phoneNumberReceiver: String
+    ): Mono<InviteAddFriend> {
+        return inviteAddFriendRepository.findInviteAddFriend(
+            formatPhoneNumber(phoneNumberSender),
+            formatPhoneNumber(phoneNumberReceiver)
+        )
     }
 }

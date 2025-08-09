@@ -9,8 +9,19 @@
 package com.lamnguyen.user.repositories
 
 import com.lamnguyen.user.models.InviteAddFriend
+import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.r2dbc.repository.R2dbcRepository
 import org.springframework.stereotype.Repository
+import reactor.core.publisher.Mono
 
 @Repository
-interface IInviteAddFriendRepository : R2dbcRepository<InviteAddFriend, String>
+interface IInviteAddFriendRepository : R2dbcRepository<InviteAddFriend, String> {
+
+    @Query(value = """
+        SELECT * 
+        FROM "zalo-user".public.invite_add_friends 
+        WHERE (phone_number_sender = :phoneNumberA and phone_number_receiver = :phoneNumberB) 
+            or (phone_number_sender = :phoneNumberB and phone_number_receiver = :phoneNumberA)
+    """)
+    fun findInviteAddFriend(phoneNumberA: String, phoneNumberB: String): Mono<InviteAddFriend>
+}

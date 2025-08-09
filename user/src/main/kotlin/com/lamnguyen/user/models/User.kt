@@ -15,7 +15,7 @@ import org.springframework.data.relational.core.mapping.Table
 import java.time.LocalDate
 
 @Table("users")
-class User : BaseEntity(), Persistable<String> {
+open class User : BaseEntity(), Persistable<String> {
     @Id
     lateinit var phoneNumber: String
     var fullName: String? = null
