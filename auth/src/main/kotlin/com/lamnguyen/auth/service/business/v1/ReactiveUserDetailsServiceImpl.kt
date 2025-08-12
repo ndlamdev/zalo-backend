@@ -1,7 +1,7 @@
-package com.lamnguyen.auth.service.business
+package com.lamnguyen.auth.service.business.v1
 
-import com.lamnguyen.auth.repositories.IRoleRepository
 import com.lamnguyen.auth.repositories.IUserRepository
+import com.lamnguyen.auth.service.business.IRoleService
 import com.lamnguyen.auth.utils.enums.Keyword
 import formatPhoneNumber
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -20,13 +20,13 @@ import reactor.core.publisher.Mono
  *  User: kimin
  **/
 @Component
-class ReactiveUserDetailsServiceImpl(val userRepository: IUserRepository, val roleRepository: IRoleRepository) :
+class ReactiveUserDetailsServiceImpl(val userRepository: IUserRepository, val roleService: IRoleService) :
     ReactiveUserDetailsService {
     override fun findByUsername(username: String?): Mono<UserDetails?>? {
         val phoneNumber = formatPhoneNumber(username)
         val userMono = userRepository.findByPhoneNumber(phoneNumber)
         val rolesFlux: Flux<SimpleGrantedAuthority> =
-            roleRepository.findByUserPhoneNumber(phoneNumber)
+            roleService.getRoles(phoneNumber)
                 .map { role -> SimpleGrantedAuthority("${Keyword.PREFIX_ROLE.value}${role?.name}") }
 
         return Mono.zip(userMono, rolesFlux.collectList())

@@ -15,7 +15,7 @@ import com.lamnguyen.auth.security.filters.JwtTokenGenerateFilter
 import com.lamnguyen.auth.security.filters.RemoveBearerTokenAuthorizationFilter
 import com.lamnguyen.auth.security.filters.UsernamePasswordJsonAuthenticationFilter
 import com.lamnguyen.auth.security.handler.CustomAccessDeniedHandler
-import com.lamnguyen.auth.service.redis.v1.AccessTokenManager
+import com.lamnguyen.auth.service.redis.v1.AccessTokenCacheManager
 import com.lamnguyen.auth.utils.helpers.JwtHelper
 import com.lamnguyen.auth.utils.properties.ApplicationProperty
 import org.springframework.context.annotation.Bean
@@ -36,7 +36,7 @@ class SecurityConfig(
     val refreshTokenProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty.Companion.RefreshTokenProperty,
     var manager: ReactiveAuthenticationManager,
     var authenticationEntryPoint: AuthenticationEntryPoint,
-    val accessTokenManager: AccessTokenManager,
+    val accessTokenManager: AccessTokenCacheManager,
     val customAccessDeniedHandler: CustomAccessDeniedHandler,
 ) {
 

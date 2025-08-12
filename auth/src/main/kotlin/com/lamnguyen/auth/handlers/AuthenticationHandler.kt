@@ -86,4 +86,19 @@ class AuthenticationHandler(
                 }
             }
     }
+
+    fun logout(request: ServerRequest): Mono<ServerResponse?> {
+        val refreshToken = request.cookies().getOrDefault("REFRESH_TOKEN", null)?.get(0)
+        if (refreshToken == null)
+            return error(ApplicationException(ExceptionEnum.MISSING_REFRESH_TOKEN), null, null, null)
+        return authService.logout(refreshToken.value)
+            .then(ok(null, "Logout success!") {
+                it.add(HttpHeaders.SET_COOKIE, ResponseCookie.from("REFRESH_TOKEN").apply {
+                    maxAge(0)
+                    httpOnly(true)
+                    secure(true)
+                    path("/")
+                }.build().value)
+            })
+    }
 }

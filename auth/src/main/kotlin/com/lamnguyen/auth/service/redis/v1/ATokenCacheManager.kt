@@ -8,15 +8,15 @@
 
 package com.lamnguyen.auth.service.redis.v1
 
-import com.lamnguyen.auth.service.redis.ITokenManager
+import com.lamnguyen.auth.service.redis.ITokenCacheManager
 import com.lamnguyen.auth.utils.redis.ACacheRedis
 import org.redisson.api.RedissonReactiveClient
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate
 
-abstract class ATokenManager(
+abstract class ATokenCacheManager(
     redissonClient: RedissonReactiveClient,
     redisTemple: ReactiveStringRedisTemplate,
-) : ACacheRedis<String>(redissonClient, redisTemple), ITokenManager {
+) : ACacheRedis<String>(redissonClient, redisTemple), ITokenCacheManager {
     companion object {
         private const val PREFIX_BLACKLIST = "blacklist"
         const val BLACKLIST_ACCESS_TOKEN = "$PREFIX_BLACKLIST:access_token"

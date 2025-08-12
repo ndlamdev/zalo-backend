@@ -10,7 +10,7 @@ package com.lamnguyen.auth.security.convertors
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.lamnguyen.auth.domain.dto.AccessTokenPayload
-import com.lamnguyen.auth.repositories.IPermissionRepository
+import com.lamnguyen.auth.service.business.IPermissionService
 import com.lamnguyen.auth.utils.enums.Keyword
 import com.lamnguyen.auth.utils.properties.ApplicationProperty
 import org.springframework.context.annotation.Configuration
@@ -24,7 +24,7 @@ import reactor.core.publisher.Mono
 
 @Configuration
 class JwtAuthenticationConverterImpl(
-    private val permissionRepository: IPermissionRepository,
+    private val permissionService: IPermissionService,
     private val jwtProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty,
     private val objectMapper: ObjectMapper
 ) : Converter<Jwt, Mono<AbstractAuthenticationToken>> {
@@ -39,7 +39,7 @@ class JwtAuthenticationConverterImpl(
                 val authorities = mutableListOf<SimpleGrantedAuthority>()
                 authorities.add(SimpleGrantedAuthority(roleName ?: ""))
 
-                val permissionsFlux = permissionRepository.findAllByRoleName(trimmed)
+                val permissionsFlux = permissionService.getPermissions(trimmed)
                     .map { permission -> SimpleGrantedAuthority(permission.name) }
 
                 Flux.concat(Flux.fromIterable(authorities), permissionsFlux)

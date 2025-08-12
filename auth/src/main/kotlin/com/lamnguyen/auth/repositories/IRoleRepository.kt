@@ -25,5 +25,5 @@ interface IRoleRepository : ReactiveCrudRepository<Role, String> {
         where u.phone_number = :phoneNumber
     """
     )
-    fun findByUserPhoneNumber(phoneNumber: String): Flux<Role?>
+    fun findByUserPhoneNumber(phoneNumber: String): Flux<Role>
 }

@@ -13,11 +13,11 @@ import java.time.temporal.ChronoUnit
 
 
 @Service
-class AccessTokenManager(
+class AccessTokenCacheManager(
     redissonClient: RedissonReactiveClient,
     redisTemple: ReactiveStringRedisTemplate,
     val accessTokenProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty.Companion.AccessTokenProperty
-) : ATokenManager(redissonClient, redisTemple) {
+) : ATokenCacheManager(redissonClient, redisTemple) {
     override fun existsTokenInBlackList(tokenId: String): Mono<Boolean> {
         return super.getData(
             ICacheRedis.hashKeys(BLACKLIST_ACCESS_TOKEN, tokenId),

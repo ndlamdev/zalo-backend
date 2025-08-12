@@ -10,7 +10,7 @@ package com.lamnguyen.auth.service.redis
 
 import reactor.core.publisher.Mono
 
-interface ITokenManager {
+interface ITokenCacheManager {
     fun existsTokenInBlackList(tokenId: String): Mono<Boolean>
     fun saveTokenInBlackList(tokenId: String): Mono<String>
 }

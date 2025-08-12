@@ -10,7 +10,7 @@ package com.lamnguyen.auth.security.filters
 
 import com.lamnguyen.auth.exceptions.ApplicationException
 import com.lamnguyen.auth.exceptions.ExceptionEnum
-import com.lamnguyen.auth.service.redis.v1.AccessTokenManager
+import com.lamnguyen.auth.service.redis.v1.AccessTokenCacheManager
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.web.server.ServerWebExchange
@@ -21,7 +21,7 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 class CheckBlacklistTokenFilter(
-    val accessTokenManager: AccessTokenManager,
+    val accessTokenManager: AccessTokenCacheManager,
 ) : WebFilter {
     override fun filter(
         exchange: ServerWebExchange,
