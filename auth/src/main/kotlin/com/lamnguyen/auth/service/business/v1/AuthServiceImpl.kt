@@ -6,7 +6,7 @@
  *  User: kimin
  **/
 
-package com.lamnguyen.auth.service.business
+package com.lamnguyen.auth.service.business.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.lamnguyen.auth.domain.dto.RefreshTokenPayload
@@ -17,9 +17,10 @@ import com.lamnguyen.auth.exceptions.ExceptionEnum
 import com.lamnguyen.auth.model.User
 import com.lamnguyen.auth.repositories.IRoleRepository
 import com.lamnguyen.auth.repositories.IUserRepository
+import com.lamnguyen.auth.service.business.IAuthService
 import com.lamnguyen.auth.service.kafka.IUserKafkaService
-import com.lamnguyen.auth.service.redis.v1.AccessTokenManager
-import com.lamnguyen.auth.service.redis.v1.RefreshTokenManager
+import com.lamnguyen.auth.service.redis.v1.AccessTokenCacheManager
+import com.lamnguyen.auth.service.redis.v1.RefreshTokenCacheManager
 import com.lamnguyen.auth.utils.enums.JwtTokenType
 import com.lamnguyen.auth.utils.helpers.JwtHelper
 import com.lamnguyen.auth.utils.properties.ApplicationProperty
@@ -38,8 +39,8 @@ class AuthServiceImpl(
     val passwordEncoder: PasswordEncoder,
     val userKafkaService: IUserKafkaService,
     val jwtHelper: JwtHelper,
-    val accessTokenManager: AccessTokenManager,
-    val refreshTokenManager: RefreshTokenManager,
+    val accessTokenManager: AccessTokenCacheManager,
+    val refreshTokenManager: RefreshTokenCacheManager,
     val jwtProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty
 ) : IAuthService {
     override fun register(data: RegisterRequest): Mono<Void> {
@@ -66,26 +67,7 @@ class AuthServiceImpl(
     }
 
     override fun resign(refreshToken: String): Mono<TokenResponse> {
-        return jwtHelper
-            .decodeAndVerifyJwt(refreshToken)
-            .flatMap { jwt ->
-                refreshTokenManager.existsTokenInBlackList(jwt.id)
-                    .defaultIfEmpty(false)
-                    .filter { !it }
-                    .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.RESIGN_FAILED)))
-                    .flatMap {
-                        val payload = ObjectMapper().convertValue(
-                            jwt.claims[jwtProperty.claimKey],
-                            RefreshTokenPayload::class.java
-                        )
-                        Mono.zip(
-                            refreshTokenManager.saveTokenInBlackList(jwt.id),
-                            accessTokenManager.saveTokenInBlackList(payload.accessTokenId ?: ""),
-                        ).then(Mono.just(payload))
-                    }
-            }
-            .filter { it.type == JwtTokenType.REFRESH }
-            .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.MISSING_REFRESH_TOKEN)))
+        return checkRefreshTokenAndAddIntoBlacklist(refreshToken)
             .flatMap { payload ->
                 val phoneNumberFormated = formatPhoneNumber(payload.phoneNumber)
                 val phoneNumber = parsePhoneNumber(phoneNumberFormated)
@@ -125,5 +107,36 @@ class AuthServiceImpl(
                     refreshTokenId
                 ).tokenValue
             }
+    }
+
+    override fun logout(refreshToken: String): Mono<Void> {
+        return checkRefreshTokenAndAddIntoBlacklist(refreshToken)
+            .flatMap {
+                accessTokenManager.saveTokenInBlackList(it.accessTokenId!!)
+            }
+            .then()
+    }
+
+    private fun checkRefreshTokenAndAddIntoBlacklist(refreshToken: String): Mono<RefreshTokenPayload> {
+        return jwtHelper
+            .decodeAndVerifyJwt(refreshToken)
+            .flatMap { jwt ->
+                refreshTokenManager.existsTokenInBlackList(jwt.id)
+                    .defaultIfEmpty(false)
+                    .filter { !it }
+                    .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.RESIGN_FAILED)))
+                    .flatMap {
+                        val payload = ObjectMapper().convertValue(
+                            jwt.claims[jwtProperty.claimKey],
+                            RefreshTokenPayload::class.java
+                        )
+                        Mono.zip(
+                            refreshTokenManager.saveTokenInBlackList(jwt.id),
+                            accessTokenManager.saveTokenInBlackList(payload.accessTokenId ?: ""),
+                        ).then(Mono.just(payload))
+                    }
+            }.filter { it.type == JwtTokenType.REFRESH }
+            .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.MISSING_REFRESH_TOKEN)))
+
     }
 }

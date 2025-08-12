@@ -8,4 +8,5 @@ interface IAuthService {
     fun register(data: RegisterRequest): Mono<Void>
     fun hasPhoneNumber(phoneNumber: String?): Mono<Void>
     fun resign(refreshToken: String): Mono<TokenResponse>
+    fun logout(refreshToken: String): Mono<Void>
 }
