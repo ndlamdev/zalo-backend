@@ -43,5 +43,5 @@ class RoleCacheManagerImpl(
         return super.clearCache(generateKey(phoneNumber))
     }
 
-    private fun generateKey(phoneNumber: String) = ICacheRedis.hashKeys("key", phoneNumber)
+    private fun generateKey(phoneNumber: String) = ICacheRedis.hashKeys("role", phoneNumber)
 }

@@ -8,8 +8,6 @@
 
 package com.lamnguyen.auth.utils.redis
 
-import com.lamnguyen.auth.exceptions.ApplicationException
-import com.lamnguyen.auth.exceptions.ExceptionEnum
 import org.redisson.api.RedissonReactiveClient
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import reactor.core.publisher.Flux
@@ -39,7 +37,6 @@ abstract class ACacheRedis<T>(
                                 .set(key, dataInDb!!, Duration.of(amount ?: 60, unit ?: ChronoUnit.MINUTES))
                                 .map { dataInDb }
                         }
-                        .switchIfEmpty(Mono.error { ApplicationException(ExceptionEnum.EMPTY_DATA) })
                 } else {
                     Mono.delay(Duration.ofMillis(100))
                         .flatMap { getData(key) }
@@ -58,8 +55,8 @@ abstract class ACacheRedis<T>(
             .flatMapMany { locked ->
                 if (locked) {
                     data.get()
-                        .switchIfEmpty(Mono.error { ApplicationException(ExceptionEnum.EMPTY_DATA) })
                         .collectList()
+                        .filter { it.isNotEmpty() }
                         .flatMap { dataInDb ->
                             redisTemple.opsForList()
                                 .leftPushAll(key, *toArray(dataInDb))
@@ -88,8 +85,12 @@ abstract class ACacheRedis<T>(
         amount: Long?,
         unit: ChronoUnit?
     ): Mono<T> {
-        if (expire == true)
-            return redisTemple.opsForValue().getAndExpire(key, Duration.of(amount ?: 60, unit ?: ChronoUnit.MINUTES))
+        if (expire ?: true)
+            return redisTemple.opsForValue()
+                .getAndExpire(
+                    key,
+                    Duration.of(amount ?: 60, unit ?: ChronoUnit.MINUTES)
+                )
 
         return redisTemple.opsForValue().get(key)
     }
@@ -100,8 +101,9 @@ abstract class ACacheRedis<T>(
         amount: Long?,
         unit: ChronoUnit?
     ): Flux<T> {
-        if (expire == true)
-            return redisTemple.opsForList().range(key, 0, -1)
+        if (expire ?: true)
+            return redisTemple.opsForList()
+                .range(key, 0, -1)
                 .flatMap { data ->
                     redisTemple.expire(key, Duration.of(amount ?: 60, unit ?: ChronoUnit.MINUTES))
                         .thenReturn(data!!)

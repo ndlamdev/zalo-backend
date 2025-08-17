@@ -46,5 +46,5 @@ class PermissionCacheManagerImpl(
         return super.clearCache(generateKey(role))
     }
 
-    private fun generateKey(role: String) = ICacheRedis.hashKeys("key", role)
+    private fun generateKey(role: String) = ICacheRedis.hashKeys("permission", role)
 }

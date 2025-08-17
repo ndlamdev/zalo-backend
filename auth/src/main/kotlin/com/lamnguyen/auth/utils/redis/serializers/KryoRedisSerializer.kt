@@ -1,4 +1,4 @@
-package com.lamnguyen.auth.utils
+package com.lamnguyen.auth.utils.redis.serializers
 
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.Input
@@ -22,16 +22,16 @@ class KryoRedisSerializer<T>(
     }
 
     @Throws(SerializationException::class)
-    override fun serialize(obj: T?): ByteArray? {
-        if (obj == null) {
+    override fun serialize(value: T?): ByteArray? {
+        if (value == null) {
             return null
         }
         val kryo = threadLocalKryo.get()
         try {
             ByteArrayOutputStream().use { bos ->
                 Output(bos).use { output ->
-                    kryo.writeObject(output, obj)
-                    return bos.toByteArray()
+                    kryo.writeObject(output, value)
+                    return output.toBytes()
                 }
             }
         } catch (e: Exception) {
@@ -48,7 +48,7 @@ class KryoRedisSerializer<T>(
         try {
             ByteArrayInputStream(bytes).use { bis ->
                 Input(bis).use { input ->
-                    return kryo.readObject<T?>(input, type)
+                    return kryo.readObject(input, type)
                 }
             }
         } catch (e: Exception) {

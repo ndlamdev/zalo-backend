@@ -63,9 +63,9 @@ dependencies {
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
     implementation 'org.apache.commons:commons-lang3:3.18.0'
     implementation "org.redisson:redisson:${redissonVersion}"
-    implementation "org.redisson:redisson-spring-data-20:${redissonVersion}"
+    implementation "org.redisson:redisson-spring-data-35:${redissonVersion}"
     // https://mvnrepository.com/artifact/com.esotericsoftware/kryo
-    implementation'com.esotericsoftware:kryo:5.6.2'
+    implementation 'com.esotericsoftware:kryo:5.6.2'
 }
 
 allOpen {
