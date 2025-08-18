@@ -10,6 +10,7 @@ package com.lamnguyen.user.handlers
 
 import com.lamnguyen.user.domain.dto.UserDto
 import com.lamnguyen.user.domain.request.InviteAddFriendRequest
+import com.lamnguyen.user.domain.request.ReplyInviteAddFriendRequest
 import com.lamnguyen.user.mappers.IUserMapper
 import com.lamnguyen.user.models.InviteAddFriend
 import com.lamnguyen.user.protos.FriendShipCheck
@@ -59,7 +60,7 @@ class UserHandler(
             }
     }
 
-    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_ADD_FRIEND')")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_ADD_FRIEND', 'ROLE_ADMIN')")
     fun addFriend(request: ServerRequest): Mono<ServerResponse?> {
         return request
             .bodyToMono(InviteAddFriendRequest::class.java)
@@ -71,6 +72,48 @@ class UserHandler(
                     )
                 }
             }.then(ok(null))
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_GET_ALL_FRIEND', 'ROLE_ADMIN')")
+    fun getAllFriend(request: ServerRequest): Mono<ServerResponse?> {
+        return ReactiveSecurityContextHolder.getContext()
+            .flatMap { context ->
+                userService.getAllFriend(context.authentication.name)
+                    .collectList()
+                    .flatMap { ok(it) }
+            }
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_REPLY_ADD_FRIEND', 'ROLE_ADMIN')")
+    fun replyAddFriend(request: ServerRequest): Mono<ServerResponse?> {
+        return request
+            .bodyToMono(ReplyInviteAddFriendRequest::class.java)
+            .flatMap {
+                validator.validate(it) { request ->
+                    inviteAddFriendService.replyInvite(
+                        request.id!!,
+                        request.answer
+                    )
+                }
+            }.then(ok(null))
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_GET_ALL_INVITE', 'ROLE_ADMIN')")
+    fun getAllInvite(request: ServerRequest): Mono<ServerResponse?> {
+        return ReactiveSecurityContextHolder.getContext()
+            .flatMapMany { securityContext ->
+                inviteAddFriendService.getAllInvite(securityContext.authentication.name)
+            }.collectList()
+            .flatMap { ok(it) }
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_GET_ALL_REQUEST_INVITE', 'ROLE_ADMIN')")
+    fun getAllRequestInvite(request: ServerRequest): Mono<ServerResponse?> {
+        return ReactiveSecurityContextHolder.getContext()
+            .flatMapMany { securityContext ->
+                inviteAddFriendService.getAllRequest(securityContext.authentication.name)
+            }.collectList()
+            .flatMap { ok(it) }
     }
 
     private fun checkFriendAndInviteAddFriend(monoUser: Mono<UserDto>, context: SecurityContext): Mono<UserDto> {

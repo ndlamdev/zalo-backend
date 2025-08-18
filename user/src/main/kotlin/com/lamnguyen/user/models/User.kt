@@ -8,6 +8,7 @@
 
 package com.lamnguyen.user.models
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
@@ -24,9 +25,12 @@ open class User : BaseEntity(), Persistable<String> {
     var email: String? = null
 
     @Transient
+    @JsonIgnore
     var isNewUser: Boolean = false
 
+    @JsonIgnore
     override fun getId(): String? = phoneNumber
 
+    @JsonIgnore
     override fun isNew(): Boolean = isNewUser
 }

@@ -9,6 +9,7 @@
 package com.lamnguyen.user.router
 
 import com.lamnguyen.user.domain.request.InviteAddFriendRequest
+import com.lamnguyen.user.domain.request.ReplyInviteAddFriendRequest
 import com.lamnguyen.user.handlers.UserHandler
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -65,7 +66,56 @@ class MainRouter(val userHandler: UserHandler) {
                     ]
                 )
             )
-        )
+        ),
+        RouterOperation(
+            path = "/v1/all-friend",
+            method = [RequestMethod.GET],
+            beanClass = UserHandler::class,
+            beanMethod = "getAllFriend",
+            operation = Operation(
+                operationId = "all-friend",
+                security = [SecurityRequirement(name = "bearer-auth")],
+            )
+        ),
+        RouterOperation(
+            path = "/v1/reply-add-friend",
+            method = [RequestMethod.POST],
+            beanClass = UserHandler::class,
+            beanMethod = "replyAddFriend",
+            operation = Operation(
+                operationId = "reply-add-friend",
+                security = [SecurityRequirement(name = "bearer-auth")],
+                requestBody = RequestBody(
+                    required = true,
+                    content = [
+                        Content(
+                            mediaType = "application/json",
+                            schema = Schema(implementation = ReplyInviteAddFriendRequest::class)
+                        )
+                    ]
+                )
+            )
+        ),
+        RouterOperation(
+            path = "/v1/all-invite",
+            method = [RequestMethod.GET],
+            beanClass = UserHandler::class,
+            beanMethod = "getAllInvite",
+            operation = Operation(
+                operationId = "all-invite",
+                security = [SecurityRequirement(name = "bearer-auth")],
+            )
+        ),
+        RouterOperation(
+            path = "/v1/all-request-invite",
+            method = [RequestMethod.GET],
+            beanClass = UserHandler::class,
+            beanMethod = "getAllRequestInvite",
+            operation = Operation(
+                operationId = "all-request-invite",
+                security = [SecurityRequirement(name = "bearer-auth")],
+            )
+        ),
     )
     @Bean("user-router-function")
     fun userRouter(): RouterFunction<ServerResponse> {
@@ -75,6 +125,10 @@ class MainRouter(val userHandler: UserHandler) {
             .path("/v1") { v1 -> v1
                 .GET("/search", userHandler::search)
                 .POST("/add-friend", userHandler::addFriend)
+                .GET("/all-friend", userHandler::getAllFriend)
+                .POST("/reply-add-friend", userHandler::replyAddFriend)
+                .GET("/all-invite", userHandler::getAllInvite)
+                .GET("/all-request-invite", userHandler::getAllRequestInvite)
             }
             // @formatter:on
             .build()

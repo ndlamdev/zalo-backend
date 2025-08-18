@@ -66,6 +66,7 @@ dependencies {
     implementation "io.grpc:grpc-stub:${grpcVersion}"
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     kapt "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0-rc1'
 }
 
 kotlin {

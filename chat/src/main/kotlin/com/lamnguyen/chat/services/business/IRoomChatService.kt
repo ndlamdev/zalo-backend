@@ -9,9 +9,11 @@
 package com.lamnguyen.chat.services.business
 
 import com.lamnguyen.chat.entities.RoomChat
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 interface IRoomChatService {
     fun createRoomChat(title: String): Mono<RoomChat>
     fun removeRoomChat(id: Long): Mono<Void>
+    fun getAllRoomChat(phoneNumber: String): Flux<RoomChat>
 }

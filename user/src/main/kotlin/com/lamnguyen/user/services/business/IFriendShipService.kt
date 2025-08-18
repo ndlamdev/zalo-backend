@@ -16,6 +16,6 @@ import reactor.core.publisher.Mono
 
 interface IFriendShipService {
     fun checkFriendShip(friendShipsList: MutableList<FriendShipCheck>): Mono<FriendShipCheckResponse>
-
     fun getAllFriend(phoneNumber: String): Flux<FriendShip>
+    fun addFriend(phoneNumberSender: String, phoneNumberReceiver: String): Mono<FriendShip>
 }

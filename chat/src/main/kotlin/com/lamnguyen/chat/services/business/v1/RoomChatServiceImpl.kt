@@ -10,17 +10,28 @@ package com.lamnguyen.chat.services.business.v1
 
 import com.lamnguyen.chat.entities.RoomChat
 import com.lamnguyen.chat.repositories.IRomChatRepository
+import com.lamnguyen.chat.services.business.IPinRoomChatService
 import com.lamnguyen.chat.services.business.IRoomChatService
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @Service
-class RoomChatServiceImpl(val roomChatRepository: IRomChatRepository) : IRoomChatService {
+class RoomChatServiceImpl(val roomChatRepository: IRomChatRepository, val pinRoomChatService: IPinRoomChatService) :
+    IRoomChatService {
     override fun createRoomChat(title: String): Mono<RoomChat> {
         return roomChatRepository.save(RoomChat().apply { this.title = title })
     }
 
     override fun removeRoomChat(id: Long): Mono<Void> {
-       return roomChatRepository.deleteById(id)
+        return roomChatRepository.deleteById(id)
+    }
+
+    override fun getAllRoomChat(phoneNumber: String): Flux<RoomChat> {
+        return roomChatRepository.findAllByPhoneNumber(phoneNumber)
+            .flatMap { roomChat ->
+                pinRoomChatService.isPin(roomChat.id, phoneNumber)
+                    .map { exists -> roomChat.apply { pin = exists } }
+            }
     }
 }

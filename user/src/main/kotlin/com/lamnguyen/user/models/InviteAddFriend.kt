@@ -8,10 +8,13 @@
 
 package com.lamnguyen.user.models
 
+import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 
 @Table(name = "invite_add_friends")
 class InviteAddFriend : BaseEntity() {
+    @Id
+    var id: Long? = null
     lateinit var phoneNumberSender: String
     lateinit var phoneNumberReceiver: String
     var message: String? = null

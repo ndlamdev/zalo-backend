@@ -15,6 +15,7 @@ import org.springframework.data.relational.core.mapping.Table
 class FriendShip : BaseEntity() {
     @Id
     var id: Long? = null
-    var phoneNumberUser1: String? = null
-    var phoneNumberUser2: String? = null
+    var ownerPhoneNumber: String = ""
+    var friendPhoneNumber: String = ""
+    var displayName: String? = null
 }
