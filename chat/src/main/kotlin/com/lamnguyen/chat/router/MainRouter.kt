@@ -45,6 +45,16 @@ class MainRouter {
                     ]
                 )
             )
+        ),
+        RouterOperation(
+            path = "/v1/get-all-room-chat",
+            method = [RequestMethod.GET],
+            beanClass = ChatHandler::class,
+            beanMethod = "getAllRoomChat",
+            operation = Operation(
+                operationId = "get-room-chat",
+                security = [SecurityRequirement(name = "bearer-auth")],
+            )
         )
     )
     @Bean("chat-router-function")
@@ -54,6 +64,7 @@ class MainRouter {
             // @formatter:off
             .path("/v1") { v1 -> v1
                 .POST("/create-room-chat", charHandler::createRoomChat)
+                .GET("/get-all-room-chat", charHandler::getAllRoomChat)
             }
             // @formatter:on
             .build()

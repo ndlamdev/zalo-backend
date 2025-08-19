@@ -24,13 +24,13 @@ import org.springframework.stereotype.Component
 class AuthenticationInterceptor(
     val authProperty: ApplicationProperty.Companion.AuthProperty,
     val jwtHelper: JwtHelper,
-    val interceptor: AuthorizationInterceptor
+    val interceptor: AuthorizationInterceptor,
 ) : ServerInterceptor, Ordered {
 
     override fun <ReqT : Any?, RespT : Any?> interceptCall(
         serverCall: ServerCall<ReqT, RespT>,
         metaData: Metadata,
-        serverCallHandler: ServerCallHandler<ReqT, RespT>
+        serverCallHandler: ServerCallHandler<ReqT, RespT>,
     ): ServerCall.Listener<ReqT?>? {
         try {
             SecurityContextHolder.getContext().authentication = extractToken(metaData)
@@ -64,6 +64,10 @@ class AuthenticationInterceptor(
 
         val token = bearerToken.substring(7)
 
-        return jwtHelper.initJwtAuthenticationToken(token, authorities)
+        return try {
+            jwtHelper.initJwtAuthenticationToken(token, authorities)
+        } catch (_: Exception) {
+            null
+        }
     }
 }

@@ -12,10 +12,6 @@ import com.lamnguyen.user.domain.dto.UserDto
 import com.lamnguyen.user.domain.request.InviteAddFriendRequest
 import com.lamnguyen.user.domain.request.ReplyInviteAddFriendRequest
 import com.lamnguyen.user.mappers.IUserMapper
-import com.lamnguyen.user.models.InviteAddFriend
-import com.lamnguyen.user.protos.FriendShipCheck
-import com.lamnguyen.user.protos.FriendShipCheckResponse
-import com.lamnguyen.user.protos.FriendShipCheckResult
 import com.lamnguyen.user.services.business.IFriendShipService
 import com.lamnguyen.user.services.business.IInviteAddFriendService
 import com.lamnguyen.user.services.business.IUserService
@@ -37,7 +33,7 @@ class UserHandler(
     val friendShipService: IFriendShipService,
     val inviteAddFriendService: IInviteAddFriendService,
     val userMapper: IUserMapper,
-    val validator: Validator
+    val validator: Validator,
 ) {
 
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_SEARCH_BY_PHONE_NUMBER')")
@@ -119,43 +115,24 @@ class UserHandler(
     private fun checkFriendAndInviteAddFriend(monoUser: Mono<UserDto>, context: SecurityContext): Mono<UserDto> {
         return monoUser
             .flatMap { user ->
-                val monoFriend = friendShipService.checkFriendShip(
-                    mutableListOf(
-                        FriendShipCheck.newBuilder()
-                            .setPhoneNumberChecker(context.authentication.name)
-                            .setPhoneNumberFriend(user.phoneNumber)
-                            .build()
-                    )
-                ).defaultIfEmpty(
-                    FriendShipCheckResponse.newBuilder()
-                        .addResult(
-                            FriendShipCheckResult.newBuilder()
-                                .setPhoneNumberChecker(context.authentication.name)
-                                .setPhoneNumberFriend(user.phoneNumber)
-                                .setResult(context.authentication.name == user.phoneNumber)
-                                .build()
-                        )
-                        .build()
-                )
-                val monoInviteAddFriend = inviteAddFriendService.findInviteAddFriend(
+                val monoFriend = friendShipService.existsFriendship(
                     context.authentication.name,
                     user.phoneNumber
-                ).defaultIfEmpty(
-                    InviteAddFriend().apply {
-                        phoneNumberSender = ""
-                        phoneNumberReceiver = ""
-                    }
+                )
+
+                val monoInviteAddFriend = inviteAddFriendService.existsInviteAddFriend(
+                    context.authentication.name,
+                    user.phoneNumber
                 )
                 Mono.zip(
                     monoFriend,
                     monoInviteAddFriend
                 )
-                    .map { it ->
-                        val friend = it.t1
-                        val invite = it.t2
-                        user.isFriend = friend.resultList.first().result
-                        user.addFriendRequested = !invite.phoneNumberSender.isEmpty()
-                        user
+                    .map {
+                        user.apply {
+                            isFriend = it.t1
+                            addFriendRequested = it.t2
+                        }
                     }
             }
     }

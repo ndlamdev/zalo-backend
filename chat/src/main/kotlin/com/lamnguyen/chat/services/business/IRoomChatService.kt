@@ -13,7 +13,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 interface IRoomChatService {
-    fun createRoomChat(title: String): Mono<RoomChat>
+    fun createRoomChat(room: RoomChat): Mono<RoomChat>
     fun removeRoomChat(id: Long): Mono<Void>
     fun getAllRoomChat(phoneNumber: String): Flux<RoomChat>
 }

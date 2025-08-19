@@ -19,8 +19,8 @@ import reactor.core.publisher.Mono
 @Service
 class RoomChatServiceImpl(val roomChatRepository: IRomChatRepository, val pinRoomChatService: IPinRoomChatService) :
     IRoomChatService {
-    override fun createRoomChat(title: String): Mono<RoomChat> {
-        return roomChatRepository.save(RoomChat().apply { this.title = title })
+    override fun createRoomChat(room: RoomChat): Mono<RoomChat> {
+        return roomChatRepository.save(room)
     }
 
     override fun removeRoomChat(id: Long): Mono<Void> {
@@ -30,7 +30,7 @@ class RoomChatServiceImpl(val roomChatRepository: IRomChatRepository, val pinRoo
     override fun getAllRoomChat(phoneNumber: String): Flux<RoomChat> {
         return roomChatRepository.findAllByPhoneNumber(phoneNumber)
             .flatMap { roomChat ->
-                pinRoomChatService.isPin(roomChat.id, phoneNumber)
+                pinRoomChatService.isPin(roomChat.id!!, phoneNumber)
                     .map { exists -> roomChat.apply { pin = exists } }
             }
     }

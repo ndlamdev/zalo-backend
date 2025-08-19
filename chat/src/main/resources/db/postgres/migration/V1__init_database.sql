@@ -19,6 +19,7 @@ CREATE TABLE "room_chat_members"
     rom_chat_id  BIGINT      NOT NULL,
     username     VARCHAR(255),
     display_name VARCHAR(255),
+    role         VARCHAR(255),
     created_at   TIMESTAMP,
     created_by   VARCHAR(255),
     updated_at   TIMESTAMP,

@@ -11,22 +11,26 @@ package com.lamnguyen.user.services.grpc
 import com.lamnguyen.user.protos.FriendShipCheckRequest
 import com.lamnguyen.user.protos.FriendShipCheckResponse
 import com.lamnguyen.user.protos.UserServiceGrpc
-import com.lamnguyen.user.services.business.IFriendShipService
+import com.lamnguyen.user.services.business.IUserService
 import com.lamnguyen.user.utils.annotation.GrpcPreAuthorizeHasAnyAuthority
 import io.grpc.stub.StreamObserver
 import net.devh.boot.grpc.server.service.GrpcService
+import org.springframework.security.core.context.SecurityContextHolder
 
 @GrpcService
 class UserGrpcServiceImpl(
-    val friendShipService: IFriendShipService
+    val userService: IUserService,
 ) : UserServiceGrpc.UserServiceImplBase() {
 
     @GrpcPreAuthorizeHasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "USER_CHECK_FRIEND_SHIP")
     override fun checkFriendShip(
         request: FriendShipCheckRequest,
-        responseObserver: StreamObserver<FriendShipCheckResponse>
+        responseObserver: StreamObserver<FriendShipCheckResponse>,
     ) {
-        friendShipService.checkFriendShip(request.friendShipsList)
+        userService.getAllFriend(
+            SecurityContextHolder.getContext().authentication.name!!,
+            request.friendPhoneNumbersList
+        )
             .subscribe {
                 responseObserver.onNext(it)
                 responseObserver.onCompleted()

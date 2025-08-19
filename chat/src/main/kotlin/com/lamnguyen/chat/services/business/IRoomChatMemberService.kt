@@ -12,5 +12,9 @@ import com.lamnguyen.chat.entities.RoomChatMember
 import reactor.core.publisher.Mono
 
 interface IRoomChatMemberService {
-    fun addMember(roomCharId: Long, phoneNumber: String): Mono<RoomChatMember>
+    fun addMember(
+        roomCharId: Long,
+        phoneNumber: String,
+        role: RoomChatMember.Role? = RoomChatMember.Role.USER,
+    ): Mono<RoomChatMember>
 }

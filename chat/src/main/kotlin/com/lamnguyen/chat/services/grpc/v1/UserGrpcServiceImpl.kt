@@ -8,7 +8,7 @@
 
 package com.lamnguyen.chat.services.grpc.v1
 
-import com.lamnguyen.chat.mappers.IUserMapper
+import com.lamnguyen.chat.protos.FriendShipCheckRequest
 import com.lamnguyen.chat.protos.FriendShipCheckResponse
 import com.lamnguyen.chat.protos.UserServiceGrpc
 import com.lamnguyen.chat.services.grpc.IUserGrpcService
@@ -19,19 +19,16 @@ import reactor.core.publisher.Mono
 @Service
 class UserGrpcServiceImpl(
     val userGrpcService: UserServiceGrpc.UserServiceBlockingStub,
-    val userMapper: IUserMapper
 ) : IUserGrpcService {
     override fun getFriendShips(
         adminPhoneNumber: String,
-        members: List<String>
+        members: List<String>,
     ): Mono<FriendShipCheckResponse> {
         return grpcCall(userGrpcService)
             .map {
-                val request = userMapper
-                    .toFriendShipCheckRequest(
-                        adminPhoneNumber,
-                        members
-                    )
+                val request = FriendShipCheckRequest.newBuilder().apply {
+                    addAllFriendPhoneNumbers(members)
+                }.build()
                 it.checkFriendShip(request)
             }.onErrorResume { error -> Mono.error(error) }
     }

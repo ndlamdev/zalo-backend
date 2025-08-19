@@ -8,13 +8,13 @@
 
 package com.lamnguyen.chat.entities
 
-import org.springframework.data.annotation.CreatedBy
-import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.LastModifiedBy
-import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.annotation.*
 import java.time.LocalDateTime
 
 open class BaseEntity() {
+    @Id
+    var id: Long? = null
+
     @CreatedDate
     lateinit var createdAt: LocalDateTime
 

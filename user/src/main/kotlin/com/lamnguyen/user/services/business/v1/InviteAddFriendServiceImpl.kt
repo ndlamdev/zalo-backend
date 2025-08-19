@@ -26,7 +26,7 @@ import reactor.core.publisher.Mono
 class InviteAddFriendServiceImpl(
     val inviteAddFriendRepository: IInviteAddFriendRepository,
     val notificationKafkaProducer: INotificationKafkaProducer,
-    val friendService: IFriendShipService
+    val friendService: IFriendShipService,
 ) : IInviteAddFriendService {
     override fun sendRequest(phoneNumberReceiver: String, message: String?): Mono<Void> {
         val phoneNumberReceiverFormated = formatPhoneNumber(phoneNumberReceiver)
@@ -54,7 +54,7 @@ class InviteAddFriendServiceImpl(
     private fun inviteAddFriend(
         phoneNumberSender: String,
         phoneNumberReceiver: String,
-        message: String?
+        message: String?,
     ): Mono<InviteAddFriend> {
         val data = InviteAddFriend().apply {
             this.phoneNumberReceiver = formatPhoneNumber(phoneNumberReceiver)
@@ -82,7 +82,7 @@ class InviteAddFriendServiceImpl(
 
     override fun findInviteAddFriend(
         phoneNumberSender: String,
-        phoneNumberReceiver: String
+        phoneNumberReceiver: String,
     ): Mono<InviteAddFriend> {
         return inviteAddFriendRepository.findInviteAddFriendAndDeletedIsFalse(
             formatPhoneNumber(phoneNumberSender),
@@ -111,5 +111,12 @@ class InviteAddFriendServiceImpl(
 
     override fun getAllRequest(phoneNumberSender: String): Flux<InviteAddFriend> {
         return inviteAddFriendRepository.findAllByPhoneNumberSenderAndDeletedIsFalse(phoneNumberSender)
+    }
+
+    override fun existsInviteAddFriend(senderPhoneNumber: String, receiverPhoneNumber: String): Mono<Boolean> {
+        return inviteAddFriendRepository.existsInviteAddFriendByPhoneNumberAndDeletedIsFalse(
+            senderPhoneNumber,
+            receiverPhoneNumber
+        )
     }
 }

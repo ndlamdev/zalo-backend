@@ -18,4 +18,5 @@ interface IInviteAddFriendService {
     fun replyInvite(id: Long, answer: Boolean): Mono<Void>
     fun getAllInvite(phoneNumberReceiver: String): Flux<InviteAddFriend>
     fun getAllRequest(phoneNumberSender: String): Flux<InviteAddFriend>
+    fun existsInviteAddFriend(senderPhoneNumber: String, receiverPhoneNumber: String): Mono<Boolean>
 }

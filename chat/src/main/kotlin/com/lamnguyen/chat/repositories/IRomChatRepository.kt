@@ -9,6 +9,16 @@
 package com.lamnguyen.chat.repositories
 
 import com.lamnguyen.chat.entities.RoomChat
+import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.r2dbc.repository.R2dbcRepository
+import reactor.core.publisher.Flux
 
-interface IRomChatRepository : R2dbcRepository<RoomChat, Long>
+interface IRomChatRepository : R2dbcRepository<RoomChat, Long> {
+    @Query(value = """
+        SELECT rc.*
+        FROM "zalo-chat".public.room_chats rc
+        JOIN "zalo-chat".public.room_chat_members rcm on rc.id = rcm.rom_chat_id
+        WHERE rcm.phone_number = :phoneNumber
+    """)
+    fun findAllByPhoneNumber(phoneNumber: String): Flux<RoomChat>
+}

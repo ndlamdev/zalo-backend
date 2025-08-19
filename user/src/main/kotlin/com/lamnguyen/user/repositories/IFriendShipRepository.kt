@@ -22,6 +22,11 @@ interface IFriendShipRepository : R2dbcRepository<FriendShip, String> {
     ): Mono<Boolean>
 
     fun findAllByOwnerPhoneNumber(
-        phoneNumber: String
+        ownerPhoneNumber: String
+    ): Flux<FriendShip>
+
+    fun findAllByOwnerPhoneNumberAndFriendPhoneNumberIn(
+        ownerPhoneNumber: String,
+        friendPhoneNumber: List<String>
     ): Flux<FriendShip>
 }

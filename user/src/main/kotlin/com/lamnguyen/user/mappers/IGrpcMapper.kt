@@ -5,7 +5,7 @@
  * Create at: 12:09 PM-05/05/2025
  * User: kimin
  */
-package com.lamnguyen.chat.mappers
+package com.lamnguyen.user.mappers
 
 import com.google.protobuf.BoolValue
 import com.google.protobuf.Int64Value

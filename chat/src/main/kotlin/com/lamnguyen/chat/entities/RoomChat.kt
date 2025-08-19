@@ -8,14 +8,15 @@
 
 package com.lamnguyen.chat.entities
 
-import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.Transient
 import org.springframework.data.relational.core.mapping.Table
 
 @Table("room_chats")
 class RoomChat : BaseEntity() {
-    @Id
-    var id: Long? = null
     lateinit var title: String
     lateinit var avatar: String
     lateinit var theme: String
+
+    @Transient
+    var pin: Boolean = false
 }

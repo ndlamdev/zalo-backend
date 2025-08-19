@@ -10,6 +10,7 @@ package com.lamnguyen.chat.handlers
 
 import com.lamnguyen.chat.domain.request.CreateRoomChatRequest
 import com.lamnguyen.chat.entities.RoomChat
+import com.lamnguyen.chat.entities.RoomChatMember
 import com.lamnguyen.chat.exceptions.ApplicationException
 import com.lamnguyen.chat.exceptions.ExceptionEnum
 import com.lamnguyen.chat.services.business.IRoomChatMemberService
@@ -40,7 +41,15 @@ class ChatHandler(
                 validator.validate(body) {
                     createNewRoomChat(it)
                 }
-            }.then(ok(""))
+            }.then(ok(null))
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER', 'USER_GET_ALL_ROOM_CHAT')")
+    fun getAllRoomChat(request: ServerRequest): Mono<ServerResponse?> {
+        return ReactiveSecurityContextHolder.getContext()
+            .flatMapMany { securityContext -> roomChatSerVice.getAllRoomChat(securityContext.authentication.name) }
+            .collectList()
+            .flatMap { ok(it) }
     }
 
     private fun createNewRoomChat(chatRequest: CreateRoomChatRequest): Mono<RoomChat> {
@@ -51,26 +60,37 @@ class ChatHandler(
                 if (chatRequest.members!!.isEmpty())
                     return@flatMap Mono.error(ApplicationException(ExceptionEnum.LIST_MEMBER_IS_EMPTY))
 
-                return@flatMap roomChatSerVice
-                    .createRoomChat(chatRequest.title ?: "")
-                    .flatMap { romChat ->
-                        userGrpcService
-                            .getFriendShips(auth.name, chatRequest.members!!)
-                            .flatMap { response ->
-                                Flux.fromIterable(response.resultList)
-                                    .filter { it.result }
-                                    .flatMap { roomChatMemberService.addMember(romChat.id ?: 0, it.phoneNumberFriend) }
-                                    .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.LIST_MEMBER_IS_EMPTY)))
-                                    .collectList()
-                            }.flatMap {
-                                roomChatMemberService
-                                    .addMember(romChat.id ?: 0, auth.name)
-                                    .thenReturn(romChat)
-                            }
-                            .onErrorResume {
-                                roomChatSerVice
-                                    .removeRoomChat(romChat.id!!)
-                                    .then(Mono.error { it })
+                return@flatMap userGrpcService
+                    .getFriendShips(auth.name, chatRequest.members!!)
+                    .map { it.friendsList }
+                    .filter { it.isNotEmpty() }
+                    .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.LIST_MEMBER_IS_EMPTY)))
+                    .flatMap { users ->
+                        roomChatSerVice
+                            .createRoomChat(if (users.size == 1) RoomChat().apply {
+                                title = users.first().displayName
+                                avatar = users.first().avatar
+                            } else RoomChat().apply {
+                                title = chatRequest.title!!
+                            })
+                            .flatMap { romChat ->
+                                val fluxAddMember = Flux.fromIterable(users).flatMap { user ->
+                                    roomChatMemberService
+                                        .addMember(romChat.id ?: 0, user.phoneNumber)
+                                        .thenReturn(romChat)
+                                }
+                                val fluxOwner = Flux.from(
+                                    roomChatMemberService
+                                        .addMember(romChat.id ?: 0, auth.name, RoomChatMember.Role.ADMIN)
+                                        .thenReturn(romChat)
+                                )
+                                Flux.zip(fluxAddMember, fluxOwner)
+                                    .then(Mono.just(romChat))
+                                    .onErrorResume { error ->
+                                        roomChatSerVice
+                                            .removeRoomChat(romChat.id!!)
+                                            .then(Mono.error(error))
+                                    }
                             }
                     }
             }

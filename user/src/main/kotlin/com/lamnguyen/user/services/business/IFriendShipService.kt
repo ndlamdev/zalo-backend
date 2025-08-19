@@ -9,13 +9,11 @@
 package com.lamnguyen.user.services.business
 
 import com.lamnguyen.user.models.FriendShip
-import com.lamnguyen.user.protos.FriendShipCheck
-import com.lamnguyen.user.protos.FriendShipCheckResponse
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 interface IFriendShipService {
-    fun checkFriendShip(friendShipsList: MutableList<FriendShipCheck>): Mono<FriendShipCheckResponse>
     fun getAllFriend(phoneNumber: String): Flux<FriendShip>
     fun addFriend(phoneNumberSender: String, phoneNumberReceiver: String): Mono<FriendShip>
+    fun existsFriendship(ownerPhoneNumber: String, friendPhoneNumber: String): Mono<Boolean>
 }

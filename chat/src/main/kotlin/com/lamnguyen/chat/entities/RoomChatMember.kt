@@ -12,9 +12,13 @@ import org.springframework.data.relational.core.mapping.Table
 
 @Table("room_chat_members")
 class RoomChatMember : BaseEntity() {
-
     lateinit var phoneNumber: String
     var romChatId: Long? = null
     lateinit var username: String
     lateinit var displayName: String
+    var role: Role = Role.USER
+
+    enum class Role {
+        ADMIN, USER
+    }
 }

@@ -10,11 +10,13 @@ package com.lamnguyen.user.services.business
 
 import com.lamnguyen.user.domain.dto.UserDto
 import com.lamnguyen.user.models.User
+import com.lamnguyen.user.protos.FriendShipCheckResponse
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 interface IUserService {
     fun createUser(phoneNumber: String): Mono<User>
     fun findByPhoneNumber(formatPhoneNumber: String): Mono<User>
-    fun getAllFriend(formatPhoneNumber: String): Flux<UserDto>
+    fun getAllFriend(ownerPhoneNumber: String): Flux<UserDto>
+    fun getAllFriend(ownerPhoneNumber: String, friendPhoneNumbers: List<String>): Mono<FriendShipCheckResponse>
 }

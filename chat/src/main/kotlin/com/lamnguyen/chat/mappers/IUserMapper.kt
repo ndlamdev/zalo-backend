@@ -8,34 +8,8 @@
 
 package com.lamnguyen.chat.mappers
 
-import com.lamnguyen.chat.protos.FriendShipCheck
-import com.lamnguyen.chat.protos.FriendShipCheckRequest
-import org.mapstruct.*
+import org.mapstruct.Mapper
 
 @Mapper(componentModel = "spring")
 interface IUserMapper {
-    @Mappings(
-        Mapping(target = "friendShipsList", ignore = true)
-    )
-    fun toFriendShipCheckRequest(phoneNumberChecker: String, phoneNumberFriends: List<String>): FriendShipCheckRequest
-
-    @AfterMapping
-    fun afterToFriendShipCheckRequest(
-        @MappingTarget builder: FriendShipCheckRequest.Builder,
-        phoneNumberChecker: String,
-        phoneNumberFriends: List<String>
-    ) {
-        val request = phoneNumberFriends
-            .filter { it != phoneNumberChecker }
-            .map {
-                FriendShipCheck.newBuilder()
-                    .apply {
-                        this.phoneNumberChecker = phoneNumberChecker
-                        phoneNumberFriend = it
-                    }
-                    .build()
-            }
-
-        builder.addAllFriendShips(request)
-    }
 }

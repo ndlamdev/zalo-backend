@@ -13,6 +13,7 @@ import com.lamnguyen.user.exceptions.ApplicationException
 import com.lamnguyen.user.exceptions.ExceptionEnum
 import com.lamnguyen.user.mappers.IUserMapper
 import com.lamnguyen.user.models.User
+import com.lamnguyen.user.protos.FriendShipCheckResponse
 import com.lamnguyen.user.repositories.IFriendShipRepository
 import com.lamnguyen.user.repositories.IUserRepository
 import com.lamnguyen.user.services.business.IUserService
@@ -42,16 +43,39 @@ class UserServiceImpl(
         return userRepository.findUserByPhoneNumber(formatPhoneNumber)
     }
 
-    override fun getAllFriend(formatPhoneNumber: String): Flux<UserDto> {
-        return friendRepository.findAllByOwnerPhoneNumber(formatPhoneNumber)
+    override fun getAllFriend(ownerPhoneNumber: String): Flux<UserDto> {
+        return friendRepository.findAllByOwnerPhoneNumber(ownerPhoneNumber)
             .flatMap { friendShip ->
                 userRepository.findUserByPhoneNumber(friendShip.friendPhoneNumber)
-                    .map(userMapper::toDto)
-                    .map { dto ->
-                        dto.apply {
-                            displayName = friendShip.displayName ?: dto.fullName
+                    .map {
+                        userMapper.toDto(it).apply {
+                            isFriend = true
+                            addFriendRequested = false
                         }
                     }
+            }
+    }
+
+    override fun getAllFriend(
+        ownerPhoneNumber: String,
+        friendPhoneNumbers: List<String>,
+    ): Mono<FriendShipCheckResponse> {
+        return friendRepository.findAllByOwnerPhoneNumberAndFriendPhoneNumberIn(
+            ownerPhoneNumber,
+            friendPhoneNumbers
+        ).flatMap { friendShip ->
+            userRepository.findUserByPhoneNumber(friendShip.friendPhoneNumber)
+                .map {
+                    userMapper.toDto(it).apply {
+                        isFriend = true
+                        addFriendRequested = false
+                    }
+                }.map(userMapper::toInfo)
+        }.collectList()
+            .map {
+                FriendShipCheckResponse.newBuilder()
+                    .addAllFriends(it)
+                    .build()
             }
     }
 }

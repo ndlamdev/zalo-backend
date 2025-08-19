@@ -18,11 +18,13 @@ import reactor.core.publisher.Mono
 class RoomChatMemberServiceImpl(val roomChatMemberRepository: IRomChatMemberRepository) : IRoomChatMemberService {
     override fun addMember(
         roomCharId: Long,
-        phoneNumber: String
+        phoneNumber: String,
+        role: RoomChatMember.Role?,
     ): Mono<RoomChatMember> {
         return roomChatMemberRepository.save(RoomChatMember().apply {
             this.phoneNumber = phoneNumber
             this.romChatId = roomCharId
+            this.role = role ?: RoomChatMember.Role.USER
         })
     }
 }

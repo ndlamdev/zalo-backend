@@ -9,9 +9,6 @@
 package com.lamnguyen.user.services.business.v1
 
 import com.lamnguyen.user.models.FriendShip
-import com.lamnguyen.user.protos.FriendShipCheck
-import com.lamnguyen.user.protos.FriendShipCheckResponse
-import com.lamnguyen.user.protos.FriendShipCheckResult
 import com.lamnguyen.user.repositories.IFriendShipRepository
 import com.lamnguyen.user.repositories.IUserRepository
 import com.lamnguyen.user.services.business.IFriendShipService
@@ -25,34 +22,13 @@ class FriendShipServiceImpl(
     val friendShipRepository: IFriendShipRepository,
     val userRepository: IUserRepository,
 ) : IFriendShipService {
-    override fun checkFriendShip(friendShipsList: MutableList<FriendShipCheck>): Mono<FriendShipCheckResponse> {
-        return Flux.fromIterable(friendShipsList)
-            .flatMap { friendShip ->
-                friendShipRepository.existsFriendShipsByOwnerPhoneNumberAndFriendPhoneNumber(
-                    friendShip.phoneNumberChecker,
-                    friendShip.phoneNumberFriend
-                )
-                    .flatMap { result ->
-                        Mono.just(
-                            FriendShipCheckResult.newBuilder()
-                                .apply {
-                                    phoneNumberChecker = formatPhoneNumber(friendShip.phoneNumberChecker)
-                                    phoneNumberFriend = formatPhoneNumber(friendShip.phoneNumberFriend)
-                                    this.result = result
-                                }
-                                .build())
-                    }
-            }.collectList()
-            .flatMap { Mono.just(FriendShipCheckResponse.newBuilder().addAllResult(it).build()) }
-    }
-
     override fun getAllFriend(phoneNumber: String): Flux<FriendShip> {
         return friendShipRepository.findAllByOwnerPhoneNumber(formatPhoneNumber(phoneNumber))
     }
 
     override fun addFriend(
         phoneNumberSender: String,
-        phoneNumberReceiver: String
+        phoneNumberReceiver: String,
     ): Mono<FriendShip> {
         return friendShipRepository
             .existsFriendShipsByOwnerPhoneNumberAndFriendPhoneNumber(phoneNumberSender, phoneNumberReceiver)
@@ -78,5 +54,13 @@ class FriendShipServiceImpl(
                     })
                 )
             }.map { it.t1 }
+    }
+
+    override fun existsFriendship(
+        ownerPhoneNumber: String,
+        friendPhoneNumber: String,
+    ): Mono<Boolean> {
+        return friendShipRepository
+            .existsFriendShipsByOwnerPhoneNumberAndFriendPhoneNumber(ownerPhoneNumber, friendPhoneNumber)
     }
 }
