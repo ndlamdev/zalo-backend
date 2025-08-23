@@ -6,7 +6,7 @@
  *  User: kimin
  **/
 
-package com.lamnguyen.chat.domain.request
+package com.lamnguyen.chat.domain.requests
 
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty

@@ -35,3 +35,11 @@ message UserInfo {
   bool locked = 13;
   bool deleted = 14;
 }
+
+message RoomChatIdRequest {
+  int64 room_chat_id = 1;
+}
+
+message MemberOfRoomChatResponse {
+  repeated UserInfo user = 1;
+}

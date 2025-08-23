@@ -8,7 +8,7 @@
 
 package com.lamnguyen.chat.handlers
 
-import com.lamnguyen.chat.domain.request.CreateRoomChatRequest
+import com.lamnguyen.chat.domain.requests.CreateRoomChatRequest
 import com.lamnguyen.chat.entities.RoomChat
 import com.lamnguyen.chat.entities.RoomChatMember
 import com.lamnguyen.chat.exceptions.ApplicationException
@@ -16,6 +16,7 @@ import com.lamnguyen.chat.exceptions.ExceptionEnum
 import com.lamnguyen.chat.services.business.IRoomChatMemberService
 import com.lamnguyen.chat.services.business.IRoomChatService
 import com.lamnguyen.chat.services.grpc.IUserGrpcService
+import com.lamnguyen.chat.services.kafka.IRoomChatMemberProducer
 import com.lamnguyen.chat.utils.helpers.ok
 import com.lamnguyen.chat.utils.helpers.validate
 import org.springframework.security.access.prepost.PreAuthorize
@@ -33,6 +34,7 @@ class ChatHandler(
     val roomChatMemberService: IRoomChatMemberService,
     val validator: Validator,
     val userGrpcService: IUserGrpcService,
+    val roomChatMemberProducer: IRoomChatMemberProducer,
 ) {
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER', 'USER_CREATE_ROOM_CHAT')")
     fun createRoomChat(request: ServerRequest): Mono<ServerResponse?> {
@@ -68,15 +70,15 @@ class ChatHandler(
                     .flatMap { users ->
                         roomChatSerVice
                             .createRoomChat(if (users.size == 1) RoomChat().apply {
-                                title = users.first().displayName
-                                avatar = users.first().avatar
+                                title = users.first().displayName.value
+                                avatar = users.first().avatar.value
                             } else RoomChat().apply {
                                 title = chatRequest.title!!
                             })
                             .flatMap { romChat ->
                                 val fluxAddMember = Flux.fromIterable(users).flatMap { user ->
                                     roomChatMemberService
-                                        .addMember(romChat.id ?: 0, user.phoneNumber)
+                                        .addMember(romChat.id!!, user.phoneNumber)
                                         .thenReturn(romChat)
                                 }
                                 val fluxOwner = Flux.from(
@@ -84,12 +86,21 @@ class ChatHandler(
                                         .addMember(romChat.id ?: 0, auth.name, RoomChatMember.Role.ADMIN)
                                         .thenReturn(romChat)
                                 )
+
+
                                 Flux.zip(fluxAddMember, fluxOwner)
                                     .then(Mono.just(romChat))
                                     .onErrorResume { error ->
                                         roomChatSerVice
                                             .removeRoomChat(romChat.id!!)
                                             .then(Mono.error(error))
+                                    }
+                                    .doOnSuccess {
+                                        roomChatMemberProducer.dumpRoomChatMember(
+                                            romChat.id!!,
+                                            users.map { it.phoneNumber }.toMutableList().apply {
+                                                add(auth.name)
+                                            })
                                     }
                             }
                     }

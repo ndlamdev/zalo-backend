@@ -27,9 +27,9 @@ inline fun <reified T : Any> error(
     ex: Throwable,
     code: Int?,
     message: String?,
-    detail: T?
+    detail: T?,
 ): Mono<ServerResponse> {
-    return ServerResponse.ok().body(BodyInserters.fromValue(ApiResponseError<T>().apply {
+    return ServerResponse.badRequest().body(BodyInserters.fromValue(ApiResponseError<T>().apply {
         this.code = code ?: 400
         error = message ?: ex.message
         this.detail = ObjectMapper().readValue(detail?.toString() ?: "{}", T::class.java)

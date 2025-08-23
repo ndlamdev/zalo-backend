@@ -1,4 +1,4 @@
-package com.lamnguyen.chatws.domain.message
+package com.lamnguyen.chatws.domain.messages
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
@@ -7,8 +7,8 @@ import java.time.Instant
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class ChatMessage(
-    val senderId: String,
-    val roomChatId: String,
+    val senderPhoneNumber: String,
+    val roomChatId: Long,
     val content: String,
     val type: ContentMessageType,
     val urlMedia: String,

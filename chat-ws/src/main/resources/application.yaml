@@ -22,7 +22,7 @@ spring:
             trusted:
               packages: chat-message
             type:
-              mapping: chat-message:com.lamnguyen.chatws.domain.message.ChatMessage
+              mapping: chat-message:com.lamnguyen.chatws.domain.messages.ChatMessage,dump-room-chat-member-message:com.lamnguyen.chatws.domain.messages.DumpRoomChatMemberMessage
 
 logging:
   level:

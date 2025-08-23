@@ -8,9 +8,9 @@
 
 package com.lamnguyen.chatws.controllers
 
-import com.lamnguyen.chatws.domain.message.ChatMessage
+import com.lamnguyen.chatws.domain.messages.ChatMessage
+import com.lamnguyen.chatws.services.business.IRoomChatMemberService
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.Payload
@@ -18,10 +18,16 @@ import org.springframework.web.bind.annotation.RestController
 
 
 @RestController
-class ChatController(private val template: KafkaTemplate<String, ChatMessage>) {
+class ChatController(
+    private val template: KafkaTemplate<String, ChatMessage>,
+    val roomChatMemberService: IRoomChatMemberService,
+) {
     @MessageMapping("/chat")
     fun handleChatMessage(@Payload message: ChatMessage) {
-        val data = ProducerRecord("chat-message", message.roomChatId, message);
-        template.send(data)
+        roomChatMemberService.getRoomChatMember(message.roomChatId)
+            .map { it ->
+                val data = ProducerRecord("chat-message", it, message)
+                template.send(data)
+            }.subscribe()
     }
 }
