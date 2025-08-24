@@ -6,11 +6,10 @@ import com.lamnguyen.chatws.utils.enums.ContentMessageType
 import java.time.Instant
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-data class ChatMessage(
-    val senderPhoneNumber: String,
-    val roomChatId: Long,
-    val content: String,
-    val type: ContentMessageType,
-    val urlMedia: String,
-    val timestamp: Instant = Instant.now(),
-)
+class ChatMessage {
+    var senderPhoneNumber: String? = null
+    var roomChatId: Long = 0
+    var content: String? = null
+    var type: ContentMessageType? = ContentMessageType.TEXT
+    var timestamp: Instant? = Instant.now()
+}

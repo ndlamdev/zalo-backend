@@ -1,6 +1,8 @@
 package com.lamnguyen.chatws.services.kafka.v1
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.lamnguyen.chatws.domain.messages.ChatMessage
+import com.lamnguyen.chatws.services.business.IRoomChatMemberService
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Component
@@ -13,10 +15,16 @@ import org.springframework.stereotype.Component
  *  User: kimin
  **/
 @Component
-class KafkaConsumer(private val messagingTemplate: SimpMessagingTemplate) {
+class KafkaConsumer(
+    private val messagingTemplate: SimpMessagingTemplate,
+    val roomChatMemberService: IRoomChatMemberService,
+) {
 
-    @KafkaListener(topics = ["chat-message"], groupId = "send-message")
+    @KafkaListener(topics = ["messages"], groupId = "chat-ws-service")
     fun listen(message: ChatMessage) {
-        messagingTemplate.convertAndSend("/room/${message.roomChatId}", message)
+        roomChatMemberService.getRoomChatMember(message.roomChatId)
+            .doOnNext { it ->
+                messagingTemplate.convertAndSendToUser(it, "/user", message)
+            }.subscribe()
     }
 }

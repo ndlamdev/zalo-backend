@@ -9,25 +9,27 @@
 package com.lamnguyen.chatws.controllers
 
 import com.lamnguyen.chatws.domain.messages.ChatMessage
-import com.lamnguyen.chatws.services.business.IRoomChatMemberService
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.messaging.handler.annotation.MessageMapping
-import org.springframework.messaging.handler.annotation.Payload
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.stereotype.Controller
+import java.security.Principal
 
 
-@RestController
+@Controller
 class ChatController(
     private val template: KafkaTemplate<String, ChatMessage>,
-    val roomChatMemberService: IRoomChatMemberService,
 ) {
     @MessageMapping("/chat")
-    fun handleChatMessage(@Payload message: ChatMessage) {
-        roomChatMemberService.getRoomChatMember(message.roomChatId)
-            .map { it ->
-                val data = ProducerRecord("chat-message", it, message)
-                template.send(data)
-            }.subscribe()
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN')")
+    fun handleChatMessage(message: ChatMessage, principal: Principal) {
+        val data = ProducerRecord(
+            "messages",
+            message.javaClass.name,
+            message.apply {
+                senderPhoneNumber = principal.name
+            })
+        template.send(data)
     }
 }
