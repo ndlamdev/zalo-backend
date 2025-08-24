@@ -46,7 +46,7 @@ class JwtConfig(val jwtProperty: ApplicationProperty.Companion.AuthProperty.Comp
     }
 
     @Bean
-    fun decoder(): ReactiveJwtDecoder {
+    fun reactiveJwtDecoder(): ReactiveJwtDecoder {
         return NimbusReactiveJwtDecoder.withPublicKey(rsaPublicKey).build()
     }
 

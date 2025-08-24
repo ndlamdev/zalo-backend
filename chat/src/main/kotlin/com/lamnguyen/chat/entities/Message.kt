@@ -13,7 +13,6 @@ import org.springframework.data.relational.core.mapping.Table
 
 @Table("messages")
 class Message : BaseEntity() {
-    val ownerPhoneNumber: String = ""
     var senderPhoneNumber: String = ""
     var roomChatId: Long = 0
     var content: String = ""

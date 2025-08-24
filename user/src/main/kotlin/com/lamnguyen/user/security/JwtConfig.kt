@@ -3,9 +3,7 @@ package com.lamnguyen.user.security
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm
-import org.springframework.security.oauth2.jwt.JwsHeader
-import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder
+import org.springframework.security.oauth2.jwt.*
 import java.security.interfaces.RSAPublicKey
 
 /**
@@ -26,5 +24,12 @@ class JwtConfig {
     @Bean
     fun reactiveDecoder(rsaPublicKey: RSAPublicKey): ReactiveJwtDecoder {
         return NimbusReactiveJwtDecoder.withPublicKey(rsaPublicKey).build()
+    }
+
+    @Bean
+    fun decoder(rsaPublicKey: RSAPublicKey): JwtDecoder {
+        return NimbusJwtDecoder
+            .withPublicKey(rsaPublicKey)
+            .build()
     }
 }

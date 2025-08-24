@@ -13,26 +13,23 @@ import com.lamnguyen.chat.domain.dto.AccessTokenPayload
 import com.lamnguyen.chat.utils.properties.ApplicationProperty
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Component
-import java.security.interfaces.RSAPublicKey
 
 @Component
 class JwtHelper(
     val jwtProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty,
-    val publicKey: RSAPublicKey
+    val jwtDecoder: JwtDecoder,
 ) {
     fun decodeToken(token: String): Jwt {
-        return NimbusJwtDecoder
-            .withPublicKey(publicKey)
-            .build()
+        return jwtDecoder
             .decode(token)
     }
 
     fun initJwtAuthenticationToken(
         token: String,
-        authorities: MutableSet<SimpleGrantedAuthority>
+        authorities: MutableSet<SimpleGrantedAuthority>,
     ): JwtAuthenticationToken {
         val jwt = decodeToken(token)
 

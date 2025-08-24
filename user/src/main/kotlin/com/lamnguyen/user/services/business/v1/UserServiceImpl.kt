@@ -49,6 +49,7 @@ class UserServiceImpl(
                 userRepository.findUserByPhoneNumber(friendShip.friendPhoneNumber)
                     .map {
                         userMapper.toDto(it).apply {
+                            displayName = friendShip.displayName
                             isFriend = true
                             addFriendRequested = false
                         }
@@ -67,6 +68,7 @@ class UserServiceImpl(
             userRepository.findUserByPhoneNumber(friendShip.friendPhoneNumber)
                 .map {
                     userMapper.toDto(it).apply {
+                        displayName = friendShip.displayName
                         isFriend = true
                         addFriendRequested = false
                     }

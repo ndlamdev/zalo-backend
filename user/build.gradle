@@ -12,6 +12,7 @@ ext {
     grpcVersion = '1.74.0'
     protobufVersion = '4.32.0-RC1'
     mapstructVersion = "1.6.3"
+    redissonVersion = "3.50.0"
 }
 
 
@@ -67,6 +68,8 @@ dependencies {
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     kapt "org.mapstruct:mapstruct-processor:${mapstructVersion}"
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0-rc1'
+    implementation "org.redisson:redisson:${redissonVersion}"
+    implementation "org.redisson:redisson-spring-data-35:${redissonVersion}"
 }
 
 kotlin {
