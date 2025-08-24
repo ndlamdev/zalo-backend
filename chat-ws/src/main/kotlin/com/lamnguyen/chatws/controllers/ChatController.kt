@@ -9,6 +9,8 @@
 package com.lamnguyen.chatws.controllers
 
 import com.lamnguyen.chatws.domain.messages.ChatMessage
+import com.lamnguyen.chatws.domain.requests.TextMessage
+import com.lamnguyen.chatws.utils.enums.ContentMessageType
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.messaging.handler.annotation.MessageMapping
@@ -21,13 +23,13 @@ import java.security.Principal
 class ChatController(
     private val template: KafkaTemplate<String, ChatMessage>,
 ) {
-    @MessageMapping("/chat")
+    @MessageMapping("/chat.text")
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN')")
-    fun handleChatMessage(message: ChatMessage, principal: Principal) {
+    fun handleTextMessage(message: TextMessage, principal: Principal) {
         val data = ProducerRecord(
             "messages",
             message.javaClass.name,
-            message.apply {
+            ChatMessage(message).apply {
                 senderPhoneNumber = principal.name
             })
         template.send(data)
