@@ -8,18 +8,18 @@
 
 package com.lamnguyen.chat.entities
 
-import org.springframework.data.annotation.*
+import org.springframework.data.annotation.CreatedBy
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedBy
+import org.springframework.data.annotation.LastModifiedDate
 import java.time.LocalDateTime
 
 open class BaseEntity() {
-    @Id
-    var id: Long? = null
-
     @CreatedDate
-    lateinit var createdAt: LocalDateTime
+    var createdAt: LocalDateTime? = null
 
     @LastModifiedDate
-    lateinit var updatedAt: LocalDateTime
+    var updatedAt: LocalDateTime? = null
 
     @CreatedBy
     var createdBy: String? = null
@@ -28,4 +28,13 @@ open class BaseEntity() {
     var updatedBy: String? = null
     var locked: Boolean = false
     var deleted: Boolean = false
+
+    fun copy(that: BaseEntity) {
+        that.createdAt = this.createdAt
+        that.updatedAt = this.updatedAt
+        that.createdBy = this.createdBy
+        that.updatedBy = this.updatedBy
+        that.locked = this.locked
+        that.deleted = this.deleted
+    }
 }

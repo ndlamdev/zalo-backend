@@ -8,7 +8,7 @@
 
 package com.lamnguyen.chat.utils.helpers
 
-import com.lamnguyen.chat.configs.grpc.credentials.BearerTokenCallCredentials
+import com.lamnguyen.chat.utils.credentials.BearerTokenCallCredentials
 import io.grpc.stub.AbstractStub
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
@@ -22,4 +22,10 @@ fun <S : AbstractStub<S>> grpcCall(service: AbstractStub<S>): Mono<S> {
                 return@mapNotNull null
             service.withCallCredentials(BearerTokenCallCredentials(auth.token.tokenValue))
         }
+}
+
+fun <S : AbstractStub<S>> grpcCall(service: AbstractStub<S>, token: String?): Mono<S> {
+    if (token != null)
+        return Mono.just(service.withCallCredentials(BearerTokenCallCredentials(token)))
+    return grpcCall(service)
 }

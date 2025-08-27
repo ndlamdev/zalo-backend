@@ -9,5 +9,5 @@
 package com.lamnguyen.chat.services.kafka
 
 interface IRoomChatMemberProducer {
-    fun dumpRoomChatMember(roomChatId: Long, members: List<String>)
+    fun dumpRoomChatMember(roomChatId: String, members: List<String>)
 }

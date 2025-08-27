@@ -1,4 +1,4 @@
-package com.lamnguyen.chat.configs.grpc.credentials
+package com.lamnguyen.chatws.utils.credentials
 
 import io.grpc.CallCredentials
 import io.grpc.Metadata

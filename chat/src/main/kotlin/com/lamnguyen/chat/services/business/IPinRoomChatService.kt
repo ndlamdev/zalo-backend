@@ -11,5 +11,5 @@ package com.lamnguyen.chat.services.business
 import reactor.core.publisher.Mono
 
 interface IPinRoomChatService {
-    fun isPin(roomChatId: Long, ownerPhoneNumber: String): Mono<Boolean>
+    fun isPin(roomChatId: String, ownerPhoneNumber: String): Mono<Boolean>
 }

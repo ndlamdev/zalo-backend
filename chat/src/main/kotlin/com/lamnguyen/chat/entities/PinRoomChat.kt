@@ -8,10 +8,13 @@
 
 package com.lamnguyen.chat.entities
 
+import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 
 @Table("pin_room_chat")
 class PinRoomChat {
+    @Id
+    var id: Long? = null
     val ownerPhoneNumber: String = ""
-    val roomChatId: Long = 0
+    val roomChatId: String = ""
 }

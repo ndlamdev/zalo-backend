@@ -8,12 +8,15 @@
 
 package com.lamnguyen.chat.entities
 
+import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 
 @Table("room_chat_members")
 class RoomChatMember : BaseEntity() {
+    @Id
+    var id: Long? = null
     lateinit var phoneNumber: String
-    var romChatId: Long? = null
+    var roomChatId: String? = null
     lateinit var username: String
     lateinit var displayName: String
     var role: Role = Role.USER

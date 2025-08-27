@@ -12,6 +12,7 @@ import com.lamnguyen.chat.protos.FriendShipCheckRequest
 import com.lamnguyen.chat.protos.FriendShipCheckResponse
 import com.lamnguyen.chat.protos.UserServiceGrpc
 import com.lamnguyen.chat.services.grpc.IUserGrpcService
+import com.lamnguyen.chat.utils.annotations.GrpcPreAuthorizeHasAnyAuthority
 import com.lamnguyen.chat.utils.helpers.grpcCall
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -20,11 +21,14 @@ import reactor.core.publisher.Mono
 class UserGrpcServiceImpl(
     val userGrpcService: UserServiceGrpc.UserServiceBlockingStub,
 ) : IUserGrpcService {
+
+    @GrpcPreAuthorizeHasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "GET_FRIEND_SHIPS")
     override fun getFriendShips(
         adminPhoneNumber: String,
         members: List<String>,
+        token: String?,
     ): Mono<FriendShipCheckResponse> {
-        return grpcCall(userGrpcService)
+        return grpcCall(userGrpcService, token)
             .map {
                 val request = FriendShipCheckRequest.newBuilder().apply {
                     addAllFriendPhoneNumbers(members)

@@ -8,10 +8,10 @@
 
 package com.lamnguyen.chatws.services.kafka
 
-import com.lamnguyen.chatws.domain.messages.DumpRoomChatMemberMessage
+import com.lamnguyen.chatws.domain.messages.RoomChatMembers
 import org.springframework.kafka.annotation.KafkaListener
 
 interface IRoomChatMemberKafkaService {
-    @KafkaListener(groupId = "chat-ws-service", topics = ["dump-room-chat-member"])
-    fun dumpRoomChatMember(data: DumpRoomChatMemberMessage)
+    @KafkaListener(groupId = "chat-ws-service", topics = ["dump-room-chat-members"])
+    fun dumpRoomChatMember(data: RoomChatMembers)
 }

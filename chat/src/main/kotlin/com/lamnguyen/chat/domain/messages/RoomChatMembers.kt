@@ -1,6 +1,6 @@
 package com.lamnguyen.chat.domain.messages
 
-data class DumpRoomChatMemberMessage(
-    val roomChatId: Long,
+data class RoomChatMembers(
+    val roomChatId: String,
     val members: List<String>
 )

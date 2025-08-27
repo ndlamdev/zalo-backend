@@ -9,12 +9,15 @@
 package com.lamnguyen.chat.services.business
 
 import com.lamnguyen.chat.entities.RoomChatMember
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 interface IRoomChatMemberService {
     fun addMember(
-        roomCharId: Long,
+        roomCharId: String,
         phoneNumber: String,
         role: RoomChatMember.Role? = RoomChatMember.Role.USER,
     ): Mono<RoomChatMember>
+
+    fun getMembersInRoomChat(roomChatId: String): Flux<RoomChatMember>
 }

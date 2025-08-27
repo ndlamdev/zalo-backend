@@ -27,6 +27,7 @@ import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.util.*
 
 @Component
 class ChatHandler(
@@ -56,54 +57,59 @@ class ChatHandler(
 
     private fun createNewRoomChat(chatRequest: CreateRoomChatRequest): Mono<RoomChat> {
         return ReactiveSecurityContextHolder.getContext()
-            .flatMap { securityContext ->
-                val auth = securityContext.authentication
+            .map { it.authentication }
+            .flatMap { auth ->
+                if (chatRequest.members.isNullOrEmpty()) return@flatMap Mono.error(ApplicationException(ExceptionEnum.LIST_MEMBER_IS_EMPTY))
+                if (chatRequest.members!!.size == 1) return@flatMap Mono.empty()
                 chatRequest.members!!.remove(auth.name)
-                if (chatRequest.members!!.isEmpty())
-                    return@flatMap Mono.error(ApplicationException(ExceptionEnum.LIST_MEMBER_IS_EMPTY))
-
-                return@flatMap userGrpcService
-                    .getFriendShips(auth.name, chatRequest.members!!)
+                chatRequest.adminRoomChat = auth.name
+                userGrpcService.getFriendShips(chatRequest.adminRoomChat!!, chatRequest.members!!)
                     .map { it.friendsList }
-                    .filter { it.isNotEmpty() }
-                    .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.LIST_MEMBER_IS_EMPTY)))
-                    .flatMap { users ->
-                        roomChatSerVice
-                            .createRoomChat(if (users.size == 1) RoomChat().apply {
-                                title = users.first().displayName.value
-                                avatar = users.first().avatar.value
-                            } else RoomChat().apply {
-                                title = chatRequest.title!!
-                            })
-                            .flatMap { romChat ->
-                                val fluxAddMember = Flux.fromIterable(users).flatMap { user ->
-                                    roomChatMemberService
-                                        .addMember(romChat.id!!, user.phoneNumber)
-                                        .thenReturn(romChat)
-                                }
-                                val fluxOwner = Flux.from(
-                                    roomChatMemberService
-                                        .addMember(romChat.id ?: 0, auth.name, RoomChatMember.Role.ADMIN)
-                                        .thenReturn(romChat)
-                                )
+            }
+            .filter { it.size > 1 }
+            .switchIfEmpty(Mono.empty())
+            .flatMap { users ->
+                chatRequest.members = users.map { it.phoneNumber }.sorted().toMutableList()
+                val roomChat = RoomChat().apply {
+                    id = UUID.randomUUID().toString()
+                    title = chatRequest.title!!
+                    type = RoomChat.RoomChatType.GROUP
+                    softId = chatRequest.members!!.joinToString { "_" }
+                    newRow = true
+                }
+                roomChatSerVice.createRoomChat(roomChat)
+                    .flatMap { addMember(chatRequest, it) }
+            }
+            .doOnSuccess {
+                roomChatMemberProducer.dumpRoomChatMember(
+                    it.id!!,
+                    chatRequest.members?.apply {
+                        add(chatRequest.adminRoomChat!!)
+                    }!!
+                )
+            }
+    }
 
+    private fun addMember(chatRequest: CreateRoomChatRequest, roomChat: RoomChat): Mono<RoomChat> {
+        val fluxAddMember = Flux.fromIterable(chatRequest.members!!)
+            .flatMap {
+                roomChatMemberService.addMember(roomChat.id!!, it)
+            }
+        val fluxOwner = Flux.from(
+            roomChatMemberService
+                .addMember(
+                    roomChat.id!!,
+                    chatRequest.adminRoomChat!!,
+                    RoomChatMember.Role.ADMIN
+                )
+        )
 
-                                Flux.zip(fluxAddMember, fluxOwner)
-                                    .then(Mono.just(romChat))
-                                    .onErrorResume { error ->
-                                        roomChatSerVice
-                                            .removeRoomChat(romChat.id!!)
-                                            .then(Mono.error(error))
-                                    }
-                                    .doOnSuccess {
-                                        roomChatMemberProducer.dumpRoomChatMember(
-                                            romChat.id!!,
-                                            users.map { it.phoneNumber }.toMutableList().apply {
-                                                add(auth.name)
-                                            })
-                                    }
-                            }
-                    }
+        return Flux.zip(fluxAddMember, fluxOwner)
+            .then(Mono.just(roomChat))
+            .onErrorResume {
+                roomChatSerVice
+                    .removeRoomChat(roomChat.id!!)
+                    .then(Mono.error(it))
             }
     }
 }

@@ -10,5 +10,6 @@ import reactor.core.publisher.Flux
  *  User: kimin
  **/
 interface IRoomChatMemberService {
-    fun getRoomChatMember(roomChatId: Long): Flux<String>
+    fun getRoomChatMember(roomChatId: String): Flux<String>
+    fun cacheRoomChatMember(roomChatId: String, members: List<String>): Flux<String>
 }

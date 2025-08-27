@@ -12,19 +12,24 @@ import com.lamnguyen.chat.entities.RoomChatMember
 import com.lamnguyen.chat.repositories.IRomChatMemberRepository
 import com.lamnguyen.chat.services.business.IRoomChatMemberService
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @Service
 class RoomChatMemberServiceImpl(val roomChatMemberRepository: IRomChatMemberRepository) : IRoomChatMemberService {
     override fun addMember(
-        roomCharId: Long,
+        roomCharId: String,
         phoneNumber: String,
         role: RoomChatMember.Role?,
     ): Mono<RoomChatMember> {
         return roomChatMemberRepository.save(RoomChatMember().apply {
             this.phoneNumber = phoneNumber
-            this.romChatId = roomCharId
+            this.roomChatId = roomCharId
             this.role = role ?: RoomChatMember.Role.USER
         })
+    }
+
+    override fun getMembersInRoomChat(roomChatId: String): Flux<RoomChatMember> {
+        return roomChatMemberRepository.findByRoomChatId(roomChatId)
     }
 }

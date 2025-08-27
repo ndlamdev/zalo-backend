@@ -5,7 +5,6 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.server.ServerHttpRequest
 import org.springframework.http.server.ServerHttpResponse
 import org.springframework.http.server.ServletServerHttpRequest
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.WebSocketHandler
 import org.springframework.web.socket.server.HandshakeInterceptor
@@ -24,9 +23,11 @@ class AuthHandshakeInterceptor(private val jwtHelper: JwtHelper) : HandshakeInte
                 .getHeader(HttpHeaders.AUTHORIZATION).substring(7)
             val authToken = jwtHelper.initAuthenticationToken(token, mutableSetOf())
             attributes.put("phone_number", authToken.name)
+            attributes.put("token", token)
+            return true
         } catch (_: Exception) {
+            return false
         }
-        return true
     }
 
     override fun afterHandshake(

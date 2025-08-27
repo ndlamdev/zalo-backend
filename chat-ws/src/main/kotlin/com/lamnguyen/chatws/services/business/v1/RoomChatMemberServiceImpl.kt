@@ -17,7 +17,14 @@ import reactor.core.publisher.Flux
 class RoomChatMemberServiceImpl(
     val roomChatMemberCacheManager: IRoomChatMemberCacheManager,
 ) : IRoomChatMemberService {
-    override fun getRoomChatMember(roomChatId: Long): Flux<String> {
+    override fun getRoomChatMember(roomChatId: String): Flux<String> {
         return roomChatMemberCacheManager.getRoomChatMember(roomChatId)
+    }
+
+    override fun cacheRoomChatMember(
+        roomChatId: String,
+        members: List<String>,
+    ): Flux<String> {
+        return roomChatMemberCacheManager.cacheRoomChatMember(roomChatId, members)
     }
 }

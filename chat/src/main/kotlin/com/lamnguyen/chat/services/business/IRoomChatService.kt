@@ -14,6 +14,9 @@ import reactor.core.publisher.Mono
 
 interface IRoomChatService {
     fun createRoomChat(room: RoomChat): Mono<RoomChat>
-    fun removeRoomChat(id: Long): Mono<Void>
+    fun removeRoomChat(id: String): Mono<Void>
     fun getAllRoomChat(phoneNumber: String): Flux<RoomChat>
+    fun existRoomChatById(roomChatId: String): Mono<Boolean>
+    fun findBySoftId(roomChatId: String): Mono<RoomChat>
+    fun existRoomChatBySoftId(softId: String): Mono<Boolean>
 }

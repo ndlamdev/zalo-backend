@@ -6,15 +6,16 @@
  *  User: kimin
  **/
 
-package com.lamnguyen.chat.services.kafka
+package com.lamnguyen.chat.services.kafka.v1
 
-import com.lamnguyen.chat.domain.messages.DumpRoomChatMemberMessage
+import com.lamnguyen.chat.domain.messages.RoomChatMembers
+import com.lamnguyen.chat.services.kafka.IRoomChatMemberProducer
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 
 @Service
 class RoomChatMemberProducerImpl(val kafkaTemplate: KafkaTemplate<String, Any>) : IRoomChatMemberProducer {
-    override fun dumpRoomChatMember(roomChatId: Long, members: List<String>) {
-        kafkaTemplate.send("dump-room-chat-member", DumpRoomChatMemberMessage(roomChatId, members))
+    override fun dumpRoomChatMember(roomChatId: String, members: List<String>) {
+        kafkaTemplate.send("dump-room-chat-members", RoomChatMembers(roomChatId, members))
     }
 }

@@ -8,16 +8,18 @@
 
 package com.lamnguyen.chatws.services.kafka.v1
 
-import com.lamnguyen.chatws.domain.messages.DumpRoomChatMemberMessage
+import com.lamnguyen.chatws.domain.messages.ChatMessage
+import com.lamnguyen.chatws.domain.messages.RoomChatMembers
 import com.lamnguyen.chatws.services.kafka.IRoomChatMemberKafkaService
 import com.lamnguyen.chatws.services.redis.IRoomChatMemberCacheManager
+import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 
 @Service
 class RoomChatMemberKafkaServiceImpl(
     val roomChatMemberCacheManager: IRoomChatMemberCacheManager,
 ) : IRoomChatMemberKafkaService {
-    override fun dumpRoomChatMember(data: DumpRoomChatMemberMessage) {
+    override fun dumpRoomChatMember(data: RoomChatMembers) {
         roomChatMemberCacheManager.cacheRoomChatMember(data.roomChatId, data.members)
     }
 }

@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono
 
 @Service
 class PinRoomChatServiceImpl(val pinRoomChatRepository: IPinRoomChatRepository) : IPinRoomChatService {
-    override fun isPin(roomChatId: Long, ownerPhoneNumber: String): Mono<Boolean> {
+    override fun isPin(roomChatId: String, ownerPhoneNumber: String): Mono<Boolean> {
         return pinRoomChatRepository.existsByRoomChatIdAndOwnerPhoneNumber(roomChatId, ownerPhoneNumber)
     }
 }

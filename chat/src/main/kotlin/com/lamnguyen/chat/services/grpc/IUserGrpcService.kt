@@ -12,5 +12,9 @@ import com.lamnguyen.chat.protos.FriendShipCheckResponse
 import reactor.core.publisher.Mono
 
 interface IUserGrpcService {
-    fun getFriendShips(adminPhoneNumber: String, members: List<String>): Mono<FriendShipCheckResponse>
+    fun getFriendShips(
+        adminPhoneNumber: String,
+        members: List<String>,
+        token: String? = null,
+    ): Mono<FriendShipCheckResponse>
 }

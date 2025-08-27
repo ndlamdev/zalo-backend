@@ -20,11 +20,16 @@ spring:
         spring:
           json:
             trusted:
-              packages: chat-message
+              packages: chat-message,room-chat-members
             type:
-              mapping: chat-message:com.lamnguyen.chatws.domain.messages.ChatMessage,dump-room-chat-member-messages:com.lamnguyen.chatws.domain.messages.DumpRoomChatMemberMessage
+              mapping: chat-message:com.lamnguyen.chatws.domain.messages.ChatMessage,room-chat-members:com.lamnguyen.chatws.domain.messages.RoomChatMembers
   profiles:
     active: ${PROFILE:local}
 
+
 server:
   port: ${CHAT_WS_PORT:8005}
+
+logging:
+  level:
+    org.springframework.messaging: trace

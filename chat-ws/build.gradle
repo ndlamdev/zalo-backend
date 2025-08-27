@@ -11,7 +11,10 @@ group = "com.lamnguyen"
 version = "0.0.1-SNAPSHOT"
 
 ext {
+    springGrpcVersion = "3.1.0.RELEASE"
     redissonVersion = "3.50.0"
+    grpcVersion = '1.75.0'
+    protobufVersion = '4.32.0-RC1'
 }
 
 java {
@@ -40,6 +43,12 @@ dependencies {
     // https://mvnrepository.com/artifact/com.esotericsoftware/kryo
     implementation "com.esotericsoftware:kryo:5.6.2"
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation "net.devh:grpc-spring-boot-starter:${springGrpcVersion}"
+    implementation "net.devh:grpc-client-spring-boot-starter:${springGrpcVersion}"
+    implementation "com.google.protobuf:protobuf-java:${protobufVersion}"
+    implementation platform("io.grpc:grpc-bom:${grpcVersion}")
+    implementation "io.grpc:grpc-stub:${grpcVersion}"
+    implementation "io.grpc:grpc-core:${grpcVersion}"
 }
 
 kotlin {
@@ -50,4 +59,20 @@ kotlin {
 
 tasks.named("test") {
     useJUnitPlatform()
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:${protobufVersion}"
+    }
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}"
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+    }
 }

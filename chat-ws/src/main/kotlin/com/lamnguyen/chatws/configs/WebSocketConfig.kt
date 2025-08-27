@@ -15,7 +15,6 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer
-import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor
 
 
 @Configuration
@@ -25,15 +24,14 @@ class WebSocketConfig(
     val userHandshakeHandler: UserHandshakeHandler,
 ) : WebSocketMessageBrokerConfigurer {
     override fun configureMessageBroker(registry: MessageBrokerRegistry) {
-        registry.enableSimpleBroker("/notify") // prefix nhận subscribe 1 topic
+        registry.enableSimpleBroker("/notify", "/queue") // prefix nhận subscribe 1 topic
         registry.setApplicationDestinationPrefixes("/app") // prefix nhận message và gửi cho toàn app (Không đăng nhập)
         registry.setUserDestinationPrefix("/user") //  prefix nhận message và gửi cho từng user (Đã đăng nhập)
     }
 
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
-        val httpSessionHandshakeInterceptor = HttpSessionHandshakeInterceptor()
         registry.addEndpoint("/chat-websocket")
-            .addInterceptors(authHandshakeInterceptor, httpSessionHandshakeInterceptor)
+            .addInterceptors(authHandshakeInterceptor)
             .setHandshakeHandler(userHandshakeHandler)
             .setAllowedOrigins("*") // đăng ký connect
     }

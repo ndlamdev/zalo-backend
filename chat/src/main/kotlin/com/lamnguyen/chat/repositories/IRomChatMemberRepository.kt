@@ -10,5 +10,8 @@ package com.lamnguyen.chat.repositories
 
 import com.lamnguyen.chat.entities.RoomChatMember
 import org.springframework.data.r2dbc.repository.R2dbcRepository
+import reactor.core.publisher.Flux
 
-interface IRomChatMemberRepository : R2dbcRepository<RoomChatMember, String>
+interface IRomChatMemberRepository : R2dbcRepository<RoomChatMember, String> {
+    fun findByRoomChatId(roomChatId: String?): Flux<RoomChatMember>
+}

@@ -12,13 +12,20 @@ import com.lamnguyen.chat.entities.RoomChat
 import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.r2dbc.repository.R2dbcRepository
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
-interface IRomChatRepository : R2dbcRepository<RoomChat, Long> {
-    @Query(value = """
+interface IRomChatRepository : R2dbcRepository<RoomChat, String> {
+    @Query(
+        value = """
         SELECT rc.*
         FROM "zalo-chat".public.room_chats rc
-        JOIN "zalo-chat".public.room_chat_members rcm on rc.id = rcm.rom_chat_id
+        JOIN "zalo-chat".public.room_chat_members rcm on rc.id = rcm.room_chat_id
         WHERE rcm.phone_number = :phoneNumber
-    """)
-    fun findAllByPhoneNumber(phoneNumber: String): Flux<RoomChat>
+            AND rc.type = 'GROUP'
+    """
+    )
+    fun findAllByPhoneNumberContainAndTypeIsGroup(phoneNumber: String): Flux<RoomChat>
+    fun findBySoftId(roomChatId: String): Mono<RoomChat>
+    fun findAllBySoftIdStartsWithAndType(phoneNumber: String, type: RoomChat.RoomChatType): Flux<RoomChat>
+    fun existsBySoftId(softId: String): Mono<Boolean>
 }

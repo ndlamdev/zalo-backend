@@ -1,10 +1,9 @@
-package com.lamnguyen.chat.configs.grpc
+package com.lamnguyen.chatws.configs
 
-import com.lamnguyen.chat.protos.UserServiceGrpc
+import com.lamnguyen.chatws.protos.ChatServiceGrpc
 import net.devh.boot.grpc.client.inject.GrpcClient
 import net.devh.boot.grpc.client.inject.GrpcClientBean
 import org.springframework.context.annotation.Configuration
-
 
 /**
  * Nguyen Dinh Lam
@@ -15,9 +14,9 @@ import org.springframework.context.annotation.Configuration
  **/
 @Configuration
 @GrpcClientBean(
-    clazz = UserServiceGrpc.UserServiceBlockingStub::class,
-    beanName = "userBlockingStub",
-    client = GrpcClient("user")
+    clazz = ChatServiceGrpc.ChatServiceBlockingStub::class,
+    beanName = "chatBlockingStub",
+    client = GrpcClient("chat")
 )
-class GrpcConfig {
+class ApplicationGrpcConfig {
 }

@@ -17,21 +17,39 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @Service
-class RoomChatServiceImpl(val roomChatRepository: IRomChatRepository, val pinRoomChatService: IPinRoomChatService) :
+class RoomChatServiceImpl(
+    val roomChatRepository: IRomChatRepository,
+    val pinRoomChatService: IPinRoomChatService,
+) :
     IRoomChatService {
     override fun createRoomChat(room: RoomChat): Mono<RoomChat> {
         return roomChatRepository.save(room)
     }
 
-    override fun removeRoomChat(id: Long): Mono<Void> {
+    override fun removeRoomChat(id: String): Mono<Void> {
         return roomChatRepository.deleteById(id)
     }
 
     override fun getAllRoomChat(phoneNumber: String): Flux<RoomChat> {
-        return roomChatRepository.findAllByPhoneNumber(phoneNumber)
-            .flatMap { roomChat ->
-                pinRoomChatService.isPin(roomChat.id!!, phoneNumber)
-                    .map { exists -> roomChat.apply { pin = exists } }
-            }
+        return Flux.merge(
+            roomChatRepository.findAllBySoftIdStartsWithAndType(phoneNumber, RoomChat.RoomChatType.SINGLE),
+            roomChatRepository.findAllByPhoneNumberContainAndTypeIsGroup(phoneNumber)
+
+        ).flatMap { roomChat ->
+            pinRoomChatService.isPin(roomChat.id!!, phoneNumber)
+                .map { exists -> roomChat.apply { pin = exists } }
+        }
+    }
+
+    override fun existRoomChatById(roomChatId: String): Mono<Boolean> {
+        return roomChatRepository.existsById(roomChatId)
+    }
+
+    override fun findBySoftId(roomChatId: String): Mono<RoomChat> {
+        return roomChatRepository.findBySoftId(roomChatId)
+    }
+
+    override fun existRoomChatBySoftId(softId: String): Mono<Boolean> {
+        return roomChatRepository.existsBySoftId(softId)
     }
 }

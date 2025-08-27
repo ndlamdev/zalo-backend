@@ -15,13 +15,14 @@ class UserHandshakeHandler : DefaultHandshakeHandler() {
     ): Principal? {
         try {
             val phoneNumber = attributes["phone_number"] as String
-            return StompPrincipal(phoneNumber)
+            val token = attributes["token"] as String
+            return StompPrincipal(phoneNumber, token)
         } catch (_: Exception) {
             return null
         }
     }
 
-    class StompPrincipal(private val name: String?) : Principal {
+    class StompPrincipal(private val name: String?, var token: String) : Principal {
         override fun getName(): String? {
             return name
         }

@@ -13,5 +13,5 @@ import org.springframework.data.r2dbc.repository.R2dbcRepository
 import reactor.core.publisher.Mono
 
 interface IPinRoomChatRepository : R2dbcRepository<PinRoomChat, Long> {
-    fun existsByRoomChatIdAndOwnerPhoneNumber(roomChatId: Long, ownerPhoneNumber: String): Mono<Boolean>
+    fun existsByRoomChatIdAndOwnerPhoneNumber(roomChatId: String, ownerPhoneNumber: String): Mono<Boolean>
 }

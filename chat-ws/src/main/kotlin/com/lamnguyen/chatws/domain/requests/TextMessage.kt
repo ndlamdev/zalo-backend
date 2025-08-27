@@ -13,6 +13,6 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 open class TextMessage {
-    var roomChatId: Long = 0
+    var roomChatId: String = ""
     var content: String? = null
 }
