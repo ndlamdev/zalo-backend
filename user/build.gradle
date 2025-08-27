@@ -8,8 +8,8 @@ plugins {
 }
 
 ext {
-    springGrpcVersion = "0.9.0"
-    grpcVersion = '1.74.0'
+    springGrpcVersion = "3.1.0.RELEASE"
+    grpcVersion = '1.75.0'
     protobufVersion = '4.32.0-RC1'
     mapstructVersion = "1.6.3"
     redissonVersion = "3.50.0"
@@ -62,9 +62,10 @@ dependencies {
     implementation 'com.googlecode.libphonenumber:libphonenumber:9.0.9'
     implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.9'
     implementation 'org.apache.commons:commons-lang3:3.18.0'
-    implementation 'net.devh:grpc-server-spring-boot-starter:3.1.0.RELEASE'
+    implementation "net.devh:grpc-spring-boot-starter:${springGrpcVersion}"
+    implementation "net.devh:grpc-server-spring-boot-starter:${springGrpcVersion}"
     implementation "com.google.protobuf:protobuf-java:${protobufVersion}"
-    implementation "io.grpc:grpc-stub:${grpcVersion}"
+    implementation platform("io.grpc:grpc-bom:${grpcVersion}")
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     kapt "org.mapstruct:mapstruct-processor:${mapstructVersion}"
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0-rc1'
@@ -95,11 +96,5 @@ protobuf {
         all()*.plugins {
             grpc {}
         }
-    }
-}
-
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.grpc:spring-grpc-dependencies:$springGrpcVersion"
     }
 }
