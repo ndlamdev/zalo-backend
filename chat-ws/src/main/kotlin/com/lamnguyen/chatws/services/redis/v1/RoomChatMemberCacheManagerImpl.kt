@@ -25,22 +25,21 @@ class RoomChatMemberCacheManagerImpl(
     redissonClient,
     redisTemple
 ), IRoomChatMemberCacheManager {
-    override fun getRoomChatMember(roomChatId: Long): Flux<String> {
+    override fun getRoomChatMember(roomChatId: String): Flux<String> {
         return super.getAllData(generateKey(roomChatId), null, null, null)
     }
 
-    private fun generateKey(roomChatId: Long): String {
+    private fun generateKey(roomChatId: String): String {
         return ICacheRedis.hashKeys("room-chat-member", roomChatId.toString())
     }
 
-    override fun cacheRoomChatMember(roomChatId: Long, members: List<String>) {
+    override fun cacheRoomChatMember(roomChatId: String, members: List<String>): Flux<String> {
         super.clearCache(generateKey(roomChatId))
-        super.cacheAllData(
+        return super.cacheAllData(
             generateKey(roomChatId),
             { Flux.fromIterable(members) },
             99999999999,
             ChronoUnit.YEARS
         )
-            .subscribe()
     }
 }

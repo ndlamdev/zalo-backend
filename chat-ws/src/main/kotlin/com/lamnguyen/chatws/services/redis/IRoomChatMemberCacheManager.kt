@@ -11,6 +11,6 @@ package com.lamnguyen.chatws.services.redis
 import reactor.core.publisher.Flux
 
 interface IRoomChatMemberCacheManager {
-    fun getRoomChatMember(roomChatId: Long): Flux<String>
-    fun cacheRoomChatMember(roomChatId: Long, members: List<String>)
+    fun getRoomChatMember(roomChatId: String): Flux<String>
+    fun cacheRoomChatMember(roomChatId: String, members: List<String>): Flux<String>
 }
