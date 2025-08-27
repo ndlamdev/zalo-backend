@@ -20,6 +20,12 @@ spring:
               filters:
                 - StripPrefix=1
                 - name: Authentication
+            - id: chat-ws-whitelist
+              uri: ws://localhost:8005
+              predicates:
+                - Path=/chat-ws/**
+              filters:
+                - StripPrefix=1
 
   profiles:
     active: local
