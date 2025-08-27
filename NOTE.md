@@ -22,22 +22,31 @@ class User : BaseEntity() {
 ```
 
 Cách tốt nhất giải quyết vấn đề này là implement interface `Persistable<>`
+
 ```kotlin
 @Table(name = "users")
 class User : BaseEntity(), Persistable<String> {
+    @Id
+    @JvmField // Để complier của kotlin không generic ra getter/setter
+    var id: String? = null
     lateinit var phoneNumber: String // Đại diện làm `id` trong table database. Không thêm @id để tạo giá trị thủ công
     lateinit var password: String
     lateinit var email: String
-    
-    @Transient // Field này sẽ không được lưu vào database
-    lateinit var  newProduct: Boolean // Field đại diện cho object này có phải mới hay không.
+
+    @Transient// Field này sẽ không được lưu vào database
+    @JsonIgnore 
+    var newRow: Boolean = false // Field đại diện cho object này có phải mới hay không.
 
     // Method để cho `R2dbcEntityTemplate` phân biệt và thực hiện lệnh `insert` hay `save` cho đúng
     @Override
     @Transient
-    fun  isNew(): Boolean {
-        return this.newProduct || id == null
+    @JsonIgnore
+    override fun isNew(): Boolean {
+        return this.newRow || id == null
     }
+
+    @JsonIgnore
+    override fun getId(): String? = id
 }
 ```
 
