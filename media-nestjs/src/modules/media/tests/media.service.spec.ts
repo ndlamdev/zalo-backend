@@ -30,7 +30,7 @@ describe('MediaService', () => {
       mimetype: 'text/plain',
       size: 14,
       buffer: Buffer.from('Hello world!'),
-      destination: '',   // Multer thường điền, có thể để trống
+      destination: '', // Multer thường điền, có thể để trống
       filename: 'test_file.txt',
       path: pathFile,
       stream: fs.createReadStream(pathFile),

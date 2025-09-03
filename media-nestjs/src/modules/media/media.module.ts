@@ -8,5 +8,4 @@ import { ConfigModule } from '@nestjs/config';
   controllers: [MediaController],
   providers: [CloudinaryProvider, MediaService, ConfigModule],
 })
-export class MediaModule {
-}
+export class MediaModule {}

@@ -8,15 +8,15 @@
 
 export type EnvType = {
   jwt: {
-    publicKey?: string
-    algorithm?: string
-    claimKey?: string
-  }
+    publicKey?: string;
+    algorithm?: string;
+    claimKey?: string;
+  };
   port?: number;
   cloudinary: {
-    name?: string
-    apiKey?: string
-    apiSecret?: string
-    url?: string
-  }
-}
+    name?: string;
+    apiKey?: string;
+    apiSecret?: string;
+    url?: string;
+  };
+};

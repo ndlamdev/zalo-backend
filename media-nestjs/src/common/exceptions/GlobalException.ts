@@ -5,27 +5,24 @@
  * Create at: 7:01 PM - 03/09/2025
  * User: kimin
  **/
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException} from '@nestjs/common';
+import { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ApplicationException } from './ApplicationException';
 
-
-export class GlobalException implements ExceptionFilter  {
+export class GlobalException implements ExceptionFilter {
   catch(exception: ApplicationException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
 
-    response
-      .status(400)
-      .json({
-        code: exception.code,
-        error: exception.message,
-        detail: exception.detail,
-        timestamp: new Date().toISOString(),
-        path: request.url,
-        trace: exception.cause,
-      });
+    response.status(status).json({
+      code: exception.code,
+      error: exception.message,
+      detail: exception.detail,
+      timestamp: new Date().toISOString(),
+      path: request.url,
+      trace: exception.cause,
+    });
   }
 }

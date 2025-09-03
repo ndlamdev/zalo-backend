@@ -5,9 +5,8 @@
  * Create at: 7:10 PM - 03/09/2025
  * User: kimin
  **/
-import { HttpException, HttpExceptionOptions } from '@nestjs/common';
+import { HttpException } from '@nestjs/common';
 import { ExceptionEnums } from './exception.enums';
-import { response } from 'express';
 
 export class ApplicationException extends HttpException {
   readonly detail?: string;

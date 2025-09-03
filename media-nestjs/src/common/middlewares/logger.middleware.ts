@@ -6,9 +6,10 @@
  * User: kimin
  **/
 import { NestMiddleware } from '@nestjs/common';
+import { Request } from 'express';
 
 export class LoggerMiddleware implements NestMiddleware {
-  use(req: any, res: any, next: (error?: any) => void): any {
+  use(req: Request, res: any, next: (error?: any) => void): any {
     console.log(req.method, req.url, req.headers);
     next();
   }

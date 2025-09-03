@@ -10,9 +10,11 @@ export class MediaService {
   upload(file: Express.Multer.File): Promise<CloudinaryResponse> {
     return new Promise<CloudinaryResponse>((resolve, reject) => {
       const uploader = cloudinary.uploader;
-      const uploadStream = uploader.upload_stream({
+      const uploadStream = uploader.upload_stream(
+        {
           resource_type: 'raw',
-        }, (error, result) => {
+        },
+        (error, result) => {
           if (error) reject(ApplicationException.create(ExceptionEnums.FILE_INVALID));
           else resolve(result!);
         },

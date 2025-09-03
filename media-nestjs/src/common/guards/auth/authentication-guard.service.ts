@@ -15,12 +15,9 @@ export class AuthenticationGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly jwtService: JwtService,
     @Inject(ENV_PROVIDER_KEY) private readonly env: EnvType,
-  ) {
-  }
+  ) {}
 
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
+  canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),

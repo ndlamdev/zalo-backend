@@ -1,4 +1,3 @@
-import { ValueProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 import { EnvType } from './dto/env.type';
 import { ConfigService } from '@nestjs/config';
 

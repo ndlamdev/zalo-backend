@@ -14,15 +14,10 @@ import { GlobalException } from './common/exceptions/GlobalException';
 import { TransformInterceptor } from './common/interceptors/TransformInterceptor';
 
 @Module({
-  imports: [
-    EnvModule,
-    JwtModule.register({}),
-    MediaModule,
-    DatabaseModule,
-    LoggerModule,
-  ],
+  imports: [EnvModule, JwtModule.register({}), MediaModule, DatabaseModule, LoggerModule],
   controllers: [AppController],
-  providers: [AppService,
+  providers: [
+    AppService,
     {
       provide: APP_GUARD,
       useClass: AuthenticationGuard,
@@ -38,7 +33,7 @@ import { TransformInterceptor } from './common/interceptors/TransformInterceptor
     {
       provide: APP_INTERCEPTOR,
       useClass: TransformInterceptor,
-    }
+    },
   ],
 })
 export class AppModule implements NestModule {

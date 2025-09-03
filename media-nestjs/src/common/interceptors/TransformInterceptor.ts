@@ -5,22 +5,25 @@
  * Create at: 7:44 PM - 03/09/2025
  * User: kimin
  **/
-
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import { CallHandler, ExecutionContext, NestInterceptor } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiResponse } from '../../shared/dto/ApiResponse';
 
 export class TransformInterceptor<T> implements NestInterceptor<T, ApiResponse<T>> {
   intercept(context: ExecutionContext, next: CallHandler): Observable<ApiResponse<T>> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const request = context.switchToHttp().getRequest();
 
     return next.handle().pipe(
-      map(data => ({
+      map((data) => ({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
         code: context.switchToHttp().getResponse().statusCode,
         message: 'Operation successful', // Or derive from data/context
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         data,
         timestamp: new Date().toISOString(),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
         path: request.url,
       })),
     );

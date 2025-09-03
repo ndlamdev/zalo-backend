@@ -4,11 +4,12 @@ import { ConfigModule } from '@nestjs/config';
 
 @Global()
 @Module({
-  imports: [ConfigModule.forRoot({
-    isGlobal: true,
-  })],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+  ],
   providers: [EnvProvider],
   exports: [EnvProvider],
 })
-export class EnvModule {
-}
+export class EnvModule {}

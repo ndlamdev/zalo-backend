@@ -10,4 +10,4 @@ export type JwtAuthenticationToken = {
   token: string;
   phoneNumber: string;
   roles: string[];
-}
+};

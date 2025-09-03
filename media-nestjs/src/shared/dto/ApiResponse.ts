@@ -7,7 +7,7 @@
  **/
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ApiResponse<T>{
+export class ApiResponse<T> {
   @ApiProperty({ example: 200 })
   code: number;
 
