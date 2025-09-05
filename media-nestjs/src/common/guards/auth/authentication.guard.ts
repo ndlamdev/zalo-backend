@@ -8,6 +8,8 @@ import { base64ToPem } from '../../utils/pem';
 import { JwtAuthenticationToken } from '../../../shared/types/authenticated.type';
 import { Algorithm } from 'jsonwebtoken';
 import type { EnvType } from '../../../shared/constant/env/dto/env.type';
+import { ApplicationException } from '../../exceptions/ApplicationException';
+import { ExceptionEnums } from '../../exceptions/exception.enums';
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
@@ -28,20 +30,26 @@ export class AuthenticationGuard implements CanActivate {
       this.extractToken(context.switchToHttp().getRequest());
       return true;
     } catch {
-      return false;
+      throw ApplicationException.create(ExceptionEnums.FORBIDDEN, 403);
     }
   }
 
   extractToken(request: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     if (type !== 'Bearer' || token == null) return;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-argument
     const jwt = this.jwtService.verify(token, {
       publicKey: base64ToPem(this.env.jwt.publicKey),
       algorithms: [this.env.jwt.algorithm as Algorithm],
     });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     request.user = {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       token: token,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
       phoneNumber: jwt.iss,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
       roles: jwt.payload.roles,
     } as JwtAuthenticationToken;
   }
