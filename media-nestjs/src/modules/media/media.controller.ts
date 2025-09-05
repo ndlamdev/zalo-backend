@@ -4,7 +4,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApplicationException } from '../../common/exceptions/ApplicationException';
 import { ExceptionEnums } from '../../common/exceptions/exception.enums';
 import { HasAuthority } from '../../common/decorators/has-authority/has-authority.decorator';
-import type { FileNameRequest } from './dto/requests/fileName.request';
+import { FileNameRequest } from './dto/requests/fileName.request';
 
 @Controller('/media')
 export class MediaController {
