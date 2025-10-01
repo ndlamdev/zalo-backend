@@ -76,6 +76,7 @@ class SecurityConfig(
             it.accessDeniedHandler(customAccessDeniedHandler)
             it.authenticationEntryPoint(authenticationEntryPoint)
         }
+        httpSecurity.cors { configurer -> configurer.disable() }
         httpSecurity.httpBasic { httpBasic -> httpBasic.authenticationEntryPoint(authenticationEntryPoint) }
         httpSecurity.securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
         return httpSecurity.build()

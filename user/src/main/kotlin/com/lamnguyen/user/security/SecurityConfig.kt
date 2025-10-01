@@ -38,6 +38,7 @@ class SecurityConfig(
                     .anyExchange().authenticated()
             }
             .csrf { csrf -> csrf.disable() }
+            .cors { configurer -> configurer.disable() }
             .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
             .build()
     }

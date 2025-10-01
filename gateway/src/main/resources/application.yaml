@@ -26,6 +26,23 @@ spring:
                 - Path=/chat-ws/**
               filters:
                 - StripPrefix=1
+          globalcors:
+            cors-configurations:
+              '[/**]': # Applies to all paths
+                allowedOrigins: "http://localhost:3000" # Replace with your client's origin(s)
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS # Essential for pre-flight requests
+                allowedHeaders:
+                  - "*" # Allow all headers, or specify specific ones like "Authorization"
+                allowCredentials: true # Set to true if you are using credentials (e.g., cookies, authorization headers)
+                maxAge: 3600 # Cache pre-flight response for 1 hour
+            add-to-simple-url-handler-mapping: true
+
+
 
   profiles:
     active: local

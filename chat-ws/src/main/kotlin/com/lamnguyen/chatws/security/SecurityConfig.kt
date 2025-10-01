@@ -27,6 +27,7 @@ class SecurityConfig(
                 exchange.requestMatchers(*applicationProperty.whitelist.toTypedArray()).permitAll()
                     .anyRequest().authenticated()
             }
+            .cors { configurer -> configurer.disable() }
             .csrf { csrf -> csrf.disable() }
             .build()
     }
