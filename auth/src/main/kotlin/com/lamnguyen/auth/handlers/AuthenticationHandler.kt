@@ -13,8 +13,10 @@ import com.lamnguyen.auth.domain.requests.RegisterRequest
 import com.lamnguyen.auth.exceptions.ApplicationException
 import com.lamnguyen.auth.exceptions.ExceptionEnum
 import com.lamnguyen.auth.service.business.IAuthService
+import com.lamnguyen.auth.service.business.IQrService
 import com.lamnguyen.auth.utils.helpers.error
 import com.lamnguyen.auth.utils.helpers.ok
+import com.lamnguyen.auth.utils.helpers.okTextEventStream
 import com.lamnguyen.auth.utils.helpers.validate
 import com.lamnguyen.auth.utils.properties.ApplicationProperty
 import org.springframework.http.HttpHeaders
@@ -27,13 +29,15 @@ import org.springframework.validation.Validator
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
+import kotlin.jvm.optionals.getOrElse
 
 @Component
 class AuthenticationHandler(
     val authService: IAuthService,
+    val qrService: IQrService,
     val validator: Validator,
     val authProperty: ApplicationProperty.Companion.AuthProperty,
-    val refreshTokenProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty.Companion.RefreshTokenProperty
+    val refreshTokenProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty.Companion.RefreshTokenProperty,
 ) {
     fun login(request: ServerRequest): Mono<ServerResponse?> {
         return ok(
@@ -100,5 +104,24 @@ class AuthenticationHandler(
                     path("/")
                 }.build().value)
             })
+    }
+
+    fun qr(request: ServerRequest): Mono<ServerResponse?> {
+        return qrService.createQrCodeLoginAndToken()
+            .flatMap { ok(it, "Generate qr-code success") }
+    }
+
+    fun subscribe(request: ServerRequest): Mono<ServerResponse?> {
+        val token = request.queryParam("token").getOrElse { "" }
+        return okTextEventStream(qrService.subscribe(token))
+    }
+
+    fun confirm(request: ServerRequest): Mono<ServerResponse?> {
+        val refreshToken = request.cookies().getOrDefault("REFRESH_TOKEN", null)?.get(0)
+        if (refreshToken == null)
+            return error(ApplicationException(ExceptionEnum.MISSING_REFRESH_TOKEN), null, null, null)
+        val token = request.queryParam("token").getOrElse { "" }
+        return qrService.confirm(token, refreshToken.value)
+            .then(ok(null))
     }
 }

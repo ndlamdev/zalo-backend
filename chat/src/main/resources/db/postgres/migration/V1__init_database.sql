@@ -48,7 +48,7 @@ CREATE TABLE "pin_room_chats"
 
 CREATE TABLE "messages"
 (
-    id                  BIGSERIAL    NOT NULL PRIMARY KEY,
+    string              varchar(255) NOT NULL PRIMARY KEY,
     sender_phone_number VARCHAR(20)  NOT NULL,
     room_chat_id        VARCHAR(255) NOT NULL,
     content             TEXT,

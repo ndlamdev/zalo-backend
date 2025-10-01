@@ -12,8 +12,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.lamnguyen.auth.domain.dto.ApiResponseError
 import com.lamnguyen.auth.domain.dto.ApiResponseSuccess
 import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.server.ServerResponse
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.util.function.Consumer
 
@@ -28,7 +30,7 @@ fun <T : Any> ok(data: T?, message: String? = "Response Success!"): Mono<ServerR
 fun <T : Any> ok(
     data: T?,
     message: String? = "Response Success!",
-    headers: Consumer<HttpHeaders>
+    headers: Consumer<HttpHeaders>,
 ): Mono<ServerResponse?> {
     return ServerResponse.ok().headers(headers).body(BodyInserters.fromValue(ApiResponseSuccess<Any>().apply {
         code = 200
@@ -37,11 +39,17 @@ fun <T : Any> ok(
     }))
 }
 
+fun okTextEventStream(data: Flux<String>): Mono<ServerResponse?> {
+    return ServerResponse.ok()
+        .contentType(MediaType.TEXT_EVENT_STREAM)
+        .body(data, String::class.java)
+}
+
 inline fun <reified T : Any> error(
     ex: Throwable,
     code: Int?,
     message: String?,
-    detail: T?
+    detail: T?,
 ): Mono<ServerResponse?> {
     return ServerResponse.badRequest().body(BodyInserters.fromValue(ApiResponseError<T>().apply {
         this.code = code ?: 400

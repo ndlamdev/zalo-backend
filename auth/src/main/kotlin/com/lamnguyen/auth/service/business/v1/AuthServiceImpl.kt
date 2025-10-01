@@ -41,7 +41,7 @@ class AuthServiceImpl(
     val jwtHelper: JwtHelper,
     val accessTokenManager: AccessTokenCacheManager,
     val refreshTokenManager: RefreshTokenCacheManager,
-    val jwtProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty
+    val jwtProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty,
 ) : IAuthService {
     override fun register(data: RegisterRequest): Mono<Void> {
         val phoneNumber = formatPhoneNumber(data.phoneNumber)
@@ -67,7 +67,11 @@ class AuthServiceImpl(
     }
 
     override fun resign(refreshToken: String): Mono<TokenResponse> {
-        return checkRefreshTokenAndAddIntoBlacklist(refreshToken)
+        return resign(checkRefreshTokenAndAddIntoBlacklist(refreshToken))
+    }
+
+    override fun resign(refreshToken: Mono<RefreshTokenPayload>): Mono<TokenResponse> {
+        return refreshToken
             .flatMap { payload ->
                 val phoneNumberFormated = formatPhoneNumber(payload.phoneNumber)
                 val phoneNumber = parsePhoneNumber(phoneNumberFormated)
@@ -137,6 +141,5 @@ class AuthServiceImpl(
                     }
             }.filter { it.type == JwtTokenType.REFRESH }
             .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.MISSING_REFRESH_TOKEN)))
-
     }
 }

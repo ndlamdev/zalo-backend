@@ -20,4 +20,5 @@ enum class ExceptionEnum(val code: Int, val message: String) {
     EMPTY_DATA(1009, "Empty data!"),
     WRONG_TOKEN_EXPIRED(1010, "Token issued before password change"),
     BLACKLIST_TOKEN(1011, "Token has been blacklisted"),
+    SID_EXPIRED(1012, "Sid was expired!"),
 }

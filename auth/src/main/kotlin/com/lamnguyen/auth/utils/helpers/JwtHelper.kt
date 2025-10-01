@@ -94,6 +94,25 @@ class JwtHelper(
             }
     }
 
+    fun createQrScanToken(id: String): Jwt {
+        val now = now()
+        return jwtEncoder.encode(
+            JwtEncoderParameters.from(
+                jwsHeader, JwtClaimsSet.builder()
+                    .id(id)
+                    .issuer(jwtProperty.iss)
+                    .subject(id)
+                    .issuedAt(now)
+                    .expiresAt(now.plus(1, ChronoUnit.MINUTES))
+                    .build()
+            )
+        )
+    }
+
+    fun verifyToken(token: String): Mono<Jwt> {
+        return jwtDecode.decode(token)
+    }
+
     companion object {
         @JvmStatic
         fun now(): Instant {

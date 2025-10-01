@@ -18,7 +18,7 @@ import org.springframework.data.relational.core.mapping.Table
 @Table("messages")
 class Message : BaseEntity() {
     @Id
-    var id: Long? = null
+    var id: String? = null
     var senderPhoneNumber: String = ""
     var roomChatId: String = ""
     var content: String = ""

@@ -107,6 +107,12 @@ class AuthenticationRouter {
             beanClass = AuthenticationHandler::class,
             beanMethod = "logout",
         ),
+        RouterOperation(
+            path = "/v1/qr",
+            method = [RequestMethod.POST],
+            beanClass = AuthenticationHandler::class,
+            beanMethod = "logout",
+        ),
     )
     fun authenticationRoute(authenticationHandler: AuthenticationHandler): RouterFunction<ServerResponse?> {
         return RouterFunctions
@@ -118,6 +124,11 @@ class AuthenticationRouter {
                 v1.POST("/check-phone-number", authenticationHandler::checkPhoneNumber)
                 v1.POST("/resign", authenticationHandler::resign)
                 v1.POST("/logout", authenticationHandler::logout)
+                v1.path("/qr") { qr ->
+                    qr.POST("", authenticationHandler::qr)
+                    qr.GET("/subscribe", authenticationHandler::subscribe)
+                    qr.GET("/confirm", authenticationHandler::confirm)
+                }
             }
             .build()
     }
