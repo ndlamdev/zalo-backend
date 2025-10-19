@@ -19,8 +19,6 @@ class CreateRoomChatRequest {
     @NotEmpty
     var members: MutableList<String>? = null
 
-    @NotNull
-    @NotBlank
     var title: String? = null
 
     @Transient

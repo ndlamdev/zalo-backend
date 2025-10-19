@@ -17,6 +17,5 @@ interface IRoomChatService {
     fun removeRoomChat(id: String): Mono<Void>
     fun getAllRoomChat(phoneNumber: String): Flux<RoomChat>
     fun existRoomChatById(roomChatId: String): Mono<Boolean>
-    fun findBySoftId(roomChatId: String): Mono<RoomChat>
-    fun existRoomChatBySoftId(softId: String): Mono<Boolean>
+    fun findById(roomChatId: String): Mono<RoomChat>
 }

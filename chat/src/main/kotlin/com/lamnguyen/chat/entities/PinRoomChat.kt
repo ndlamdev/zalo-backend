@@ -11,10 +11,10 @@ package com.lamnguyen.chat.entities
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 
-@Table("pin_room_chat")
+@Table("pin_room_chats")
 class PinRoomChat {
     @Id
     var id: Long? = null
-    val ownerPhoneNumber: String = ""
+    val phoneNumber: String = ""
     val roomChatId: String = ""
 }

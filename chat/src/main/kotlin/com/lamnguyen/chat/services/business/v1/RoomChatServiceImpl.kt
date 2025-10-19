@@ -31,10 +31,8 @@ class RoomChatServiceImpl(
     }
 
     override fun getAllRoomChat(phoneNumber: String): Flux<RoomChat> {
-        return Flux.merge(
-            roomChatRepository.findAllBySoftIdStartsWithAndType(phoneNumber, RoomChat.RoomChatType.SINGLE),
-            roomChatRepository.findAllByPhoneNumberContainAndTypeIsGroup(phoneNumber)
-
+        return roomChatRepository.findAllByPhoneNumberContains(
+            phoneNumber
         ).flatMap { roomChat ->
             pinRoomChatService.isPin(roomChat.id!!, phoneNumber)
                 .map { exists -> roomChat.apply { pin = exists } }
@@ -45,11 +43,7 @@ class RoomChatServiceImpl(
         return roomChatRepository.existsById(roomChatId)
     }
 
-    override fun findBySoftId(roomChatId: String): Mono<RoomChat> {
-        return roomChatRepository.findBySoftId(roomChatId)
-    }
-
-    override fun existRoomChatBySoftId(softId: String): Mono<Boolean> {
-        return roomChatRepository.existsBySoftId(softId)
+    override fun findById(roomChatId: String): Mono<RoomChat> {
+        return roomChatRepository.findById(roomChatId)
     }
 }

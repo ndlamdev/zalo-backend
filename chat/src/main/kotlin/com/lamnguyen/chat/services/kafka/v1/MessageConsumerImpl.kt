@@ -35,11 +35,11 @@ class MessageConsumerImpl(
         val token = String(consumerRecord.headers().lastHeader(HttpHeaders.AUTHORIZATION).value())
         val message = consumerRecord.value()
         if (message.roomChatId.startsWith("+")) {
-            val roomChatSoftIdReceiver = "${message.roomChatId}_${message.senderPhoneNumber}"
-            val roomChatSoftIdSender = "${message.senderPhoneNumber}_${message.roomChatId}"
+            val roomChatIdReceiver = "${message.roomChatId}_${message.senderPhoneNumber}"
+            val roomChatIdSender = "${message.senderPhoneNumber}_${message.roomChatId}"
             Mono.zip(
-                saveMessageForSender(roomChatSoftIdSender, message.copy()),
-                saveMessageForReceiver(roomChatSoftIdReceiver, message.copy(), token),
+                saveMessageForSender(roomChatIdSender, message.copy()),
+                saveMessageForReceiver(roomChatIdReceiver, message.copy(), token),
             ).subscribe()
         } else {
             messageService.save(message)
@@ -47,10 +47,10 @@ class MessageConsumerImpl(
         }
     }
 
-    private fun saveMessageForSender(softId: String, message: Message): Mono<*> {
-        return roomChatService.existRoomChatBySoftId(softId)
+    private fun saveMessageForSender(id: String, message: Message): Mono<*> {
+        return roomChatService.existRoomChatById(id)
             .flatMap {
-                if (it) saveMessage(message.copy(), softId)
+                if (it) saveMessage(message.copy(), id)
                 else createRoomChatAndSaveMessage(
                     message.copy(),
                     message.senderPhoneNumber,
@@ -59,10 +59,10 @@ class MessageConsumerImpl(
             }
     }
 
-    private fun saveMessageForReceiver(softId: String, message: Message, token: String): Mono<*> {
-        return roomChatService.existRoomChatBySoftId(softId)
+    private fun saveMessageForReceiver(idId: String, message: Message, token: String): Mono<*> {
+        return roomChatService.existRoomChatById(idId)
             .flatMap {
-                if (it) saveMessage(message, softId)
+                if (it) saveMessage(message, idId)
                 else userGrpcService.getFriendShips(message.senderPhoneNumber, listOf(message.roomChatId), token)
                     .map { response -> response.friendsList }
                     .flatMap { listFriend ->
@@ -88,7 +88,7 @@ class MessageConsumerImpl(
                 this.id = id
                 this.isQueue = isQueue ?: false
                 newRow = true
-                this.softId = "${admin}_$member"
+                this.id = "${admin}_$member"
             })
             .flatMap {
                 Mono.zip(
@@ -108,8 +108,8 @@ class MessageConsumerImpl(
             }
     }
 
-    private fun saveMessage(message: Message, softId: String): Mono<*> {
-        return roomChatService.findBySoftId(softId)
+    private fun saveMessage(message: Message, idId: String): Mono<*> {
+        return roomChatService.findById(idId)
             .flatMap { roomChat ->
                 messageService.save(
                     message.apply {

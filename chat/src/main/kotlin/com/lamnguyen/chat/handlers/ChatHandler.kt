@@ -8,6 +8,7 @@
 
 package com.lamnguyen.chat.handlers
 
+import com.fasterxml.uuid.Generators
 import com.lamnguyen.chat.domain.requests.CreateRoomChatRequest
 import com.lamnguyen.chat.entities.RoomChat
 import com.lamnguyen.chat.entities.RoomChatMember
@@ -27,7 +28,8 @@ import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.util.*
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 @Component
 class ChatHandler(
@@ -59,26 +61,29 @@ class ChatHandler(
         return ReactiveSecurityContextHolder.getContext()
             .map { it.authentication }
             .flatMap { auth ->
-                if (chatRequest.members.isNullOrEmpty()) return@flatMap Mono.error(ApplicationException(ExceptionEnum.LIST_MEMBER_IS_EMPTY))
-                if (chatRequest.members!!.size == 1) return@flatMap Mono.empty()
                 chatRequest.members!!.remove(auth.name)
+                if (chatRequest.members.isNullOrEmpty()) return@flatMap Mono.error(ApplicationException(ExceptionEnum.LIST_MEMBER_IS_EMPTY))
                 chatRequest.adminRoomChat = auth.name
                 userGrpcService.getFriendShips(chatRequest.adminRoomChat!!, chatRequest.members!!)
                     .map { it.friendsList }
             }
-            .filter { it.size > 1 }
-            .switchIfEmpty(Mono.empty())
+            .filter { it.isNotEmpty() }
+            .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.LIST_MEMBER_IS_EMPTY)))
             .flatMap { users ->
                 chatRequest.members = users.map { it.phoneNumber }.sorted().toMutableList()
+                val roomChatId = Generators.timeBasedEpochGenerator().generate().toString();
                 val roomChat = RoomChat().apply {
-                    id = UUID.randomUUID().toString()
+                    id = roomChatId
                     title = chatRequest.title!!
-                    type = RoomChat.RoomChatType.GROUP
-                    softId = chatRequest.members!!.joinToString { "_" }
+                    type =
+                        if (chatRequest.members?.size == 1) RoomChat.RoomChatType.SINGLE else RoomChat.RoomChatType.GROUP
                     newRow = true
                 }
-                roomChatSerVice.createRoomChat(roomChat)
-                    .flatMap { addMember(chatRequest, it) }
+                Mono.zip(
+                    roomChatSerVice.createRoomChat(roomChat),
+                    addMember(roomChatId, chatRequest)
+                )
+                    .map { (chat, _) -> chat }
             }
             .doOnSuccess {
                 roomChatMemberProducer.dumpRoomChatMember(
@@ -90,25 +95,25 @@ class ChatHandler(
             }
     }
 
-    private fun addMember(chatRequest: CreateRoomChatRequest, roomChat: RoomChat): Mono<RoomChat> {
+    private fun addMember(roomChatId: String, chatRequest: CreateRoomChatRequest): Mono<Boolean> {
         val fluxAddMember = Flux.fromIterable(chatRequest.members!!)
             .flatMap {
-                roomChatMemberService.addMember(roomChat.id!!, it)
+                roomChatMemberService.addMember(roomChatId, it)
             }
         val fluxOwner = Flux.from(
             roomChatMemberService
                 .addMember(
-                    roomChat.id!!,
+                    roomChatId,
                     chatRequest.adminRoomChat!!,
                     RoomChatMember.Role.ADMIN
                 )
         )
 
         return Flux.zip(fluxAddMember, fluxOwner)
-            .then(Mono.just(roomChat))
+            .then(Mono.just(true))
             .onErrorResume {
                 roomChatSerVice
-                    .removeRoomChat(roomChat.id!!)
+                    .removeRoomChat(roomChatId)
                     .then(Mono.error(it))
             }
     }

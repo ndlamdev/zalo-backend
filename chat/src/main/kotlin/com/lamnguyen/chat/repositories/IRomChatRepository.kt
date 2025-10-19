@@ -25,7 +25,14 @@ interface IRomChatRepository : R2dbcRepository<RoomChat, String> {
     """
     )
     fun findAllByPhoneNumberContainAndTypeIsGroup(phoneNumber: String): Flux<RoomChat>
-    fun findBySoftId(roomChatId: String): Mono<RoomChat>
-    fun findAllBySoftIdStartsWithAndType(phoneNumber: String, type: RoomChat.RoomChatType): Flux<RoomChat>
-    fun existsBySoftId(softId: String): Mono<Boolean>
+    @Query(
+        value = """
+        SELECT rc.*
+        FROM "zalo-chat".public.room_chats rc
+        JOIN "zalo-chat".public.room_chat_members rcm on rc.id = rcm.room_chat_id
+        WHERE rcm.phone_number = :phoneNumber
+    """
+    )
+    fun findAllByPhoneNumberContains(phoneNumber: String): Flux<RoomChat>
+    fun findAllByIdStartsWithAndType(phoneNumber: String, type: RoomChat.RoomChatType): Flux<RoomChat>
 }

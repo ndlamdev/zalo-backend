@@ -1,7 +1,6 @@
 CREATE TABLE "room_chats"
 (
     id         VARCHAR(255) PRIMARY KEY UNIQUE,
-    soft_id    TEXT UNIQUE,
     title      VARCHAR(15),
     avatar     VARCHAR(255),
     theme      VARCHAR(255),

@@ -9,21 +9,18 @@
 package com.lamnguyen.chat.entities
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import org.springframework.data.relational.core.mapping.Table
 
 @Table("room_chats")
 class RoomChat : BaseEntity(), Persistable<String> {
-    @Id
     @JvmField
     var id: String? = null
-    var softId: String? = null
     var isQueue: Boolean = false
     var title: String? = null // Chỉ tồn tại với type là group
-    lateinit var avatar: String // Chỉ tồn tại với type là group
-    lateinit var theme: String
+    var avatar: String? = null // Chỉ tồn tại với type là group
+    var theme: String? = null
     var type = RoomChatType.SINGLE
 
     @Transient // Field này sẽ không được lưu vào database
@@ -33,14 +30,12 @@ class RoomChat : BaseEntity(), Persistable<String> {
     @Override
     @Transient
     @JsonIgnore
-    override fun isNew(): Boolean = this.newRow || id == null
+    override fun isNew(): Boolean = this.newRow
 
     @Transient
     @JsonIgnore
     var pin: Boolean = false
-
-    @JsonIgnore
-    override fun getId(): String? = id
+    override fun getId(): String? = id;
 
     enum class RoomChatType {
         SINGLE, GROUP
