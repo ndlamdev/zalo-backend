@@ -11,9 +11,12 @@ package com.lamnguyen.auth.utils.helpers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.lamnguyen.auth.domain.dto.AccessTokenPayload
 import com.lamnguyen.auth.domain.dto.RefreshTokenPayload
+import com.lamnguyen.auth.exceptions.ApplicationException
+import com.lamnguyen.auth.exceptions.ExceptionEnum
 import com.lamnguyen.auth.model.User
 import com.lamnguyen.auth.utils.properties.ApplicationProperty
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.oauth2.jwt.*
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
@@ -22,6 +25,7 @@ import java.time.Duration
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
+import java.util.*
 
 @Component
 class JwtHelper(
@@ -30,7 +34,7 @@ class JwtHelper(
     private val jwsHeader: JwsHeader,
     private val jwtProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty,
     private val accessTokenProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty.Companion.AccessTokenProperty,
-    private val refreshTokenProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty.Companion.RefreshTokenProperty
+    private val refreshTokenProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty.Companion.RefreshTokenProperty,
 ) {
     fun createAccessToken(id: String, auth: Authentication, refreshTokenId: String): Jwt {
         val now = now()
@@ -60,6 +64,31 @@ class JwtHelper(
                     .claim(
                         jwtProperty.claimKey,
                         AccessTokenPayload.generateToken(user.phoneNumber, roles, refreshTokenId)
+                    )
+                    .expiresAt(now.plus(accessTokenProperty.expires, ChronoUnit.MINUTES))
+                    .build()
+            )
+        )
+    }
+
+    fun createAccessToken(id: String, userDetails: UserDetails?, refreshTokenId: String): Jwt {
+        if (userDetails == null) {
+            throw ApplicationException(ExceptionEnum.USER_NOT_EXISTS)
+        }
+
+        val now = now()
+        val roles = userDetails.authorities.map { it.authority }
+
+        return jwtEncoder.encode(
+            JwtEncoderParameters.from(
+                jwsHeader, JwtClaimsSet.builder()
+                    .id(id)
+                    .issuer(jwtProperty.iss)
+                    .subject(userDetails.username)
+                    .issuedAt(now)
+                    .claim(
+                        jwtProperty.claimKey,
+                        AccessTokenPayload.generateToken(userDetails.username, roles, refreshTokenId)
                     )
                     .expiresAt(now.plus(accessTokenProperty.expires, ChronoUnit.MINUTES))
                     .build()
@@ -99,7 +128,7 @@ class JwtHelper(
         return jwtEncoder.encode(
             JwtEncoderParameters.from(
                 jwsHeader, JwtClaimsSet.builder()
-                    .id(id)
+                    .id(UUID.randomUUID().toString())
                     .issuer(jwtProperty.iss)
                     .subject(id)
                     .issuedAt(now)
@@ -111,6 +140,22 @@ class JwtHelper(
 
     fun verifyToken(token: String): Mono<Jwt> {
         return jwtDecode.decode(token)
+    }
+
+    fun createQrLoginToken(clientId: String, qrTokenId: String): Jwt {
+        val now = now()
+        return jwtEncoder.encode(
+            JwtEncoderParameters.from(
+                jwsHeader, JwtClaimsSet.builder()
+                    .id(UUID.randomUUID().toString())
+                    .issuer(jwtProperty.iss)
+                    .subject(clientId)
+                    .issuedAt(now)
+                    .claim("qr-token-id", qrTokenId)
+                    .expiresAt(now.plus(1, ChronoUnit.MINUTES))
+                    .build()
+            )
+        )
     }
 
     companion object {

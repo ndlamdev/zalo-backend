@@ -1,5 +1,7 @@
 package com.lamnguyen.auth.service.business.v1
 
+import com.lamnguyen.auth.exceptions.ApplicationException
+import com.lamnguyen.auth.exceptions.ExceptionEnum
 import com.lamnguyen.auth.repositories.IUserRepository
 import com.lamnguyen.auth.service.business.IRoleService
 import com.lamnguyen.auth.utils.enums.Keyword
@@ -22,9 +24,14 @@ import reactor.core.publisher.Mono
 @Component
 class ReactiveUserDetailsServiceImpl(val userRepository: IUserRepository, val roleService: IRoleService) :
     ReactiveUserDetailsService {
-    override fun findByUsername(username: String?): Mono<UserDetails?>? {
+    override fun findByUsername(username: String?): Mono<UserDetails> {
         val phoneNumber = formatPhoneNumber(username)
         val userMono = userRepository.findByPhoneNumber(phoneNumber)
+            .switchIfEmpty(Mono.error {
+                ApplicationException(
+                    ExceptionEnum.USER_NOT_EXISTS
+                )
+            })
         val rolesFlux: Flux<SimpleGrantedAuthority> =
             roleService.getRoles(phoneNumber)
                 .map { role -> SimpleGrantedAuthority("${Keyword.PREFIX_ROLE.value}${role?.name}") }

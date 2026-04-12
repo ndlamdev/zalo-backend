@@ -3,24 +3,26 @@ package com.lamnguyen.auth.service.business.v1
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.uuid.Generators
 import com.lamnguyen.auth.domain.dto.ApiResponseSuccess
-import com.lamnguyen.auth.domain.dto.RefreshTokenPayload
+import com.lamnguyen.auth.domain.responses.TokenResponse
 import com.lamnguyen.auth.exceptions.ApplicationException
 import com.lamnguyen.auth.exceptions.ExceptionEnum
-import com.lamnguyen.auth.service.business.IAuthService
 import com.lamnguyen.auth.service.business.IQrService
-import com.lamnguyen.auth.service.redis.v1.RefreshTokenCacheManager
-import com.lamnguyen.auth.utils.enums.JwtTokenType
+import com.lamnguyen.auth.utils.enums.LoginStatus
 import com.lamnguyen.auth.utils.helpers.JwtHelper
-import com.lamnguyen.auth.utils.properties.ApplicationProperty
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate
-import org.springframework.http.ResponseCookie
-import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.stereotype.Service
+import parsePhoneNumber
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.publisher.Sinks
 import reactor.core.publisher.Sinks.Many
+import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
+import java.time.Duration
 import java.time.temporal.ChronoUnit
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
@@ -37,23 +39,36 @@ import java.util.concurrent.ConcurrentMap
 class QrServiceImpl(
     val jwtHelper: JwtHelper,
     val redis: ReactiveStringRedisTemplate,
-    val authService: IAuthService,
-    val refreshTokenManager: RefreshTokenCacheManager,
-    val jwtProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty,
-    val refreshTokenProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty.Companion.RefreshTokenProperty,
+    val userDetailService: ReactiveUserDetailsServiceImpl,
+    val objectMapper: ObjectMapper,
 ) : IQrService {
-    private val sinks: ConcurrentMap<String, Many<String>> = ConcurrentHashMap<String, Many<String>>()
+    private val sinks: ConcurrentMap<String, Many<String>> = ConcurrentHashMap()
 
+    /**
+     * Tạo 1 đoạn token để client có dùng token này và tạo qr login
+     */
     override fun createQrCodeLoginAndToken(): Mono<Map<String, String>> {
         val sid = Generators.timeBasedEpochRandomGenerator().generate().toString()
-        val token = jwtHelper.createQrScanToken(sid).tokenValue
+        val token = jwtHelper.createQrScanToken(sid)
 
-        return Mono.just(mapOf("sid" to sid, "token" to token))
+        return updateLoginStatus(token.id)
+            .thenReturn(mapOf("sid" to sid, "token" to token.tokenValue))
     }
 
-    override fun subscribe(token: String): Flux<String> {
-        return jwtHelper.verifyToken(token)
-            .map { it.subject }
+    /**
+     * Client dùng token đã tạo để đăng kí 1 channel nhận thông tin kết quả login
+     */
+    override fun subscribe(qrScanToken: String): Flux<String> {
+        return jwtHelper.verifyToken(qrScanToken)
+            .filterWhen { notExitQrTokenInBlacklist(it.id) }
+            .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.INVALID_TOKEN)))
+            .flatMap { getLoginStatus(it.id).zipWith(Mono.just(it)) }
+            .filter { (status, _) -> status != null && status == LoginStatus.INITIAL.name }
+            .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.INVALID_LOGIN_STATUS)))
+            .flatMap { (_, jwt) ->
+                updateLoginStatus(jwt.id, LoginStatus.WAITING_SCAN)
+                    .map { jwt.id }
+            }
             .flatMapMany {
                 val sink = sinks.computeIfAbsent(it) {
                     Sinks.many().multicast().onBackpressureBuffer()
@@ -69,90 +84,148 @@ class QrServiceImpl(
             }
     }
 
-    override fun confirm(tokenQrCode: String, refreshToken: String): Mono<Void> {
-        return jwtHelper.verifyToken(tokenQrCode)
-            .flatMap { jwt ->
-                checkTokenInBlacklist(jwt.id)
-                    .filter { !it }
-                    .map { jwt }
+    /**
+     * Khi một client khác thực hiện scan để bắt đầu quá trình xác thực đăng nhập
+     */
+    override fun scan(qrScanToken: String): Mono<Void> {
+        return jwtHelper.verifyToken(qrScanToken)
+            .filterWhen { notExitQrTokenInBlacklist(it.id) }
+            .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.INVALID_TOKEN)))
+            .filterWhen {
+                getLoginStatus(it.id)
+                    .map { status -> status != null && status == LoginStatus.WAITING_SCAN.name }
             }
+            .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.INVALID_LOGIN_STATUS)))
             .flatMap { jwt ->
-                resign(refreshToken, jwt)
+                updateLoginStatus(jwt.id, LoginStatus.WAITING_CONFIRM)
+                    .thenReturn(jwt.id)
+            }.doOnNext {
+                val result = ApiResponseSuccess<Any>().apply {
+                    message = "Scan qr login success! Please waiting confirm!"
+                }
+
+                sinks[it]?.tryEmitNext(objectMapper.writeValueAsString(result))
             }
+            .then(Mono.empty())
     }
 
-    private fun resign(refreshToken: String, jwt: Jwt): Mono<Void> {
-        return checkRefreshToken(refreshToken)
-            .flatMap { authService.resign(Mono.just(it)) }
-            .flatMap { response ->
-                addTokenInBlacklist(jwt.id)
-                    .map { response }
+    /**
+     * Sau khi đã scan xong thì sẽ đợi kết quả cuối của client đang muốn share login cho clien đang đợi
+     */
+    override fun confirm(qrScanToken: String, status: LoginStatus): Mono<Void> {
+        if (status != LoginStatus.CONFIRM && status != LoginStatus.CANCELED) {
+            return Mono.error(ApplicationException(ExceptionEnum.INVALID_LOGIN_STATUS))
+        }
+
+        return Mono.zip(jwtHelper.verifyToken(qrScanToken), ReactiveSecurityContextHolder.getContext())
+            .onErrorMap { ApplicationException(ExceptionEnum.INVALID_TOKEN) }
+            .filterWhen { (qr, _) ->
+                notExitQrTokenInBlacklist(qr.id)
             }
-            .doOnSuccess {
-                val sink: Many<String>? = sinks[jwt.subject]
-                if (sink == null) return@doOnSuccess
-                val cookie = ResponseCookie.from("REFRESH_TOKEN", it.refreshToken).apply {
-                    maxAge(refreshTokenProperty.expires * 60000)
-                    httpOnly(true)
-                    secure(true)
-                    path("/")
-                }.build()
-                val response = mapOf(
-                    "phone_number" to it.phoneNumber,
-                    "phone_number_code" to it.phoneNumberCode,
-                    "access_token" to it.accessToken,
-                    "refresh_token" to cookie.toString(),
-                )
-
-                sink.tryEmitNext(
-                    ObjectMapper().writeValueAsString(
-                        ApiResponseSuccess<Map<String, *>>()
-                            .apply {
-                                message = "Login Qr success"
-                                data = response
-                                code = 200
-                            })
-                )
-                sink.tryEmitComplete()
+            .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.INVALID_TOKEN)))
+            .filterWhen { (qr, _) ->
+                getLoginStatus(qr.id)
+                    .map { status -> status != null && status == LoginStatus.WAITING_CONFIRM.name }
             }
-            .doOnError { ex ->
-                val sink: Many<String>? = sinks[jwt.subject]
-                if (sink == null) return@doOnError
-                sink.tryEmitError(ex)
-                sink.tryEmitComplete()
-            }
-            .then()
+            .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.INVALID_LOGIN_STATUS)))
+            .map { (qr, context) ->
+                val sink = sinks.getOrDefault(qr.id, null)
 
-    }
-
-
-    override fun checkRefreshToken(refreshToken: String): Mono<RefreshTokenPayload> {
-        return jwtHelper
-            .decodeAndVerifyJwt(refreshToken)
-            .flatMap { jwt ->
-                refreshTokenManager.existsTokenInBlackList(jwt.id)
-                    .defaultIfEmpty(false)
-                    .filter { !it }
-                    .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.RESIGN_FAILED)))
-                    .map {
-                        ObjectMapper().convertValue(
-                            jwt.claims[jwtProperty.claimKey],
-                            RefreshTokenPayload::class.java
-                        )
+                if (status == LoginStatus.CONFIRM) {
+                    val loginToken = jwtHelper.createQrLoginToken(context.authentication.name as String, qr.id)
+                    val result = ApiResponseSuccess<Any>().apply {
+                        message = "Confirm qr login success!"
+                        data = mapOf("token" to loginToken.tokenValue)
                     }
-            }.filter { it.type == JwtTokenType.REFRESH }
-            .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.MISSING_REFRESH_TOKEN)))
+
+                    sink.tryEmitNext(objectMapper.writeValueAsString(result))
+                }
+
+                sink.tryEmitComplete()
+                qr.id
+            }.flatMap {
+                Mono.zip(addQrTokenInBlacklist(it), updateLoginStatus(it, status))
+            }.then(Mono.empty())
     }
 
-    private fun checkTokenInBlacklist(id: String): Mono<Boolean> {
-        return redis.opsForValue()
-            .get("blacklist:qr-login-$id")
-            .map { true }
-            .switchIfEmpty(Mono.just(false))
+    /**
+     * Sau khi đã xác nhận thì sẽ dùng token này tiến hành login.
+     */
+    override fun login(loginToken: String?): Mono<TokenResponse> {
+        if (loginToken == null) {
+            throw ApplicationException(ExceptionEnum.MISSING_ACCESS_TOKEN)
+        }
+
+        return jwtHelper.decodeAndVerifyJwt(loginToken)
+            .filterWhen {
+                notExitQrLoginTokenInBlacklist(it.id)
+            }
+            .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.INVALID_TOKEN)))
+            .filterWhen {
+                getLoginStatus(it.claims["qr-token-id"] as String)
+                    .map { status -> status != null && status == LoginStatus.CONFIRM.name }
+            }
+            .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.INVALID_LOGIN_STATUS)))
+            .flatMap {
+                userDetailService.findByUsername(it.subject).zipWith(Mono.just(it.id))
+            }
+            .publishOn(Schedulers.boundedElastic())
+            .flatMap { (userDetail, qrTokenId) ->
+                val phoneNumber = parsePhoneNumber(userDetail.username)
+
+                val accessTokenId = UUID.randomUUID().toString()
+                val refreshTokenId = UUID.randomUUID().toString()
+                val refreshToken = jwtHelper.createRefreshToken(refreshTokenId, userDetail.username, accessTokenId)
+                val accessToken = jwtHelper.createAccessToken(accessTokenId, userDetail, refreshTokenId)
+
+
+                Mono.zip(
+                    Mono.just(
+                        TokenResponse(
+                            phoneNumber.nationalNumber,
+                            phoneNumber.countryCode,
+                            accessToken.tokenValue,
+                            refreshToken.tokenValue
+                        )
+                    ), Mono.just(qrTokenId)
+                )
+            }.flatMap { (tokenResponse, qrTokenId) ->
+                addQrLoginTokenInBlacklist(qrTokenId)
+                    .map { tokenResponse }
+            }
     }
 
-    private fun addTokenInBlacklist(id: String): Mono<Boolean> {
+    private fun notExitQrTokenInBlacklist(id: String): Mono<Boolean> {
         return redis.opsForValue()
-            .set("blacklist:qr-login-$id", "", java.time.Duration.of(1, ChronoUnit.MINUTES))
+            .get("blacklist:qr-scan-token:$id")
+            .map { false }
+            .switchIfEmpty(Mono.just(true))
+    }
+
+    private fun addQrTokenInBlacklist(id: String): Mono<Boolean> {
+        return redis.opsForValue()
+            .set("blacklist:qr-scan-token:$id", "", Duration.of(1, ChronoUnit.MINUTES))
+    }
+
+    private fun notExitQrLoginTokenInBlacklist(id: String): Mono<Boolean> {
+        return redis.opsForValue()
+            .get("blacklist:qr-login-token:$id")
+            .map { false }
+            .switchIfEmpty(Mono.just(true))
+    }
+
+    private fun addQrLoginTokenInBlacklist(id: String): Mono<Boolean> {
+        return redis.opsForValue()
+            .set("blacklist:qr-login-token:$id", "", Duration.of(1, ChronoUnit.MINUTES))
+    }
+
+    private fun updateLoginStatus(id: String, status: LoginStatus = LoginStatus.INITIAL): Mono<Boolean> {
+        return redis.opsForValue()
+            .set("qr-token:login:$id", status.name, Duration.of(2, ChronoUnit.MINUTES))
+    }
+
+    private fun getLoginStatus(id: String): Mono<String> {
+        return redis.opsForValue().get("qr-token:login:$id")
     }
 }
+

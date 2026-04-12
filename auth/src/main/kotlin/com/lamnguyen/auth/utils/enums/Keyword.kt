@@ -10,6 +10,7 @@ package com.lamnguyen.auth.utils.enums
 enum class Keyword(val value: String) {
     CHANGE_PASSWORD("CHANGE_PASSWORD"),
     PAYLOAD("PAYLOAD"),
-    PREFIX_ROLE("ROLE_");
+    PREFIX_ROLE("ROLE_"),
+    REFRESH_TOKEN("REFRESH_TOKEN");
 
 }

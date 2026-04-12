@@ -8,16 +8,19 @@
 
 package com.lamnguyen.auth.service.business
 
-import com.lamnguyen.auth.domain.dto.RefreshTokenPayload
+import com.lamnguyen.auth.domain.responses.TokenResponse
+import com.lamnguyen.auth.utils.enums.LoginStatus
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 interface IQrService {
     fun createQrCodeLoginAndToken(): Mono<Map<String, String>>
 
-    fun subscribe(token: String): Flux<String>
+    fun subscribe(qrScanToken: String): Flux<String>
 
-    fun confirm(tokenQrCode: String, refreshToken: String): Mono<Void>
+    fun confirm(qrScanToken: String, status: LoginStatus): Mono<Void>
 
-    fun checkRefreshToken(refreshToken: String): Mono<RefreshTokenPayload>
+    fun scan(qrScanToken: String): Mono<Void>
+
+    fun login(loginToken: String?): Mono<TokenResponse>
 }

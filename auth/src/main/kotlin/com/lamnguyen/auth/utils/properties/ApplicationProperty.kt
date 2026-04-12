@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component
 @ConfigurationProperties("application")
 class ApplicationProperty {
     lateinit var whitelist: List<String>
+    lateinit var version: String
 
     companion object {
         @Component

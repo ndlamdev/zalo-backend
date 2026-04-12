@@ -12,6 +12,9 @@ import com.lamnguyen.auth.domain.requests.LoginRequest
 import com.lamnguyen.auth.domain.requests.PhoneNumberRequest
 import com.lamnguyen.auth.domain.requests.RegisterRequest
 import com.lamnguyen.auth.handlers.AuthenticationHandler
+import com.lamnguyen.auth.handlers.QrHandler
+import com.lamnguyen.auth.utils.PathKeyworkCommon
+import com.lamnguyen.auth.utils.properties.ApplicationProperty
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -102,32 +105,39 @@ class AuthenticationRouter {
             beanMethod = "resign",
         ),
         RouterOperation(
-            path = "/v1/logout",
+            path = PathKeyworkCommon.LOGIN,
             method = [RequestMethod.POST],
             beanClass = AuthenticationHandler::class,
             beanMethod = "logout",
         ),
         RouterOperation(
-            path = "/v1/qr",
+            path = "/v1/qr/generator",
             method = [RequestMethod.POST],
             beanClass = AuthenticationHandler::class,
             beanMethod = "logout",
         ),
     )
-    fun authenticationRoute(authenticationHandler: AuthenticationHandler): RouterFunction<ServerResponse?> {
+    fun authenticationRoute(
+        authenticationHandler: AuthenticationHandler,
+        applicationProperty: ApplicationProperty,
+        qrHandler: QrHandler
+    ): RouterFunction<ServerResponse?> {
         return RouterFunctions
             .route()
-            .path("/v1") { v1 ->
-                v1.POST("/login", authenticationHandler::login)
-                v1.POST("/register", authenticationHandler::register)
-                v1.POST("/validate", authenticationHandler::validate)
-                v1.POST("/check-phone-number", authenticationHandler::checkPhoneNumber)
-                v1.POST("/resign", authenticationHandler::resign)
-                v1.POST("/logout", authenticationHandler::logout)
-                v1.path("/qr") { qr ->
-                    qr.POST("", authenticationHandler::qr)
-                    qr.GET("/subscribe", authenticationHandler::subscribe)
-                    qr.GET("/confirm", authenticationHandler::confirm)
+            .path("/${applicationProperty.version}") { v1 ->
+                v1.POST(PathKeyworkCommon.LOGIN, authenticationHandler::login)
+                v1.POST(PathKeyworkCommon.REGISTER, authenticationHandler::register)
+                v1.POST(PathKeyworkCommon.VALIDATE, authenticationHandler::validate)
+                v1.POST(PathKeyworkCommon.CHECK_PHONE_NUMBER, authenticationHandler::checkPhoneNumber)
+                v1.POST(PathKeyworkCommon.RESIGN, authenticationHandler::resign)
+                v1.POST(PathKeyworkCommon.LOGOUT, authenticationHandler::logout)
+                v1.GET(PathKeyworkCommon.INFO, authenticationHandler::info)
+                v1.path(PathKeyworkCommon.QR) { qr ->
+                    qr.GET(PathKeyworkCommon.GENERATE, qrHandler::generateQr)
+                    qr.GET(PathKeyworkCommon.SUBSCRIBE, qrHandler::subscribe)
+                    qr.POST(PathKeyworkCommon.SCAN, qrHandler::scan)
+                    qr.POST(PathKeyworkCommon.CONFIRM, qrHandler::confirm)
+                    qr.POST(PathKeyworkCommon.LOGIN, qrHandler::loginWithToken)
                 }
             }
             .build()

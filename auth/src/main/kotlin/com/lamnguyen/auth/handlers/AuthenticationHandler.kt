@@ -13,10 +13,9 @@ import com.lamnguyen.auth.domain.requests.RegisterRequest
 import com.lamnguyen.auth.exceptions.ApplicationException
 import com.lamnguyen.auth.exceptions.ExceptionEnum
 import com.lamnguyen.auth.service.business.IAuthService
-import com.lamnguyen.auth.service.business.IQrService
+import com.lamnguyen.auth.utils.enums.Keyword
 import com.lamnguyen.auth.utils.helpers.error
 import com.lamnguyen.auth.utils.helpers.ok
-import com.lamnguyen.auth.utils.helpers.okTextEventStream
 import com.lamnguyen.auth.utils.helpers.validate
 import com.lamnguyen.auth.utils.properties.ApplicationProperty
 import org.springframework.http.HttpHeaders
@@ -29,20 +28,18 @@ import org.springframework.validation.Validator
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
-import kotlin.jvm.optionals.getOrElse
 
 @Component
 class AuthenticationHandler(
     val authService: IAuthService,
-    val qrService: IQrService,
     val validator: Validator,
     val authProperty: ApplicationProperty.Companion.AuthProperty,
     val refreshTokenProperty: ApplicationProperty.Companion.AuthProperty.Companion.JwtProperty.Companion.RefreshTokenProperty,
 ) {
     fun login(request: ServerRequest): Mono<ServerResponse?> {
-        return ok(
-            request.attributes()["TOKEN_RESPONSE"],
-        )
+        val response = request.attributes()["TOKEN_RESPONSE"]
+
+        return ok(response)
     }
 
     fun register(request: ServerRequest): Mono<ServerResponse?> {
@@ -74,13 +71,13 @@ class AuthenticationHandler(
     }
 
     fun resign(request: ServerRequest): Mono<ServerResponse?> {
-        val refreshToken = request.cookies().getOrDefault("REFRESH_TOKEN", null)?.get(0)
+        val refreshToken = request.cookies().getOrDefault(Keyword.REFRESH_TOKEN.value, null)?.get(0)
         if (refreshToken == null)
             return error(ApplicationException(ExceptionEnum.MISSING_REFRESH_TOKEN), null, null, null)
         return authService.resign(refreshToken.value)
             .flatMap { tokenResponse ->
                 val refreshTokenCookie =
-                    ResponseCookie.from("REFRESH_TOKEN", tokenResponse.refreshToken).apply {
+                    ResponseCookie.from(Keyword.REFRESH_TOKEN.value, tokenResponse.refreshToken).apply {
                         maxAge(refreshTokenProperty.expires * 60000)
                         httpOnly(true)
                         secure(true)
@@ -92,12 +89,12 @@ class AuthenticationHandler(
     }
 
     fun logout(request: ServerRequest): Mono<ServerResponse?> {
-        val refreshToken = request.cookies().getOrDefault("REFRESH_TOKEN", null)?.get(0)
+        val refreshToken = request.cookies().getOrDefault(Keyword.REFRESH_TOKEN.value, null)?.get(0)
         if (refreshToken == null)
             return error(ApplicationException(ExceptionEnum.MISSING_REFRESH_TOKEN), null, null, null)
         return authService.logout(refreshToken.value)
             .then(ok(null, "Logout success!") {
-                it.add(HttpHeaders.SET_COOKIE, ResponseCookie.from("REFRESH_TOKEN").apply {
+                it.add(HttpHeaders.SET_COOKIE, ResponseCookie.from(Keyword.REFRESH_TOKEN.value).apply {
                     maxAge(0)
                     httpOnly(true)
                     secure(true)
@@ -106,22 +103,8 @@ class AuthenticationHandler(
             })
     }
 
-    fun qr(request: ServerRequest): Mono<ServerResponse?> {
-        return qrService.createQrCodeLoginAndToken()
-            .flatMap { ok(it, "Generate qr-code success") }
-    }
-
-    fun subscribe(request: ServerRequest): Mono<ServerResponse?> {
-        val token = request.queryParam("token").getOrElse { "" }
-        return okTextEventStream(qrService.subscribe(token))
-    }
-
-    fun confirm(request: ServerRequest): Mono<ServerResponse?> {
-        val refreshToken = request.cookies().getOrDefault("REFRESH_TOKEN", null)?.get(0)
-        if (refreshToken == null)
-            return error(ApplicationException(ExceptionEnum.MISSING_REFRESH_TOKEN), null, null, null)
-        val token = request.queryParam("token").getOrElse { "" }
-        return qrService.confirm(token, refreshToken.value)
-            .then(ok(null))
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN')")
+    fun info(request: ServerRequest): Mono<ServerResponse?> {
+        return ok("Get info user")
     }
 }
