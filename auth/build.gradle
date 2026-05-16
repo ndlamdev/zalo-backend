@@ -43,30 +43,20 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
     implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
     implementation 'org.flywaydb:flyway-core'
-    implementation 'org.springframework:spring-jdbc'
-    compileOnly 'org.projectlombok:lombok'
-    runtimeOnly 'org.postgresql:postgresql'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'io.projectreactor:reactor-test'
-    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test'
-    testImplementation 'org.springframework.kafka:spring-kafka-test'
-    testImplementation 'org.springframework.security:spring-security-test'
-    runtimeOnly 'org.postgresql:r2dbc-postgresql'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    // https://mvnrepository.com/artifact/org.flywaydb/flyway-database-postgresql
-    runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.10.1'
+    implementation 'org.springframework.boot:spring-boot-starter-rsocket'
+    implementation 'org.springframework.security:spring-security-rsocket'
+    implementation 'org.springframework.security:spring-security-messaging'
+    implementation 'org.flywaydb:flyway-mysql'
+    runtimeOnly 'io.asyncer:r2dbc-mysql:1.4.2'
+    implementation 'org.flywaydb:flyway-mysql:12.6.1'
     implementation 'com.googlecode.libphonenumber:libphonenumber:9.0.9'
-    // https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webflux-ui
     implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.9'
-    // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
     implementation 'org.apache.commons:commons-lang3:3.18.0'
     implementation "org.redisson:redisson:${redissonVersion}"
     implementation "org.redisson:redisson-spring-data-35:${redissonVersion}"
     // https://mvnrepository.com/artifact/com.esotericsoftware/kryo
-    implementation 'com.esotericsoftware:kryo:5.6.2'
     implementation 'com.fasterxml.uuid:java-uuid-generator:5.1.1'
+    runtimeOnly 'com.mysql:mysql-connector-j'
 }
 
 allOpen {
