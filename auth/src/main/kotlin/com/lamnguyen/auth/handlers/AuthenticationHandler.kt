@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component
 import org.springframework.validation.Validator
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
+import org.springframework.web.reactive.function.server.bodyToMono
 import reactor.core.publisher.Mono
 
 @Component
@@ -38,13 +39,14 @@ class AuthenticationHandler(
 ) {
     fun login(request: ServerRequest): Mono<ServerResponse?> {
         val response = request.attributes()["TOKEN_RESPONSE"]
+            ?: return error(ApplicationException(ExceptionEnum.LOGIN_FAILED), null, null, null)
 
         return ok(response)
     }
 
     fun register(request: ServerRequest): Mono<ServerResponse?> {
-        return request.bodyToMono(RegisterRequest::class.java)
-            .flatMap { it ->
+        return request.bodyToMono<RegisterRequest>()
+            .flatMap {
                 validator.validate(it, authService::register)
             }
             .then(ok("Register success!"))
@@ -71,9 +73,12 @@ class AuthenticationHandler(
     }
 
     fun resign(request: ServerRequest): Mono<ServerResponse?> {
-        val refreshToken = request.cookies().getOrDefault(Keyword.REFRESH_TOKEN.value, null)?.get(0)
-        if (refreshToken == null)
-            return error(ApplicationException(ExceptionEnum.MISSING_REFRESH_TOKEN), null, null, null)
+        val refreshToken = request.cookies().getOrDefault(Keyword.REFRESH_TOKEN.value, null)?.get(0) ?: return error(
+            ApplicationException(ExceptionEnum.MISSING_REFRESH_TOKEN),
+            null,
+            null,
+            null
+        )
         return authService.resign(refreshToken.value)
             .flatMap { tokenResponse ->
                 val refreshTokenCookie =
@@ -89,9 +94,12 @@ class AuthenticationHandler(
     }
 
     fun logout(request: ServerRequest): Mono<ServerResponse?> {
-        val refreshToken = request.cookies().getOrDefault(Keyword.REFRESH_TOKEN.value, null)?.get(0)
-        if (refreshToken == null)
-            return error(ApplicationException(ExceptionEnum.MISSING_REFRESH_TOKEN), null, null, null)
+        val refreshToken = request.cookies().getOrDefault(Keyword.REFRESH_TOKEN.value, null)?.get(0) ?: return error(
+            ApplicationException(ExceptionEnum.MISSING_REFRESH_TOKEN),
+            null,
+            null,
+            null
+        )
         return authService.logout(refreshToken.value)
             .then(ok(null, "Logout success!") {
                 it.add(HttpHeaders.SET_COOKIE, ResponseCookie.from(Keyword.REFRESH_TOKEN.value).apply {

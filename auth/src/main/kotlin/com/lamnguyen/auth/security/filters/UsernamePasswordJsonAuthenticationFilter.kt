@@ -12,8 +12,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.lamnguyen.auth.domain.requests.LoginRequest
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpMethod
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher
 import reactor.core.publisher.Mono
@@ -27,13 +29,19 @@ class UsernamePasswordJsonAuthenticationFilter(path: String, manage: ReactiveAut
         this.setServerAuthenticationConverter { ex ->
             DataBufferUtils
                 .join(ex.request.body)
+                .switchIfEmpty(Mono.error(BadCredentialsException("Login failed")))
                 .map { dataBuffer ->
-                    val bodyStr = dataBuffer.toString(UTF_8)
-                    val loginRequest = ObjectMapper().readValue(bodyStr, LoginRequest::class.java)
-                    UsernamePasswordAuthenticationToken(loginRequest.phoneNumber, loginRequest.password)
+                    val bodyStr = dataBuffer?.toString(UTF_8)
+                    ObjectMapper().readValue(bodyStr, LoginRequest::class.java)
+                        .let { loginRequest ->
+                            UsernamePasswordAuthenticationToken(
+                                loginRequest.phoneNumber,
+                                loginRequest.password
+                            )
+                        }
                 }
         }
-        this.setAuthenticationFailureHandler { webFilterExchange, exception ->
+        this.setAuthenticationFailureHandler { _, exception ->
             Mono.error(exception)
         }
     }
