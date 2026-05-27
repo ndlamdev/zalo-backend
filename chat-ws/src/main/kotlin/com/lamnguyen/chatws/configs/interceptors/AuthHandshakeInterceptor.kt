@@ -22,8 +22,8 @@ class AuthHandshakeInterceptor(private val jwtHelper: JwtHelper) : HandshakeInte
                 .servletRequest
                 .getHeader(HttpHeaders.AUTHORIZATION).substring(7)
             val authToken = jwtHelper.initAuthenticationToken(token, mutableSetOf())
-            attributes.put("phone_number", authToken.name)
-            attributes.put("token", token)
+            attributes["phone_number"] = authToken.name
+            attributes["token"] = token
             return true
         } catch (_: Exception) {
             return false

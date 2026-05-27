@@ -10,12 +10,13 @@ package com.lamnguyen.chatws.controllers
 
 import com.lamnguyen.chatws.configs.handlers.UserHandshakeHandler
 import com.lamnguyen.chatws.domain.messages.ChatMessage
-import com.lamnguyen.chatws.domain.requests.TextMessage
+import com.lamnguyen.chatws.domain.requests.Message
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.header.internals.RecordHeaders
 import org.springframework.http.HttpHeaders
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.messaging.handler.annotation.MessageMapping
+import org.springframework.messaging.simp.annotation.SendToUser
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 
@@ -24,11 +25,18 @@ import org.springframework.stereotype.Controller
 class ChatController(
     private val template: KafkaTemplate<String, ChatMessage>,
 ) {
-    @MessageMapping("/chat.text")
+    @MessageMapping("/chat")
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN')")
-    fun handleTextMessage(message: TextMessage, principal: UserHandshakeHandler.StompPrincipal) {
+    @SendToUser("/topic/messages")
+    fun handleTextMessage(message: Message, principal: UserHandshakeHandler.StompPrincipal): Message {
+        return message
+    }
+
+
+    private fun sendMessage(message: Message, principal: UserHandshakeHandler.StompPrincipal) {
         val headers = RecordHeaders()
         headers.add(HttpHeaders.AUTHORIZATION, principal.token.toByteArray())
+
         val data = ProducerRecord(
             "messages",
             null,

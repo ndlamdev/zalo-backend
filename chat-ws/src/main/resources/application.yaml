@@ -2,7 +2,6 @@ spring:
   application:
     name: chat-ws
 
-
   kafka:
     bootstrap-servers: ${KAFKA_SERVER:localhost:9092,localhost:9093,localhost:9094}
     producer:

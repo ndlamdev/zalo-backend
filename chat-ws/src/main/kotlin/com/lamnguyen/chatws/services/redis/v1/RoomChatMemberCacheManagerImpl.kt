@@ -30,7 +30,7 @@ class RoomChatMemberCacheManagerImpl(
     }
 
     private fun generateKey(roomChatId: String): String {
-        return ICacheRedis.hashKeys("room-chat-member", roomChatId.toString())
+        return ICacheRedis.hashKeys("room-chat-member", roomChatId)
     }
 
     override fun cacheRoomChatMember(roomChatId: String, members: List<String>): Flux<String> {
