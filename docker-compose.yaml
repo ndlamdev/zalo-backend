@@ -1,23 +1,23 @@
 services:
-  zola-mysql:
-    image: mysql
-    container_name: zola_mysql
-    restart: always
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-    volumes:
-      - ./docker/mysql/data:/var/lib/mysql
-
-  zola-redis:
-    image: redis
-    container_name: zola_redis
-    restart: always
-    ports:
-      - "6379:6379"
-    volumes:
-      - ./docker/redis/data:/data
+#  zola-mysql:
+#    image: mysql
+#    container_name: zola_mysql
+#    restart: always
+#    ports:
+#      - "3306:3306"
+#    environment:
+#      MYSQL_ROOT_PASSWORD: root
+#    volumes:
+#      - ./docker/mysql/data:/var/lib/mysql
+#
+#  zola-redis:
+#    image: redis
+#    container_name: zola_redis
+#    restart: always
+#    ports:
+#      - "6379:6379"
+#    volumes:
+#      - ./docker/redis/data:/data
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.8.0

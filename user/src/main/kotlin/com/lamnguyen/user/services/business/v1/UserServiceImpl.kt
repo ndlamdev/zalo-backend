@@ -13,7 +13,6 @@ import com.lamnguyen.user.exceptions.ApplicationException
 import com.lamnguyen.user.exceptions.ExceptionEnum
 import com.lamnguyen.user.mappers.IUserMapper
 import com.lamnguyen.user.models.User
-import com.lamnguyen.user.protos.FriendShipCheckResponse
 import com.lamnguyen.user.repositories.IFriendShipRepository
 import com.lamnguyen.user.repositories.IUserRepository
 import com.lamnguyen.user.services.business.IUserService
@@ -54,30 +53,6 @@ class UserServiceImpl(
                             addFriendRequested = false
                         }
                     }
-            }
-    }
-
-    override fun getAllFriend(
-        ownerPhoneNumber: String,
-        friendPhoneNumbers: List<String>,
-    ): Mono<FriendShipCheckResponse> {
-        return friendRepository.findAllByOwnerPhoneNumberAndFriendPhoneNumberIn(
-            ownerPhoneNumber,
-            friendPhoneNumbers
-        ).flatMap { friendShip ->
-            userRepository.findUserByPhoneNumber(friendShip.friendPhoneNumber)
-                .map {
-                    userMapper.toDto(it).apply {
-                        displayName = friendShip.displayName
-                        isFriend = true
-                        addFriendRequested = false
-                    }
-                }.map(userMapper::toInfo)
-        }.collectList()
-            .map {
-                FriendShipCheckResponse.newBuilder()
-                    .addAllFriends(it)
-                    .build()
             }
     }
 }

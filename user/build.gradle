@@ -3,13 +3,11 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.jetbrains.kotlin.jvm' version '1.9.25'
     id 'org.jetbrains.kotlin.plugin.spring' version '1.9.25'
-    id "com.google.protobuf" version "0.9.5"
     id "org.jetbrains.kotlin.kapt" version "2.2.0"
 }
 
 ext {
     springGrpcVersion = "3.1.0.RELEASE"
-    grpcVersion = '1.75.0'
     protobufVersion = '4.32.0-RC1'
     mapstructVersion = "1.6.3"
     redissonVersion = "3.50.0"
@@ -49,8 +47,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
     compileOnly 'org.projectlombok:lombok'
-    runtimeOnly 'org.postgresql:postgresql'
-    runtimeOnly 'org.postgresql:r2dbc-postgresql'
+    implementation 'org.flywaydb:flyway-mysql'
+    runtimeOnly 'io.asyncer:r2dbc-mysql:1.4.2'
+    implementation 'org.flywaydb:flyway-mysql:12.6.1'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
@@ -58,14 +57,9 @@ dependencies {
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.10.1'
+    runtimeOnly 'com.mysql:mysql-connector-j'
     implementation 'com.googlecode.libphonenumber:libphonenumber:9.0.9'
     implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.9'
-    implementation 'org.apache.commons:commons-lang3:3.18.0'
-    implementation "net.devh:grpc-spring-boot-starter:${springGrpcVersion}"
-    implementation "net.devh:grpc-server-spring-boot-starter:${springGrpcVersion}"
-    implementation "com.google.protobuf:protobuf-java:${protobufVersion}"
-    implementation platform("io.grpc:grpc-bom:${grpcVersion}")
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     kapt "org.mapstruct:mapstruct-processor:${mapstructVersion}"
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0-rc1'
@@ -81,20 +75,4 @@ kotlin {
 
 tasks.named('test') {
     useJUnitPlatform()
-}
-
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:${protobufVersion}"
-    }
-    plugins {
-        grpc {
-            artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}"
-        }
-    }
-    generateProtoTasks {
-        all()*.plugins {
-            grpc {}
-        }
-    }
 }

@@ -10,11 +10,9 @@ package com.lamnguyen.user.mappers
 
 import com.lamnguyen.user.domain.dto.UserDto
 import com.lamnguyen.user.models.User
-import com.lamnguyen.user.protos.UserInfo
 import org.mapstruct.Mapper
 
-@Mapper(componentModel = "spring", uses = [IGrpcMapper::class])
+@Mapper(componentModel = "spring")
 interface IUserMapper {
     fun toDto(user: User): UserDto
-    fun toInfo(user: UserDto): UserInfo
 }
