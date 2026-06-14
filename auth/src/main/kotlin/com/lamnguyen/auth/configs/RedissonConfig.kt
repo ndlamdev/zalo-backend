@@ -36,7 +36,7 @@ class RedissonConfig {
     @Bean
     fun roleRedissonClient(factory: RedissonConnectionFactory): ReactiveRedisTemplate<String, Role?> {
         val context = RedisSerializationContext
-            .newSerializationContext<String?, Role?>(StringRedisSerializer())
+            .newSerializationContext<String, Role?>(StringRedisSerializer())
             .value(KryoRedisSerializer(Role::class.java))
             .build()
 
@@ -46,7 +46,7 @@ class RedissonConfig {
     @Bean
     fun permissionRedissonClient(factory: RedissonConnectionFactory): ReactiveRedisTemplate<String, Permission?> {
         val context = RedisSerializationContext
-            .newSerializationContext<String?, Permission?>(StringRedisSerializer())
+            .newSerializationContext<String, Permission?>(StringRedisSerializer())
             .value(KryoRedisSerializer(Permission::class.java))
             .build()
 

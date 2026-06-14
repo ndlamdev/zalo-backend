@@ -30,8 +30,20 @@ import org.springframework.web.reactive.function.server.RouterFunctions
 import org.springframework.web.reactive.function.server.ServerResponse
 
 
+/**
+ * Cấu hình functional routes cho các API xác thực.
+ *
+ * Router này khai báo route cho đăng nhập, đăng ký, OTP, token lifecycle,
+ * thông tin người dùng và nhóm endpoint đăng nhập bằng QR code.
+ */
 @Configuration(proxyBeanMethods = false)
 class AuthenticationRouter {
+    /**
+     * Tạo RouterFunction cho toàn bộ endpoint xác thực theo version cấu hình.
+     *
+     * Các route được gắn với AuthenticationHandler hoặc QrHandler tương ứng,
+     * đồng thời khai báo metadata OpenAPI thông qua RouterOperations.
+     */
     @Bean
     @RouterOperations(
         RouterOperation(
@@ -127,9 +139,11 @@ class AuthenticationRouter {
             .path("/${applicationProperty.version}") { v1 ->
                 v1.POST(PathKeyworkCommon.LOGIN, authenticationHandler::login)
                 v1.POST(PathKeyworkCommon.REGISTER, authenticationHandler::register)
+                v1.POST(PathKeyworkCommon.REQUEST_OTP, authenticationHandler::sendOtp)
+                v1.POST(PathKeyworkCommon.VALIDATE_ACCOUNT, authenticationHandler::validateAccount)
                 v1.POST(PathKeyworkCommon.VALIDATE, authenticationHandler::validate)
                 v1.POST(PathKeyworkCommon.CHECK_PHONE_NUMBER, authenticationHandler::checkPhoneNumber)
-                v1.POST(PathKeyworkCommon.RESIGN, authenticationHandler::resign)
+                v1.POST(PathKeyworkCommon.RE_SIGN_IN, authenticationHandler::reSignIn)
                 v1.POST(PathKeyworkCommon.LOGOUT, authenticationHandler::logout)
                 v1.GET(PathKeyworkCommon.INFO, authenticationHandler::info)
                 v1.path(PathKeyworkCommon.QR) { qr ->

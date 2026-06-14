@@ -74,9 +74,8 @@ abstract class ACacheRedis<T>(
             }
     }
 
-    override fun clearCache(key: String) {
-        redisTemple.delete(key)
-            .subscribe()
+    override fun clearCache(key: String): Mono<Long> {
+        return redisTemple.delete(key)
     }
 
     override fun getData(

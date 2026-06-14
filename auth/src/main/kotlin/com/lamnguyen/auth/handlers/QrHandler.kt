@@ -21,6 +21,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
+import org.springframework.web.reactive.function.server.bodyToMono
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import kotlin.jvm.optionals.getOrElse
@@ -42,7 +43,7 @@ class QrHandler(
 
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN')")
     fun scan(request: ServerRequest): Mono<ServerResponse?> {
-        return request.bodyToMono(TokenRequest::class.java)
+        return request.bodyToMono<TokenRequest>()
             .switchIfEmpty { Mono.error { ApplicationException(ExceptionEnum.EMPTY_DATA) } }
             .flatMap { qrService.scan(it.token) }
             .then(ok("Scan success,please confirm action!"))
@@ -50,7 +51,7 @@ class QrHandler(
 
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN')")
     fun confirm(request: ServerRequest): Mono<ServerResponse?> {
-        return request.bodyToMono(ConfirmQrLogin::class.java)
+        return request.bodyToMono<ConfirmQrLogin>()
             .switchIfEmpty { Mono.error { ApplicationException(ExceptionEnum.EMPTY_DATA) } }
             .flatMap { qrService.confirm(it.token, it.status) }
             .then(ok("Share login success"))
@@ -58,7 +59,7 @@ class QrHandler(
 
 
     fun loginWithToken(request: ServerRequest): Mono<ServerResponse?> {
-        return request.bodyToMono(TokenRequest::class.java)
+        return request.bodyToMono<TokenRequest>()
             .switchIfEmpty { Mono.error { ApplicationException(ExceptionEnum.EMPTY_DATA) } }
             .flatMap { qrService.login(it.token) }
             .flatMap { tokenResponse ->
@@ -71,7 +72,7 @@ class QrHandler(
                             path("/")
                         }.build()
 
-                    header.add("Authorization", "Bearer ${tokenResponse.accessToken}")
+                    header.add("Authorization", "Bearer ${tokenResponse.token}")
                     header.add("Set-Cookie", refreshTokenCookie.toString())
                 }
             }

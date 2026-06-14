@@ -132,7 +132,7 @@ class JwtHelper(
                     .issuer(jwtProperty.iss)
                     .subject(id)
                     .issuedAt(now)
-                    .expiresAt(now.plus(1, ChronoUnit.MINUTES))
+                    .expiresAt(now.plus(5, ChronoUnit.MINUTES))
                     .build()
             )
         )
@@ -152,6 +152,22 @@ class JwtHelper(
                     .subject(clientId)
                     .issuedAt(now)
                     .claim("qr-token-id", qrTokenId)
+                    .expiresAt(now.plus(5, ChronoUnit.MINUTES))
+                    .build()
+            )
+        )
+    }
+
+    fun createRequestOtpToken(phoneNumber: String): Jwt {
+        val now = now()
+        return jwtEncoder.encode(
+            JwtEncoderParameters.from(
+                jwsHeader, JwtClaimsSet.builder()
+                    .id(UUID.randomUUID().toString())
+                    .issuer(jwtProperty.iss)
+                    .subject(phoneNumber)
+                    .issuedAt(now)
+                    .claim(jwtProperty.claimKey, mapOf("type" to "OTP-REQUEST"))
                     .expiresAt(now.plus(1, ChronoUnit.MINUTES))
                     .build()
             )

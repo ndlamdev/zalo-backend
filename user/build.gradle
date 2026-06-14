@@ -47,7 +47,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
     compileOnly 'org.projectlombok:lombok'
-    implementation 'org.flywaydb:flyway-mysql'
     runtimeOnly 'io.asyncer:r2dbc-mysql:1.4.2'
     implementation 'org.flywaydb:flyway-mysql:12.6.1'
     annotationProcessor 'org.projectlombok:lombok'

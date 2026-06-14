@@ -10,6 +10,6 @@ package com.lamnguyen.auth.service.kafka
 
 import reactor.core.publisher.Mono
 
-interface IUserKafkaService {
-    fun createUser(phoneNumber: String): Mono<Boolean>
+interface IOtpSenderKafkaService {
+    fun sendOtp(address: String, otp: String): Mono<Void>
 }

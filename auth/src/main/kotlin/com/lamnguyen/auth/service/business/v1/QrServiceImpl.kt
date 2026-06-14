@@ -35,6 +35,12 @@ import java.util.concurrent.ConcurrentMap
  *  User: kimin
  **/
 
+/**
+ * Triển khai nghiệp vụ đăng nhập bằng QR code.
+ *
+ * Service dùng JWT để tạo token tạm thời, Redis để lưu trạng thái/blacklist token
+ * và Sinks để đẩy kết quả đăng nhập realtime cho client đang chờ xác nhận.
+ */
 @Service
 class QrServiceImpl(
     val jwtHelper: JwtHelper,
@@ -45,7 +51,7 @@ class QrServiceImpl(
     private val sinks: ConcurrentMap<String, Many<String>> = ConcurrentHashMap()
 
     /**
-     * Tạo 1 đoạn token để client có dùng token này và tạo qr login
+     * Tạo một QR scan token để client dùng render QR login.
      */
     override fun createQrCodeLoginAndToken(): Mono<Map<String, String>> {
         val sid = Generators.timeBasedEpochRandomGenerator().generate().toString()
@@ -56,7 +62,7 @@ class QrServiceImpl(
     }
 
     /**
-     * Client dùng token đã tạo để đăng kí 1 channel nhận thông tin kết quả login
+     * Client dùng token đã tạo để đăng ký channel nhận kết quả QR login.
      */
     override fun subscribe(qrScanToken: String): Flux<String> {
         return jwtHelper.verifyToken(qrScanToken)
@@ -85,7 +91,7 @@ class QrServiceImpl(
     }
 
     /**
-     * Khi một client khác thực hiện scan để bắt đầu quá trình xác thực đăng nhập
+     * Xử lý khi một client khác scan QR để bắt đầu quá trình xác thực đăng nhập.
      */
     override fun scan(qrScanToken: String): Mono<Void> {
         return jwtHelper.verifyToken(qrScanToken)
@@ -110,7 +116,7 @@ class QrServiceImpl(
     }
 
     /**
-     * Sau khi đã scan xong thì sẽ đợi kết quả cuối của client đang muốn share login cho clien đang đợi
+     * Xác nhận hoặc hủy phiên QR login sau khi QR đã được scan.
      */
     override fun confirm(qrScanToken: String, status: LoginStatus): Mono<Void> {
         if (status != LoginStatus.CONFIRM && status != LoginStatus.CANCELED) {
@@ -149,7 +155,7 @@ class QrServiceImpl(
     }
 
     /**
-     * Sau khi đã xác nhận thì sẽ dùng token này tiến hành login.
+     * Dùng login token đã được xác nhận để tạo access token và refresh token.
      */
     override fun login(loginToken: String?): Mono<TokenResponse> {
         if (loginToken == null) {
@@ -195,6 +201,9 @@ class QrServiceImpl(
             }
     }
 
+    /**
+     * Kiểm tra QR scan token chưa nằm trong blacklist.
+     */
     private fun notExitQrTokenInBlacklist(id: String): Mono<Boolean> {
         return redis.opsForValue()
             .get("blacklist:qr-scan-token:$id")
@@ -202,11 +211,17 @@ class QrServiceImpl(
             .switchIfEmpty(Mono.just(true))
     }
 
+    /**
+     * Đưa QR scan token vào blacklist sau khi phiên được xác nhận hoặc hủy.
+     */
     private fun addQrTokenInBlacklist(id: String): Mono<Boolean> {
         return redis.opsForValue()
             .set("blacklist:qr-scan-token:$id", "", Duration.of(1, ChronoUnit.MINUTES))
     }
 
+    /**
+     * Kiểm tra QR login token chưa nằm trong blacklist.
+     */
     private fun notExitQrLoginTokenInBlacklist(id: String): Mono<Boolean> {
         return redis.opsForValue()
             .get("blacklist:qr-login-token:$id")
@@ -214,18 +229,26 @@ class QrServiceImpl(
             .switchIfEmpty(Mono.just(true))
     }
 
+    /**
+     * Đưa QR login token vào blacklist sau khi token đã được dùng để đăng nhập.
+     */
     private fun addQrLoginTokenInBlacklist(id: String): Mono<Boolean> {
         return redis.opsForValue()
             .set("blacklist:qr-login-token:$id", "", Duration.of(1, ChronoUnit.MINUTES))
     }
 
+    /**
+     * Cập nhật trạng thái hiện tại của phiên QR login trong Redis.
+     */
     private fun updateLoginStatus(id: String, status: LoginStatus = LoginStatus.INITIAL): Mono<Boolean> {
         return redis.opsForValue()
             .set("qr-token:login:$id", status.name, Duration.of(2, ChronoUnit.MINUTES))
     }
 
+    /**
+     * Lấy trạng thái hiện tại của phiên QR login từ Redis.
+     */
     private fun getLoginStatus(id: String): Mono<String> {
         return redis.opsForValue().get("qr-token:login:$id")
     }
 }
-

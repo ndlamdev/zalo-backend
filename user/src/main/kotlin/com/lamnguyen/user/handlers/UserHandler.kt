@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component
 import org.springframework.validation.Validator
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
+import org.springframework.web.reactive.function.server.bodyToMono
 import reactor.core.publisher.Mono
 
 @Component
@@ -35,6 +36,14 @@ class UserHandler(
     val userMapper: IUserMapper,
     val validator: Validator,
 ) {
+
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_SEARCH_BY_PHONE_NUMBER')")
+    fun getInfo(request: ServerRequest): Mono<ServerResponse?> {
+        return ReactiveSecurityContextHolder.getContext()
+            .flatMap { context ->
+                userService.getInfo(context.authentication.name)
+            }.flatMap { ok(it) }
+    }
 
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_SEARCH_BY_PHONE_NUMBER')")
     fun search(request: ServerRequest): Mono<ServerResponse?> {
@@ -59,7 +68,7 @@ class UserHandler(
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_ADD_FRIEND', 'ROLE_ADMIN')")
     fun addFriend(request: ServerRequest): Mono<ServerResponse?> {
         return request
-            .bodyToMono(InviteAddFriendRequest::class.java)
+            .bodyToMono<InviteAddFriendRequest>()
             .flatMap {
                 validator.validate(it) { request ->
                     inviteAddFriendService.sendRequest(
@@ -83,7 +92,7 @@ class UserHandler(
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_REPLY_ADD_FRIEND', 'ROLE_ADMIN')")
     fun replyAddFriend(request: ServerRequest): Mono<ServerResponse?> {
         return request
-            .bodyToMono(ReplyInviteAddFriendRequest::class.java)
+            .bodyToMono<ReplyInviteAddFriendRequest>()
             .flatMap {
                 validator.validate(it) { request ->
                     inviteAddFriendService.replyInvite(

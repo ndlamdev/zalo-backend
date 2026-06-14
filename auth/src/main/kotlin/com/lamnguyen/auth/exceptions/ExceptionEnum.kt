@@ -23,4 +23,8 @@ enum class ExceptionEnum(val code: Int, val message: String) {
     SID_EXPIRED(1012, "Sid was expired!"),
     INVALID_LOGIN_STATUS(1013, "Invalid login status!"),
     INVALID_TOKEN(1013, "Invalid token!"),
+    OTP_SEND(1014, "OTP sent successfully!"),
+    INVALID_PHONE_NUMBER(1015, "Invalid phone number!"),
+    INVALID_OTP(1016, "Invalid otp!"),
+    OTP_EXPIRED(1017, "OTP was expired!"),
 }

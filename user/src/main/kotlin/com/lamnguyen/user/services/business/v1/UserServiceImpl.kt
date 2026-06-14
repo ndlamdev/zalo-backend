@@ -55,4 +55,9 @@ class UserServiceImpl(
                     }
             }
     }
+
+    override fun getInfo(phoneNumber: String): Mono<UserDto> {
+        return userRepository.findUserByPhoneNumber(phoneNumber)
+            .map { userMapper.toDto(it) }
+    }
 }

@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming
 class TokenResponse(
     val phoneNumber: Long,
     val phoneNumberCode: Int,
-    val accessToken: String,
+    val token: String,
     @JsonIgnore
     val refreshToken: String
 )

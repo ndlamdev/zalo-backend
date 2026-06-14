@@ -16,6 +16,7 @@ import org.redisson.api.RedissonReactiveClient
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @Service
 class PermissionCacheManagerImpl(
@@ -42,8 +43,8 @@ class PermissionCacheManagerImpl(
         )
     }
 
-    override fun cleanPermissions(role: String) {
-        return super.clearCache(generateKey(role))
+    override fun cleanPermissions(role: String): Mono<Void> {
+        return super.clearCache(generateKey(role)).then()
     }
 
     private fun generateKey(role: String) = ICacheRedis.hashKeys("permission", role)

@@ -123,6 +123,7 @@ class MainRouter(val userHandler: UserHandler) {
             .route()
             // @formatter:off
             .path("/v1") { v1 -> v1
+                .GET("/me", userHandler::getInfo)
                 .GET("/search", userHandler::search)
                 .POST("/add-friend", userHandler::addFriend)
                 .GET("/all-friend", userHandler::getAllFriend)

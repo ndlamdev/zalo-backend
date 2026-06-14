@@ -10,9 +10,10 @@ package com.lamnguyen.auth.service.redis
 
 import com.lamnguyen.auth.model.Role
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 interface IRoleCacheManager {
     fun getRoles(phoneNumber: String): Flux<Role>
     fun cacheRoles(phoneNumber: String, roles: Flux<Role>): Flux<Role>
-    fun cleanCache(phoneNumber: String)
+    fun cleanCache(phoneNumber: String): Mono<Void>
 }

@@ -21,9 +21,22 @@ import reactor.core.publisher.Mono
  * Create at: 6:03 AM-09/07/2025
  *  User: kimin
  **/
+
+/**
+ * Tích hợp Spring Security reactive với dữ liệu user và role của hệ thống.
+ *
+ * Class này chuẩn hóa username thành số điện thoại, tải thông tin user từ database,
+ * lấy danh sách role và chuyển chúng thành GrantedAuthority cho quá trình xác thực.
+ */
 @Component
 class ReactiveUserDetailsServiceImpl(val userRepository: IUserRepository, val roleService: IRoleService) :
     ReactiveUserDetailsService {
+    /**
+     * Tìm user theo username và chuyển thành UserDetails dùng bởi Spring Security.
+     *
+     * @param username số điện thoại hoặc username cần xác thực.
+     * @return Mono chứa UserDetails kèm trạng thái active và danh sách authority.
+     */
     override fun findByUsername(username: String?): Mono<UserDetails> {
         val phoneNumber = formatPhoneNumber(username)
         val userMono = userRepository.findByPhoneNumber(phoneNumber)
@@ -38,8 +51,7 @@ class ReactiveUserDetailsServiceImpl(val userRepository: IUserRepository, val ro
 
         return Mono.zip(userMono, rolesFlux.collectList())
             .mapNotNull { tuple ->
-                val user = tuple.t1
-                if (user == null) return@mapNotNull null
+                val user = tuple.t1 ?: return@mapNotNull null
                 val authorities = tuple.t2
                 User(user.phoneNumber, user.password, user.active, true, true, true, authorities)
             }

@@ -1,4 +1,4 @@
-INSERT INTO public.users (phone_number,
+INSERT INTO users (phone_number,
                           created_at,
                           created_by,
                           updated_at,

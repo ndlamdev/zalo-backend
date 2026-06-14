@@ -16,6 +16,7 @@ import org.redisson.api.RedissonReactiveClient
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @Service
 class RoleCacheManagerImpl(
@@ -39,8 +40,8 @@ class RoleCacheManagerImpl(
         )
     }
 
-    override fun cleanCache(phoneNumber: String) {
-        return super.clearCache(generateKey(phoneNumber))
+    override fun cleanCache(phoneNumber: String): Mono<Void> {
+        return super.clearCache(generateKey(phoneNumber)).then()
     }
 
     private fun generateKey(phoneNumber: String) = ICacheRedis.hashKeys("role", phoneNumber)

@@ -12,8 +12,10 @@ class PathKeyworkCommon {
     companion object {
         const val LOGIN: String = "/login"
         const val LOGOUT: String = "/logout"
-        const val RESIGN: String = "/resign"
+        const val RE_SIGN_IN: String = "/re-sign-in"
         const val REGISTER: String = "/register"
+        const val REQUEST_OTP = "/otp"
+        const val VALIDATE_ACCOUNT = "/account/validate"
         const val VALIDATE: String = "/validate"
         const val CHECK_PHONE_NUMBER: String = "/check-phone-number"
         const val INFO: String = "/info"

@@ -15,8 +15,8 @@ import reactor.core.publisher.Mono
 
 @Service
 class UserKafkaServiceImpl(val kafkaTemplate: KafkaTemplate<String, Any>) : IUserKafkaService {
-    override fun createUser(phoneNumber: String): Mono<Void> {
-        kafkaTemplate.send("create-user", CreateUserEvent(phoneNumber))
-        return Mono.empty()
+    override fun createUser(phoneNumber: String): Mono<Boolean> {
+        kafkaTemplate.send("create-user", CreateUserEvent(phoneNumber)).isDone
+        return Mono.just(true)
     }
 }

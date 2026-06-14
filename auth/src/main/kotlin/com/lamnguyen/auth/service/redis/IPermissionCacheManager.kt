@@ -10,9 +10,10 @@ package com.lamnguyen.auth.service.redis
 
 import com.lamnguyen.auth.model.Permission
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 interface IPermissionCacheManager {
     fun getPermissions(role: String): Flux<Permission>
     fun cachePermissions(role: String, permissions: Flux<Permission>): Flux<Permission>
-    fun cleanPermissions(role: String)
+    fun cleanPermissions(role: String): Mono<Void>
 }

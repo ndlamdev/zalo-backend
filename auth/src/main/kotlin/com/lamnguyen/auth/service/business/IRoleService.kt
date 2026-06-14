@@ -11,6 +11,15 @@ package com.lamnguyen.auth.service.business
 import com.lamnguyen.auth.model.Role
 import reactor.core.publisher.Flux
 
+/**
+ * Định nghĩa nghiệp vụ lấy danh sách role của người dùng.
+ */
 interface IRoleService {
+    /**
+     * Lấy các role được gán cho người dùng theo số điện thoại.
+     *
+     * @param phoneNumber số điện thoại của người dùng.
+     * @return Flux phát ra danh sách role của người dùng.
+     */
     fun getRoles(phoneNumber: String): Flux<Role>
 }

@@ -42,7 +42,7 @@ interface ICacheRedis<T> {
         unit: ChronoUnit? = ChronoUnit.MINUTES
     ): Flux<T>
 
-    fun clearCache(key: String)
+    fun clearCache(key: String): Mono<Long>
 
     companion object {
         @JvmStatic

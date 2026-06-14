@@ -17,4 +17,5 @@ interface IUserService {
     fun createUser(phoneNumber: String): Mono<User>
     fun findByPhoneNumber(formatPhoneNumber: String): Mono<User>
     fun getAllFriend(ownerPhoneNumber: String): Flux<UserDto>
+    fun getInfo(phoneNumber: String): Mono<UserDto>
 }
