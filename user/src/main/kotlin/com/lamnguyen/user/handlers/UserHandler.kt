@@ -8,32 +8,27 @@
 
 package com.lamnguyen.user.handlers
 
-import com.lamnguyen.user.domain.dto.UserDto
 import com.lamnguyen.user.domain.request.InviteAddFriendRequest
+import com.lamnguyen.user.domain.request.RegisInfoRequest
 import com.lamnguyen.user.domain.request.ReplyInviteAddFriendRequest
-import com.lamnguyen.user.mappers.IUserMapper
-import com.lamnguyen.user.services.business.IFriendShipService
 import com.lamnguyen.user.services.business.IInviteAddFriendService
 import com.lamnguyen.user.services.business.IUserService
-import com.lamnguyen.user.utils.helpers.ok
-import com.lamnguyen.user.utils.helpers.validate
-import formatPhoneNumber
+import com.lamnguyen.user.utils.helpers.*
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
-import org.springframework.security.core.context.SecurityContext
 import org.springframework.stereotype.Component
 import org.springframework.validation.Validator
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.bodyToMono
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 @Component
 class UserHandler(
     val userService: IUserService,
-    val friendShipService: IFriendShipService,
     val inviteAddFriendService: IInviteAddFriendService,
-    val userMapper: IUserMapper,
     val validator: Validator,
 ) {
 
@@ -46,22 +41,29 @@ class UserHandler(
     }
 
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_SEARCH_BY_PHONE_NUMBER')")
+    fun regisInfo(request: ServerRequest): Mono<ServerResponse?> {
+        return Mono.zip(
+            request.bodyToMonoAndValidate<RegisInfoRequest>(validator),
+            ReactiveSecurityContextHolder.getContext()
+        )
+            .flatMap { (data, context) ->
+                userService.regisInfo(context.authentication.name, data)
+            }.flatMap { ok(it) }
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_SEARCH_BY_PHONE_NUMBER')")
     fun search(request: ServerRequest): Mono<ServerResponse?> {
-        val phoneNumber = formatPhoneNumber(request.queryParam("phone_number").orElse(""))
+        val data = request.queryParamWithDefaultValue("phone_number", "")
         return ReactiveSecurityContextHolder.getContext()
             .flatMap { context ->
-                val monoUser = userService.findByPhoneNumber(phoneNumber)
-                    .map(userMapper::toDto)
+                val phoneNumber = formatPhoneNumber(data, context.authentication.name, data)
+
                 if (phoneNumber == context.authentication.name) {
-                    return@flatMap monoUser.flatMap {
-                        it.isFriend = true
-                        it.addFriendRequested = false
-                        ok(it)
-                    }
+                    return@flatMap ok(null)
                 }
-                checkFriendAndInviteAddFriend(monoUser, context)
-                    .flatMap { ok(it) }
-                    .switchIfEmpty(ok(null))
+                val monoUser = userService.findFriendAndStrangerByPhoneNumber(context.authentication.name, phoneNumber)
+
+                monoUser.collectList().flatMap { ok(it) }
             }
     }
 
@@ -92,14 +94,12 @@ class UserHandler(
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_REPLY_ADD_FRIEND', 'ROLE_ADMIN')")
     fun replyAddFriend(request: ServerRequest): Mono<ServerResponse?> {
         return request
-            .bodyToMono<ReplyInviteAddFriendRequest>()
+            .bodyToMonoAndValidate<ReplyInviteAddFriendRequest>(validator)
             .flatMap {
-                validator.validate(it) { request ->
-                    inviteAddFriendService.replyInvite(
-                        request.id!!,
-                        request.answer
-                    )
-                }
+                inviteAddFriendService.replyInvite(
+                    it.id!!,
+                    it.answer
+                )
             }.then(ok(null))
     }
 
@@ -119,30 +119,5 @@ class UserHandler(
                 inviteAddFriendService.getAllRequest(securityContext.authentication.name)
             }.collectList()
             .flatMap { ok(it) }
-    }
-
-    private fun checkFriendAndInviteAddFriend(monoUser: Mono<UserDto>, context: SecurityContext): Mono<UserDto> {
-        return monoUser
-            .flatMap { user ->
-                val monoFriend = friendShipService.existsFriendship(
-                    context.authentication.name,
-                    user.phoneNumber
-                )
-
-                val monoInviteAddFriend = inviteAddFriendService.existsInviteAddFriend(
-                    context.authentication.name,
-                    user.phoneNumber
-                )
-                Mono.zip(
-                    monoFriend,
-                    monoInviteAddFriend
-                )
-                    .map {
-                        user.apply {
-                            isFriend = it.t1
-                            addFriendRequested = it.t2
-                        }
-                    }
-            }
     }
 }

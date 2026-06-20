@@ -9,10 +9,18 @@
 package com.lamnguyen.user.mappers
 
 import com.lamnguyen.user.domain.dto.UserDto
+import com.lamnguyen.user.domain.request.RegisInfoRequest
 import com.lamnguyen.user.models.User
 import org.mapstruct.Mapper
+import org.mapstruct.Mapping
 
 @Mapper(componentModel = "spring")
 interface IUserMapper {
+    @Mapping(target = "displayName", source = "fullName")
     fun toDto(user: User): UserDto
+
+    fun toDto(user: User, displayName: String): UserDto
+
+    @Mapping(target = "avatar", source = "avatarUrl")
+    fun toEntity(data: RegisInfoRequest): User
 }

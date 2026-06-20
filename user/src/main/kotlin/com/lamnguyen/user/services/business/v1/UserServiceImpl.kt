@@ -9,6 +9,7 @@
 package com.lamnguyen.user.services.business.v1
 
 import com.lamnguyen.user.domain.dto.UserDto
+import com.lamnguyen.user.domain.request.RegisInfoRequest
 import com.lamnguyen.user.exceptions.ApplicationException
 import com.lamnguyen.user.exceptions.ExceptionEnum
 import com.lamnguyen.user.mappers.IUserMapper
@@ -16,6 +17,7 @@ import com.lamnguyen.user.models.User
 import com.lamnguyen.user.repositories.IFriendShipRepository
 import com.lamnguyen.user.repositories.IUserRepository
 import com.lamnguyen.user.services.business.IUserService
+import com.lamnguyen.user.utils.enums.RelationShipStatus
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -38,10 +40,6 @@ class UserServiceImpl(
             }
     }
 
-    override fun findByPhoneNumber(formatPhoneNumber: String): Mono<User> {
-        return userRepository.findUserByPhoneNumber(formatPhoneNumber)
-    }
-
     override fun getAllFriend(ownerPhoneNumber: String): Flux<UserDto> {
         return friendRepository.findAllByOwnerPhoneNumber(ownerPhoneNumber)
             .flatMap { friendShip ->
@@ -49,8 +47,7 @@ class UserServiceImpl(
                     .map {
                         userMapper.toDto(it).apply {
                             displayName = friendShip.displayName
-                            isFriend = true
-                            addFriendRequested = false
+                            relationShipStatus = RelationShipStatus.FRIEND
                         }
                     }
             }
@@ -58,6 +55,25 @@ class UserServiceImpl(
 
     override fun getInfo(phoneNumber: String): Mono<UserDto> {
         return userRepository.findUserByPhoneNumber(phoneNumber)
-            .map { userMapper.toDto(it) }
+            .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.USER_NOT_FOUND)))
+            .map(userMapper::toDto)
+    }
+
+    override fun regisInfo(
+        phoneNumber: String,
+        data: RegisInfoRequest
+    ): Mono<UserDto> {
+        val entity = userMapper.toEntity(data).apply {
+            this.phoneNumber = phoneNumber
+            this.isNewUser = true
+        }
+        return userRepository.save(entity).map(userMapper::toDto)
+    }
+
+    override fun findFriendAndStrangerByPhoneNumber(
+        ownerPhoneNumber: String,
+        phoneNumber: String
+    ): Flux<UserDto> {
+        return userRepository.findFriendAndStrangerByPhoneNumber(ownerPhoneNumber, phoneNumber)
     }
 }

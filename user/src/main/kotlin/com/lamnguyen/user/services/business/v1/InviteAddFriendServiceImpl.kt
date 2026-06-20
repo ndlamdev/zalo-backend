@@ -16,7 +16,7 @@ import com.lamnguyen.user.repositories.IInviteAddFriendRepository
 import com.lamnguyen.user.services.business.IFriendShipService
 import com.lamnguyen.user.services.business.IInviteAddFriendService
 import com.lamnguyen.user.services.kafka.INotificationKafkaProducer
-import formatPhoneNumber
+import com.lamnguyen.user.utils.helpers.formatPhoneNumber
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -61,20 +61,19 @@ class InviteAddFriendServiceImpl(
             this.phoneNumberSender = formatPhoneNumber(phoneNumberSender)
             this.message = message
         }
-        return inviteAddFriendRepository
-            .existsInviteAddFriendByPhoneNumberAndDeletedIsFalse(
-                formatPhoneNumber(phoneNumberReceiver),
-                formatPhoneNumber(phoneNumberSender)
-            )
+        return existsInviteAddFriend(
+            formatPhoneNumber(phoneNumberReceiver),
+            formatPhoneNumber(phoneNumberSender)
+        )
             .filter { !it }
             .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.INVITE_EXISTS)))
             .flatMap {
                 inviteAddFriendRepository.save(data)
-                    .flatMap { it ->
+                    .flatMap {
                         notificationKafkaProducer.sendNotification(InviteAddFriendEvent(phoneNumberSender))
                         Mono.just(it)
                     }
-                    .onErrorResume { error ->
+                    .onErrorResume {
                         Mono.error(ApplicationException(ExceptionEnum.INVITE_ADD_FRIEND_FAILED))
                     }.switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.USER_NOT_FOUND)))
             }

@@ -12,7 +12,7 @@ import com.lamnguyen.user.models.FriendShip
 import com.lamnguyen.user.repositories.IFriendShipRepository
 import com.lamnguyen.user.repositories.IUserRepository
 import com.lamnguyen.user.services.business.IFriendShipService
-import formatPhoneNumber
+import com.lamnguyen.user.utils.helpers.formatPhoneNumber
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono

@@ -24,9 +24,4 @@ interface IFriendShipRepository : R2dbcRepository<FriendShip, String> {
     fun findAllByOwnerPhoneNumber(
         ownerPhoneNumber: String
     ): Flux<FriendShip>
-
-    fun findAllByOwnerPhoneNumberAndFriendPhoneNumberIn(
-        ownerPhoneNumber: String,
-        friendPhoneNumber: List<String>
-    ): Flux<FriendShip>
 }

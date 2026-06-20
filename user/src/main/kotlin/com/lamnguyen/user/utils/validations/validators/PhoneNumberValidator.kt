@@ -3,7 +3,7 @@ package com.lamnguyen.user.utils.validations.validators
 import com.lamnguyen.user.utils.validations.ValidPhoneNumber
 import jakarta.validation.ConstraintValidator
 import jakarta.validation.ConstraintValidatorContext
-import validatePhoneNumber
+import com.lamnguyen.user.utils.helpers.validatePhoneNumber
 
 /**
  * Nguyen Dinh Lam

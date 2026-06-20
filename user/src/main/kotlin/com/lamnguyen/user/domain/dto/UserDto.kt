@@ -9,9 +9,9 @@
 package com.lamnguyen.user.domain.dto
 
 import com.lamnguyen.user.models.User
+import com.lamnguyen.user.utils.enums.RelationShipStatus
 
 class UserDto : User() {
     var displayName: String? = null
-    var isFriend: Boolean = false
-    var addFriendRequested: Boolean = false
+    var relationShipStatus: RelationShipStatus = RelationShipStatus.SELF
 }
