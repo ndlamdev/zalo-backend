@@ -33,7 +33,7 @@ class JwtAuthenticationFilter(
         chain: WebFilterChain
     ): Mono<Void?> {
         val tokens = exchange.request.headers[HttpHeaders.AUTHORIZATION]
-        if (tokens == null || tokens.isEmpty()) {
+        if (tokens.isNullOrEmpty()) {
             return chain.filter(exchange)
         }
 
@@ -43,7 +43,7 @@ class JwtAuthenticationFilter(
             val authorities = exchange
                 .request
                 .headers[authProperty.userRoles]
-                ?.map { it -> SimpleGrantedAuthority(it) }
+                ?.map { SimpleGrantedAuthority(it) }
                 ?.toMutableSet()
                 ?: mutableSetOf()
 

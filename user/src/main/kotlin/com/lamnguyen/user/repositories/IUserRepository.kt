@@ -29,12 +29,26 @@ interface IUserRepository : R2dbcRepository<User, String> {
                            ON fs.friend_phone_number = users.phone_number
                                AND fs.owner_phone_number = :ownerPhoneNumber
         WHERE (
-            (fs.friend_phone_number IS NOT NULL AND users.phone_number LIKE CONCAT('%', :phoneNumber, '%'))
+            (fs.friend_phone_number IS NOT NULL AND users.phone_number LIKE CONCAT('%', :phoneNumber, '%')) -- Nếu là bạn thì tìm theo like
                 OR
-            (fs.friend_phone_number IS NULL AND users.phone_number = :phoneNumber)
+            (fs.friend_phone_number IS NULL AND users.phone_number = :phoneNumber) -- Nếu không phải là bạn thì tìm chính xác
             )
           AND users.phone_number != :ownerPhoneNumber;
     """
     )
     fun findFriendAndStrangerByPhoneNumber(ownerPhoneNumber: String, phoneNumber: String): Flux<UserDto>
+
+    @Query(
+        """
+        SELECT IF(fs.friend_phone_number IS NOT NULL, 'FRIEND', 'STRANGER') as relation_ship_status,
+            users.*
+        FROM users
+                 LEFT JOIN friendships fs
+                           ON fs.friend_phone_number = users.phone_number
+                               AND fs.owner_phone_number = :ownerPhoneNumber
+        WHERE users.phone_number IN (:phoneNumbers)
+          AND users.phone_number != :ownerPhoneNumber;
+    """
+    )
+    fun findFriendAndStrangerByPhoneNumber(ownerPhoneNumber: String, phoneNumbers: List<String>): Flux<UserDto>
 }

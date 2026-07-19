@@ -11,5 +11,5 @@ package com.lamnguyen.chat.repositories
 import com.lamnguyen.chat.entities.Message
 import org.springframework.data.r2dbc.repository.R2dbcRepository
 
-interface IMessageRepository: R2dbcRepository<Message, Long> {
+interface IMessageRepository : R2dbcRepository<Message, Long> {
 }

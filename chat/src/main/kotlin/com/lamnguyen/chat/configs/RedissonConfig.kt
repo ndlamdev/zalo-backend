@@ -1,7 +1,7 @@
 package com.lamnguyen.chat.configs
 
-import com.lamnguyen.chat.entities.RoomChat
-import com.lamnguyen.chat.entities.RoomChatMember
+import com.lamnguyen.chat.entities.Conversation
+import com.lamnguyen.chat.entities.ConversationMemberMetadata
 import com.lamnguyen.chat.utils.redis.serializers.KryoRedisSerializer
 import org.redisson.Redisson
 import org.redisson.api.RedissonReactiveClient
@@ -34,20 +34,20 @@ class RedissonConfig {
     }
 
     @Bean
-    fun roomChatRedissonClient(factory: RedissonConnectionFactory): ReactiveRedisTemplate<String, RoomChat?> {
+    fun conversationRedissonClient(factory: RedissonConnectionFactory): ReactiveRedisTemplate<String?, Conversation?> {
         val context = RedisSerializationContext
-            .newSerializationContext<String?, RoomChat?>(StringRedisSerializer())
-            .value(KryoRedisSerializer(RoomChat::class.java))
+            .newSerializationContext<String?, Conversation?>(StringRedisSerializer())
+            .value(KryoRedisSerializer(Conversation::class.java))
             .build()
 
         return ReactiveRedisTemplate(factory, context)
     }
 
     @Bean
-    fun roomChatMemberRedissonClient(factory: RedissonConnectionFactory): ReactiveRedisTemplate<String, RoomChatMember?> {
+    fun conversationMemberRedissonClient(factory: RedissonConnectionFactory): ReactiveRedisTemplate<String?, ConversationMemberMetadata?> {
         val context = RedisSerializationContext
-            .newSerializationContext<String?, RoomChatMember?>(StringRedisSerializer())
-            .value(KryoRedisSerializer(RoomChatMember::class.java))
+            .newSerializationContext<String?, ConversationMemberMetadata?>(StringRedisSerializer())
+            .value(KryoRedisSerializer(ConversationMemberMetadata::class.java))
             .build()
 
         return ReactiveRedisTemplate(factory, context)

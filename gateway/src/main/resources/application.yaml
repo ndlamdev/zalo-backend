@@ -20,6 +20,13 @@ spring:
               filters:
                 - StripPrefix=1
                 - name: Authentication
+            - id: chat-blacklist
+              uri: http://localhost:8004
+              predicates:
+                - Path=/chat/**
+              filters:
+                - StripPrefix=1
+                - name: Authentication
             - id: chat-ws-whitelist
               uri: ws://localhost:8005
               predicates:
@@ -29,7 +36,8 @@ spring:
           globalcors:
             cors-configurations:
               '[/**]': # Applies to all paths
-                allowedOrigins: "http://localhost:3000" # Replace with your client's origin(s)
+                allowed-origins:
+                  -  "http://localhost:3000" # Replace with your client's origin(s)
                 allowedMethods:
                   - GET
                   - POST

@@ -1,20 +1,19 @@
-/**
- * Nguyen Dinh Lam
- * Email: kiminonawa1305@gmail.com
- * Phone number: +84 855354919
- * Create at: 2:01 PM-08/07/2025
- *  User: kimin
- **/
-
 package com.lamnguyen.chat.entities
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.data.annotation.CreatedBy
 import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedBy
 import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.annotation.Transient
+import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 
-open class BaseEntity() {
+open class BaseEntity : Persistable<String> {
+    @Id
+    private var id: String? = null
+
     @CreatedDate
     var createdAt: LocalDateTime? = null
 
@@ -26,15 +25,20 @@ open class BaseEntity() {
 
     @LastModifiedBy
     var updatedBy: String? = null
-    var locked: Boolean = false
-    var deleted: Boolean = false
 
-    fun copy(that: BaseEntity) {
-        that.createdAt = this.createdAt
-        that.updatedAt = this.updatedAt
-        that.createdBy = this.createdBy
-        that.updatedBy = this.updatedBy
-        that.locked = this.locked
-        that.deleted = this.deleted
+    var isDeleted: Boolean = false
+
+    @Transient
+    @JsonIgnore
+    var isNewItem: Boolean = false
+
+    override fun getId(): String? = id
+
+    fun setId(id: String?) {
+        this.id = id
     }
+
+    @Transient
+    @JsonIgnore
+    override fun isNew(): Boolean = isNewItem
 }

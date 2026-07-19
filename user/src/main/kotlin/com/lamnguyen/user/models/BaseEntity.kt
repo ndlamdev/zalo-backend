@@ -16,10 +16,10 @@ import java.time.LocalDateTime
 
 open class BaseEntity() {
     @CreatedDate
-    lateinit var createdAt: LocalDateTime
+    var createdAt: LocalDateTime? = null
 
     @LastModifiedDate
-    lateinit var updatedAt: LocalDateTime
+    var updatedAt: LocalDateTime? = null
 
     @CreatedBy
     var createdBy: String? = null

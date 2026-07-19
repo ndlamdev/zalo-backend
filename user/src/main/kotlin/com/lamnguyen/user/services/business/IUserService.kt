@@ -20,4 +20,5 @@ interface IUserService {
     fun getInfo(phoneNumber: String): Mono<UserDto>
     fun regisInfo(phoneNumber: String, data: RegisInfoRequest): Mono<UserDto>
     fun findFriendAndStrangerByPhoneNumber(ownerPhoneNumber: String, phoneNumber: String): Flux<UserDto>
+    fun getInfoAndFriendShip(owner: String, members: List<String>): Flux<UserDto>
 }

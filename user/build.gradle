@@ -7,8 +7,6 @@ plugins {
 }
 
 ext {
-    springGrpcVersion = "3.1.0.RELEASE"
-    protobufVersion = '4.32.0-RC1'
     mapstructVersion = "1.6.3"
     redissonVersion = "3.50.0"
 }
@@ -46,6 +44,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
+    implementation 'org.springframework.boot:spring-boot-starter-rsocket'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'io.asyncer:r2dbc-mysql:1.4.2'
     implementation 'org.flywaydb:flyway-mysql:12.6.1'
@@ -59,6 +58,7 @@ dependencies {
     runtimeOnly 'com.mysql:mysql-connector-j'
     implementation 'com.googlecode.libphonenumber:libphonenumber:9.0.9'
     implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.9'
+    implementation 'org.apache.commons:commons-lang3:3.18.0'
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     kapt "org.mapstruct:mapstruct-processor:${mapstructVersion}"
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0-rc1'

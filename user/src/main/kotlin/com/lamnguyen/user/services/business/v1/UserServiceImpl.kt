@@ -74,6 +74,15 @@ class UserServiceImpl(
         ownerPhoneNumber: String,
         phoneNumber: String
     ): Flux<UserDto> {
+        if (phoneNumber.isBlank()) return Flux.empty()
+
         return userRepository.findFriendAndStrangerByPhoneNumber(ownerPhoneNumber, phoneNumber)
+    }
+
+    override fun getInfoAndFriendShip(
+        owner: String,
+        members: List<String>
+    ): Flux<UserDto> {
+        return userRepository.findFriendAndStrangerByPhoneNumber(owner, members)
     }
 }

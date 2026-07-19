@@ -10,7 +10,6 @@ package com.lamnguyen.chat.exceptions
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.lamnguyen.chat.domain.dto.ApiResponseError
-import io.grpc.StatusRuntimeException
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler
 import org.springframework.core.annotation.Order
@@ -58,12 +57,6 @@ class GlobalException(
                 response.code = HttpStatus.PAYMENT_REQUIRED.value()
                 response.error = HttpStatus.PAYMENT_REQUIRED.name
                 response.detail = ObjectMapper().readValue(ex.reason, Any::class.java)
-            }
-
-            is StatusRuntimeException -> {
-                response.code = ex.status.code.value()
-                response.error = "Grpc error: ${ex.status.code.name}"
-                response.detail = ex.localizedMessage
             }
 
             else -> {

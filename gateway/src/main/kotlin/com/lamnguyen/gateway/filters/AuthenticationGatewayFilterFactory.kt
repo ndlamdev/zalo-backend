@@ -20,6 +20,7 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 
@@ -67,7 +68,7 @@ class AuthenticationGatewayFilterFactory(
 
     private fun onResponseErrorFromServer(clientResponse: ClientResponse, exchange: ServerWebExchange): Mono<Void> {
         val bufferFactory = exchange.response.bufferFactory()
-        return clientResponse.bodyToMono(Any::class.java)
+        return clientResponse.bodyToMono<Any>()
             .flatMap {
                 val response = Mono.just(
                     bufferFactory.wrap(
@@ -81,7 +82,7 @@ class AuthenticationGatewayFilterFactory(
 
     private fun onServerException(clientResponse: ClientResponse, exchange: ServerWebExchange): Mono<Void> {
         val bufferFactory = exchange.response.bufferFactory()
-        return clientResponse.bodyToMono(Exception::class.java)
+        return clientResponse.bodyToMono<Exception>()
             .flatMap {
                 val bodyResponse = ApiResponseError<Any>().apply {
                     code = clientResponse.statusCode().value()

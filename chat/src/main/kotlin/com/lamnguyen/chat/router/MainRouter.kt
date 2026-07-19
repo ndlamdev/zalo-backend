@@ -8,8 +8,8 @@
 
 package com.lamnguyen.chat.router
 
-import com.lamnguyen.chat.domain.requests.CreateRoomChatRequest
-import com.lamnguyen.chat.handlers.ChatHandler
+import com.lamnguyen.chat.domain.requests.CreateConversationRequest
+import com.lamnguyen.chat.handlers.ConversationHandler
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -28,43 +28,43 @@ import org.springframework.web.reactive.function.server.ServerResponse
 class MainRouter {
     @RouterOperations(
         RouterOperation(
-            path = "/v1/create-room-chat",
+            path = "/v1/conversation",
             method = [RequestMethod.POST],
-            beanClass = ChatHandler::class,
+            beanClass = ConversationHandler::class,
             beanMethod = "createRoomChat",
             operation = Operation(
-                operationId = "create-room-chat-form",
+                operationId = "create-conversation-form",
                 security = [SecurityRequirement(name = "bearer-auth")],
                 requestBody = RequestBody(
                     required = true,
                     content = [
                         Content(
                             mediaType = "application/json",
-                            schema = Schema(implementation = CreateRoomChatRequest::class)
+                            schema = Schema(implementation = CreateConversationRequest::class)
                         )
                     ]
                 )
             )
         ),
         RouterOperation(
-            path = "/v1/get-all-room-chat",
+            path = "/v1/conversations",
             method = [RequestMethod.GET],
-            beanClass = ChatHandler::class,
+            beanClass = ConversationHandler::class,
             beanMethod = "getAllRoomChat",
             operation = Operation(
-                operationId = "get-room-chat",
+                operationId = "get-conversation",
                 security = [SecurityRequirement(name = "bearer-auth")],
             )
         )
     )
     @Bean("chat-router-function")
-    fun chatRouter(charHandler: ChatHandler): RouterFunction<ServerResponse> {
+    fun chatRouter(charHandler: ConversationHandler): RouterFunction<ServerResponse> {
         return RouterFunctions
             .route()
             // @formatter:off
             .path("/v1") { v1 -> v1
-                .POST("/create-room-chat", charHandler::createRoomChat)
-                .GET("/get-all-room-chat", charHandler::getAllRoomChat)
+                .POST("/conversation", charHandler::createConversation)
+                .GET("/conversations", charHandler::getAllConversation)
             }
             // @formatter:on
             .build()
