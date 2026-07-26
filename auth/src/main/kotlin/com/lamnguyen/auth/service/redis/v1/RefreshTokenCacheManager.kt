@@ -30,7 +30,7 @@ class RefreshTokenCacheManager(
     ): Mono<String> {
         return super.cacheData(
             ICacheRedis.hashKeys(BLACKLIST_REFRESH_TOKEN, tokenId),
-            { Mono.just("1") },
+            Mono.just("1"),
             refreshTokenProperty.expires,
             ChronoUnit.MINUTES
         )

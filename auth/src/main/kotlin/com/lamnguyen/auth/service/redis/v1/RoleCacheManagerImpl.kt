@@ -34,7 +34,7 @@ class RoleCacheManagerImpl(
 
     override fun cacheRoles(phoneNumber: String, roles: Flux<Role>): Flux<Role> {
         return super.cacheAllData(
-            generateKey(phoneNumber), { roles },
+            generateKey(phoneNumber), roles,
             null,
             null
         )

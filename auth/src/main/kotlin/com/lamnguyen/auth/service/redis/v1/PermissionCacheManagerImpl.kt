@@ -37,7 +37,7 @@ class PermissionCacheManagerImpl(
         permissions: Flux<Permission>
     ): Flux<Permission> {
         return super.cacheAllData(
-            generateKey(role), { permissions },
+            generateKey(role), permissions,
             null,
             null,
         )

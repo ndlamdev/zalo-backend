@@ -15,11 +15,11 @@ class OtpCacheManager(
     redisTemple: ReactiveStringRedisTemplate,
 ) : ACacheRedis<String>(redissonClient, redisTemple) {
     fun startSessionValidateAccount(phoneNumber: String): Mono<String> {
-        return super.cacheData(getKeyStartSessionValidateAccount(phoneNumber), { Mono.just("1") }, 5, ChronoUnit.MINUTES)
+        return super.cacheData(getKeyStartSessionValidateAccount(phoneNumber), Mono.just("1"), 5, ChronoUnit.MINUTES)
     }
 
     fun saveOtp(phoneNumber: String, otp: String): Mono<String> {
-        return super.cacheData(getKeySaveOtp(phoneNumber), { Mono.just(otp) }, 1, ChronoUnit.MINUTES)
+        return super.cacheData(getKeySaveOtp(phoneNumber), Mono.just(otp), 1, ChronoUnit.MINUTES)
     }
 
     fun isWaitingValidateAccount(phoneNumber: String): Mono<Boolean> {

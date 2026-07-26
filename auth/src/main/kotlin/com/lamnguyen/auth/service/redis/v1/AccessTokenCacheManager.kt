@@ -34,7 +34,7 @@ class AccessTokenCacheManager(
     ): Mono<String> {
         return super.cacheData(
             ICacheRedis.hashKeys(BLACKLIST_ACCESS_TOKEN, tokenId),
-            { Mono.just("1") },
+            Mono.just("1"),
             accessTokenProperty.expires,
             ChronoUnit.MINUTES
         )
@@ -55,7 +55,7 @@ class AccessTokenCacheManager(
     fun saveTimeChangePassword(phoneNumber: String): Mono<String> {
         return super.cacheData(
             ICacheRedis.hashKeys(Keyword.CHANGE_PASSWORD.name, phoneNumber),
-            { Mono.just(LocalDateTime.now().toInstant(ZoneOffset.UTC).epochSecond.toString()) },
+            Mono.just(LocalDateTime.now().toInstant(ZoneOffset.UTC).epochSecond.toString()),
             accessTokenProperty.expires,
             ChronoUnit.MINUTES
         )

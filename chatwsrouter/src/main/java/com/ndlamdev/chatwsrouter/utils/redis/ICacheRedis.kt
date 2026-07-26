@@ -6,7 +6,7 @@
  *  User: kimin
  **/
 
-package com.lamnguyen.chat.utils.redis
+package com.ndlamdev.chatwsrouter.utils.redis
 
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono

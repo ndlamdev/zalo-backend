@@ -16,14 +16,14 @@ import java.util.function.Supplier
 interface ICacheRedis<T> {
     fun cacheData(
         key: String,
-        data: Supplier<Mono<T>>,
+        data: Mono<T>,
         amount: Long? = 60,
         unit: ChronoUnit? = ChronoUnit.MINUTES
     ): Mono<T>
 
     fun cacheAllData(
         key: String,
-        data: Supplier<Flux<T>>,
+        data: Flux<T>,
         amount: Long? = 60,
         unit: ChronoUnit? = ChronoUnit.MINUTES
     ): Flux<T>

@@ -15,7 +15,6 @@ import reactor.core.publisher.Mono
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
-import java.util.function.Supplier
 
 abstract class ACacheRedis<T>(
     val redissonClient: RedissonReactiveClient,
@@ -23,54 +22,56 @@ abstract class ACacheRedis<T>(
 ) : ICacheRedis<T> {
     override fun cacheData(
         key: String,
-        data: Supplier<Mono<T>>,
+        data: Mono<T>,
         amount: Long?,
         unit: ChronoUnit?
     ): Mono<T> {
-        return redissonClient.getLock("lock:$key")
+        val locker = redissonClient.getLock("lock:$key")
+        return locker
             .tryLock(10, 5, TimeUnit.SECONDS)
             .flatMap { locked ->
-                if (locked) {
-                    data.get()
-                        .flatMap { dataInDb ->
-                            redisTemple.opsForValue()
-                                .set(key, dataInDb!!, Duration.of(amount ?: 60, unit ?: ChronoUnit.MINUTES))
-                                .map { dataInDb }
-                        }
-                } else {
-                    Mono.delay(Duration.ofMillis(100))
-                        .flatMap { getData(key) }
-                }
+                if (!locked) return@flatMap Mono.delay(Duration.ofMillis(100))
+                    .flatMap { getData(key) }
+
+                Mono.usingWhen(Mono.just(locker), {
+                    data.flatMap { dataInDb ->
+                        if (amount == null || unit == null) return@flatMap redisTemple.opsForValue()
+                            .set(key, dataInDb!!)
+                            .map { dataInDb }
+
+                        return@flatMap redisTemple.opsForValue()
+                            .set(key, dataInDb!!, Duration.of(amount, unit))
+                            .map { dataInDb }
+                    }
+                }, { it.unlock() })
             }
     }
 
     override fun cacheAllData(
         key: String,
-        data: Supplier<Flux<T>>,
+        data: Flux<T>,
         amount: Long?,
         unit: ChronoUnit?
     ): Flux<T> {
-        return redissonClient.getLock("lock:$key")
-            .tryLock(10, 5, TimeUnit.SECONDS)
-            .flatMapMany { locked ->
-                if (locked) {
-                    data.get()
-                        .collectList()
+        val locker = redissonClient.getLock("lock:$key")
+        return locker.tryLock(10, 5, TimeUnit.SECONDS)
+            .flatMapMany { lock ->
+                if (!lock) return@flatMapMany Mono.delay(Duration.ofMillis(100))
+                    .thenMany(getAllData(key))
+
+                Flux.usingWhen(Mono.just(locker), {
+                    data.collectList()
                         .filter { it.isNotEmpty() }
                         .flatMap { dataInDb ->
                             redisTemple.opsForList()
-                                .leftPushAll(key, *toArray(dataInDb))
-                                .thenReturn(dataInDb)
+                                .leftPushAll(key, dataInDb)
                                 .flatMap {
-                                    redisTemple.expire(key, Duration.of(amount ?: 60, unit ?: ChronoUnit.MINUTES))
+                                    if (amount == null || unit == null) return@flatMap Mono.empty()
+                                    redisTemple.expire(key, Duration.of(amount, unit))
                                 }
                                 .thenReturn(dataInDb)
-                        }
-                        .flatMapMany { Flux.fromIterable(it) }
-                } else {
-                    Mono.delay(Duration.ofMillis(100))
-                        .thenMany(getAllData(key))
-                }
+                        }.flatMapMany { Flux.fromIterable(it) }
+                }, { it.unlock() })
             }
     }
 
@@ -110,15 +111,5 @@ abstract class ACacheRedis<T>(
                 }
 
         return redisTemple.opsForList().range(key, 0, -1)
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun toArray(list: List<T>): Array<T> {
-        val array = arrayOfNulls<Any>(list.size)
-        list.forEachIndexed { index, item ->
-            array[index] = item
-        }
-
-        return array as Array<T>
     }
 }
