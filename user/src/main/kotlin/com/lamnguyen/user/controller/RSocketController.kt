@@ -17,7 +17,7 @@ import reactor.core.publisher.Flux
 
 @Controller
 class RSocketController(val userService: IUserService) {
-    @MessageMapping("info.friendship")
+    @MessageMapping("user.friendship.info")
     fun getUserInfoFriendShip(request: UserInfoRequest): Flux<UserDto> {
         return userService.getInfoAndFriendShip(request.phoneNumber, request.members)
     }

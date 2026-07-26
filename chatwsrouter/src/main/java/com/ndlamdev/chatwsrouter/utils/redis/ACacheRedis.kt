@@ -28,24 +28,27 @@ abstract class ACacheRedis<T>(
         unit: ChronoUnit?
     ): Mono<T> {
         val locker = redissonClient.getLock("lock:$key")
-        return locker
-            .tryLock(10, 5, TimeUnit.SECONDS)
+
+        val result = locker.tryLock(10, 5, TimeUnit.SECONDS)
             .flatMap { locked ->
                 if (!locked) return@flatMap Mono.delay(Duration.ofMillis(100))
                     .flatMap { getData(key) }
 
-                Mono.usingWhen(Mono.just(locker), {
-                    data.flatMap { dataInDb ->
-                        if (amount == null || unit == null) return@flatMap redisTemple.opsForValue()
-                            .set(key, dataInDb!!)
-                            .map { dataInDb }
+                data.flatMap { dataInDb ->
+                    if (amount == null || unit == null) return@flatMap redisTemple.opsForValue()
+                        .set(key, dataInDb!!)
+                        .map { dataInDb }
 
-                        return@flatMap redisTemple.opsForValue()
-                            .set(key, dataInDb!!, Duration.of(amount, unit))
-                            .map { dataInDb }
-                    }
-                }, { it.unlock() })
+                    return@flatMap redisTemple.opsForValue()
+                        .set(key, dataInDb!!, Duration.of(amount, unit))
+                        .map { dataInDb }
+                }
             }
+
+        return locker.isLocked
+            .filter { it }
+            .flatMap { locker.unlock() }
+            .then(result)
     }
 
     override fun cacheAllData(
@@ -55,25 +58,28 @@ abstract class ACacheRedis<T>(
         unit: ChronoUnit?
     ): Flux<T> {
         val locker = redissonClient.getLock("lock:$key")
-        return locker.tryLock(10, 5, TimeUnit.SECONDS)
+        val result = locker.tryLock(10, 5, TimeUnit.SECONDS)
             .flatMapMany { lock ->
                 if (!lock) return@flatMapMany Mono.delay(Duration.ofMillis(100))
                     .thenMany(getAllData(key))
 
-                Flux.usingWhen(Mono.just(locker), {
-                    data.collectList()
-                        .filter { it.isNotEmpty() }
-                        .flatMap { dataInDb ->
-                            redisTemple.opsForList()
-                                .leftPushAll(key, dataInDb)
-                                .flatMap {
-                                    if (amount == null || unit == null) return@flatMap Mono.empty()
-                                    redisTemple.expire(key, Duration.of(amount, unit))
-                                }
-                                .thenReturn(dataInDb)
-                        }.flatMapMany { Flux.fromIterable(it) }
-                }, { it.unlock() })
+                data.collectList()
+                    .filter { it.isNotEmpty() }
+                    .flatMap { dataInDb ->
+                        redisTemple.opsForList()
+                            .leftPushAll(key, dataInDb)
+                            .flatMap {
+                                if (amount == null || unit == null) return@flatMap Mono.empty()
+                                redisTemple.expire(key, Duration.of(amount, unit))
+                            }
+                            .thenReturn(dataInDb)
+                    }.flatMapMany { Flux.fromIterable(it) }
             }
+
+        return locker.isLocked
+            .filter { it }
+            .flatMap { locker.unlock() }
+            .thenMany(result)
     }
 
     override fun clearCache(key: String) {

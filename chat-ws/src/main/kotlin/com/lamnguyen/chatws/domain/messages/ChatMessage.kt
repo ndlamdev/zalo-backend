@@ -14,6 +14,8 @@ class ChatMessage() : Message() {
 
     constructor(message: Message) : this() {
         this.content = message.content
-        this.roomChatId = message.roomChatId
+        this.conversationId = message.conversationId
+        this.users = message.users
+        this.attachments = message.attachments
     }
 }

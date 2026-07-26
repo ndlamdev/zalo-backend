@@ -8,11 +8,12 @@
 
 package com.lamnguyen.chat.services.kafka
 
+import com.lamnguyen.chat.domain.message.ChatMessage
 import com.lamnguyen.chat.entities.Message
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.kafka.annotation.KafkaListener
 
 interface IMessageConsumer {
     @KafkaListener(topics = ["messages"], groupId = "chat-service")
-    fun saveMessage(consumerRecord: ConsumerRecord<String, Message>)
+    fun saveMessage(consumerRecord: ConsumerRecord<String, ChatMessage>)
 }

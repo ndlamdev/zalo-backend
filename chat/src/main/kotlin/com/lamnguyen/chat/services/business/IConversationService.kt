@@ -15,8 +15,11 @@ import reactor.core.publisher.Mono
 
 interface IConversationService {
     fun createConversation(createConversationRequest: CreateConversationRequest): Mono<Conversation>
+    fun createConversation(admin: String, users: List<String>): Mono<Conversation>
     fun removeConversation(id: String): Mono<Void>
     fun getAllConversation(phoneNumber: String): Mono<List<ConversationDto>>
     fun existConversationById(conversationId: String): Mono<Boolean>
     fun findById(conversationId: String): Mono<Conversation>
+    fun getConversationInfo(conversationId: String): Mono<ConversationDto>
+    fun getConversationInfo(ownerPhone: String, users: List<String>): Mono<ConversationDto>
 }

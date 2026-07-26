@@ -8,7 +8,6 @@
 
 package com.lamnguyen.chat.services.business.v1
 
-import com.fasterxml.uuid.Generators
 import com.lamnguyen.chat.domain.dto.ConversationDto
 import com.lamnguyen.chat.domain.dto.ConversationMemberRowDto
 import com.lamnguyen.chat.domain.requests.CreateConversationRequest
@@ -24,7 +23,7 @@ import com.lamnguyen.chat.services.business.IConversationService
 import com.lamnguyen.chat.services.business.IMemberService
 import com.lamnguyen.chat.services.rsocket.IUserRequester
 import com.lamnguyen.chat.utils.enums.ConversationType
-import com.lamnguyen.chat.utils.helpers.Sha256Util
+import com.lamnguyen.chat.utils.helpers.KeyGenerator
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -33,6 +32,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+import kotlin.collections.orEmpty
 
 @Service
 class ConversationServiceImpl(
@@ -51,46 +51,52 @@ class ConversationServiceImpl(
         return ReactiveSecurityContextHolder.getContext()
             .map { it.authentication }
             .flatMap { auth ->
-                val distinctMembers = createConversationRequest.members
-                    ?.distinct()
-                    ?.filter { it.isNotBlank() && it != auth.name }
-                    .orEmpty()
+                createConversation(auth.name!!, createConversationRequest.members ?: listOf())
+            }
+    }
 
-                if (distinctMembers.isEmpty()) return@flatMap Mono.error(
+    @Transactional
+    override fun createConversation(admin: String, users: List<String>): Mono<Conversation> {
+        val distinctMembers = users
+            .distinct()
+            .filter { it.isNotBlank() && it != admin }
+
+        if (distinctMembers.isEmpty()) return Mono.error(
+            ApplicationException(ExceptionEnum.LIST_MEMBER_IS_EMPTY)
+        )
+
+        val softId =
+            KeyGenerator.generateSoftIdConversation(distinctMembers.toMutableList().apply { add(admin) })
+                ?: return Mono.error(
                     ApplicationException(ExceptionEnum.LIST_MEMBER_IS_EMPTY)
                 )
 
-                val softId = Sha256Util.sha256(distinctMembers.toSortedSet().apply { add(auth.name) }.joinToString(""))
-                    ?: return@flatMap Mono.error(
-                        ApplicationException(ExceptionEnum.LIST_MEMBER_IS_EMPTY)
-                    )
+        return conversationRepository.findBySoftId(softId)
+            .switchIfEmpty {
+                userRequester.getUserInfoFriendShip(admin, users)
+                    .collectList()
+                    .flatMap { users ->
+                        if (users.isEmpty()) return@flatMap Mono.error(ApplicationException(ExceptionEnum.LIST_MEMBER_IS_EMPTY))
 
-                conversationRepository.findBySoftId(softId)
-                    .switchIfEmpty {
-                        userRequester.getUserInfoFriendShip(auth.name, createConversationRequest.members!!)
-                            .collectList()
-                            .flatMap { users ->
-                                if (users.isEmpty()) return@flatMap Mono.error(ApplicationException(ExceptionEnum.LIST_MEMBER_IS_EMPTY))
+                        if (users.size != distinctMembers.size) return@flatMap Mono.error(
+                            ApplicationException(
+                                ExceptionEnum.CONTAINS_USER_NOT_FOUND
+                            )
+                        )
 
-                                if (users.size != distinctMembers.size) return@flatMap Mono.error(
-                                    ApplicationException(
-                                        ExceptionEnum.CONTAINS_USER_NOT_FOUND
-                                    )
-                                )
+                        val phoneNumberMembers = users.map { it.phoneNumber }.toList()
+                        val conversationId = KeyGenerator.generateUuidV7()
 
-                                val phoneNumberMembers = users.map { it.phoneNumber }.toList()
-                                val conversationId = Generators.timeBasedEpochRandomGenerator().generate().toString()
-
-                                val conversation =
-                                    conversationMapper.toEntity(conversationId, createConversationRequest).apply {
-                                        this.isNewItem = true
-                                        this.softId = softId
-                                        this.admin = Generators.timeBasedEpochRandomGenerator().generate().toString()
-                                        this.type =
-                                            if (phoneNumberMembers.size > 1) ConversationType.GROUP else ConversationType.PRIVATE
-                                    }
-                                return@flatMap saveConversation(conversation, auth.name, phoneNumberMembers)
+                        val conversation =
+                            Conversation().apply {
+                                this.id = conversationId
+                                this.isNewItem = true
+                                this.softId = softId
+                                this.admin = KeyGenerator.generateUuidV7()
+                                this.type =
+                                    if (phoneNumberMembers.size > 1) ConversationType.GROUP else ConversationType.PRIVATE
                             }
+                        return@flatMap saveConversation(conversation, admin, phoneNumberMembers)
                     }
             }
     }
@@ -122,7 +128,7 @@ class ConversationServiceImpl(
     }
 
     override fun getAllConversation(phoneNumber: String): Mono<List<ConversationDto>> {
-        return collectConversation(conversationRepository.findAllByPhoneNumberContains(phoneNumber))
+        return collectConversation(conversationRepository.findAllDtoByPhoneNumberContains(phoneNumber))
     }
 
     private fun collectConversation(rows: Flux<ConversationMemberRowDto>): Mono<List<ConversationDto>> {
@@ -149,5 +155,31 @@ class ConversationServiceImpl(
 
     override fun findById(conversationId: String): Mono<Conversation> {
         return conversationRepository.findById(conversationId)
+    }
+
+    override fun getConversationInfo(conversationId: String): Mono<ConversationDto> {
+        val rows = conversationRepository.findDtoByConversationId(conversationId)
+        return collectConversation(rows).map { it.first() }
+    }
+
+    @Transactional
+    override fun getConversationInfo(ownerPhone: String, users: List<String>): Mono<ConversationDto> {
+        val distinctMembers = users
+            .distinct()
+            .toMutableList()
+
+        if (!distinctMembers.contains(ownerPhone)) distinctMembers.add(ownerPhone)
+
+        val softId = KeyGenerator.generateSoftIdConversation(distinctMembers) ?: return Mono.error(
+            ApplicationException(
+                ExceptionEnum.ERROR_GENERATE_SOFT_ID_CONVERSATION
+            )
+        )
+        val rows = conversationRepository.findDtoBySoftId(softId)
+            .switchIfEmpty(createConversation(CreateConversationRequest().apply {
+                members = distinctMembers
+                admin = ownerPhone
+            }).flatMapMany { conversationRepository.findDtoBySoftId(softId) })
+        return collectConversation(rows).map { it.first() }
     }
 }

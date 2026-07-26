@@ -88,7 +88,7 @@ CREATE TABLE message
     content         TEXT,
     message_type    ENUM ( 'IMAGE', 'TEXT', 'AUDIO', 'VIDEO', 'FILE') NOT NULL,
     reply_to_id     VARCHAR(50),
-    id_pinned       BOOLEAN  DEFAULT FALSE,
+    is_pinned       BOOLEAN  DEFAULT FALSE,
     is_deleted      BOOLEAN  DEFAULT FALSE,
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP

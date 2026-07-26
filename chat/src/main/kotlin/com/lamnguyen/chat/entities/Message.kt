@@ -1,5 +1,6 @@
 package com.lamnguyen.chat.entities
 
+import com.lamnguyen.chat.utils.enums.ContentMessageType
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 
@@ -14,7 +15,7 @@ class Message : BaseEntity() {
     var content: String? = null
 
     @Column("message_type")
-    var messageType: Byte = 0
+    var messageType: ContentMessageType = ContentMessageType.TEXT
 
     @Column("reply_to_id")
     var replyToId: String? = null

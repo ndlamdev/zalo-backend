@@ -59,7 +59,7 @@ interface IConversationRepository : R2dbcRepository<Conversation, String> {
                                ON member_metadata.member_id = member.id
             ORDER BY c.last_message_at DESC"""
     )
-    fun findAllByPhoneNumberContains(phoneNumber: String): Flux<ConversationMemberRowDto>
+    fun findAllDtoByPhoneNumberContains(phoneNumber: String): Flux<ConversationMemberRowDto>
 
     @Query(
         value = """
@@ -103,7 +103,7 @@ interface IConversationRepository : R2dbcRepository<Conversation, String> {
             WHERE c.id = :conversationId
             """
     )
-    fun findAllByConversationId(phoneNumber: String, conversationId: String): Flux<ConversationMemberRowDto>
+    fun findDtoByConversationId(phoneNumber: String, conversationId: String): Flux<ConversationMemberRowDto>
 
     @Query(
         value = """
@@ -147,7 +147,79 @@ interface IConversationRepository : R2dbcRepository<Conversation, String> {
             WHERE c.soft_id = :softId
             """
     )
-    fun findBySoftId(phoneNumber: String, softId: String): Flux<ConversationMemberRowDto>
+    fun findDtoBySoftId(phoneNumber: String, softId: String): Flux<ConversationMemberRowDto>
+
+    @Query(
+        value = """
+            SELECT
+                c.*,
+            
+                -- Metadata của người đang xem conversation
+               false AS viewer_is_pinned,
+            
+                -- Member thuộc conversation
+                member.id AS member_id,
+                member.user_id AS member_user_id,
+                member.role AS member_role,
+                member.joined_at AS member_joined_at,
+                member.joined_by AS member_joined_by,
+                member.is_muted AS member_is_muted,
+                member.is_active AS member_is_active,
+            
+                -- Metadata tương ứng của member ở trên
+                member_metadata.id AS member_metadata_id,
+                member_metadata.last_read_message_at AS member_last_read_message_at,
+                member_metadata.is_pinned AS member_is_pinned,
+                member_metadata.is_muted AS member_metadata_is_muted,
+                member_metadata.is_archived AS member_is_archived
+            FROM conversation c
+            -- `member`: lấy tất cả member của từng conversation đó
+                     JOIN member
+                          ON member.conversation_id = c.id
+                              AND member.is_active = true
+            
+                     LEFT JOIN conversation_member_metadata member_metadata
+                               ON member_metadata.member_id = member.id
+            WHERE c.id = :conversationId
+            """
+    )
+    fun findDtoByConversationId(conversationId: String): Flux<ConversationMemberRowDto>
+
+    @Query(
+        value = """
+            SELECT
+                c.*,
+            
+                -- Metadata của người đang xem conversation
+                false AS viewer_is_pinned,
+            
+                -- Member thuộc conversation
+                member.id AS member_id,
+                member.user_id AS member_user_id,
+                member.role AS member_role,
+                member.joined_at AS member_joined_at,
+                member.joined_by AS member_joined_by,
+                member.is_muted AS member_is_muted,
+                member.is_active AS member_is_active,
+            
+                -- Metadata tương ứng của member ở trên
+                member_metadata.id AS member_metadata_id,
+                member_metadata.last_read_message_at AS member_last_read_message_at,
+                member_metadata.is_pinned AS member_is_pinned,
+                member_metadata.is_muted AS member_metadata_is_muted,
+                member_metadata.is_archived AS member_is_archived
+            FROM conversation c
+            -- `member`: lấy tất cả member của từng conversation đó
+                     JOIN member
+                          ON member.conversation_id = c.id
+                              AND member.is_active = true
+            
+                     LEFT JOIN conversation_member_metadata member_metadata
+                               ON member_metadata.member_id = member.id
+            WHERE c.soft_id = :softId
+            """
+    )
+    fun findDtoBySoftId(softId: String): Flux<ConversationMemberRowDto>
 
     fun findBySoftId(softId: String): Mono<Conversation>
     fun countBySoftId(softId: String): Mono<Int>

@@ -10,8 +10,8 @@ package com.lamnguyen.chat.services.rsocket.v1
 
 import com.lamnguyen.chat.domain.dto.UserDto
 import com.lamnguyen.chat.domain.requests.UserInfoRequest
-import com.lamnguyen.chat.services.local.RSocketRequesterManager
 import com.lamnguyen.chat.services.rsocket.IUserRequester
+import com.lamnguyen.chat.services.rsocket.RSocketRequesterManager
 import com.lamnguyen.chat.utils.enums.RSocketServerName
 import org.springframework.messaging.rsocket.retrieveFlux
 import org.springframework.stereotype.Service
@@ -25,7 +25,7 @@ class UserRequesterImpl(rSocketRequesterManager: RSocketRequesterManager) : IUse
         phoneNumber: String,
         members: List<String>
     ): Flux<UserDto> {
-        return rSocketRequester?.route("info.friendship")?.data(UserInfoRequest(phoneNumber, members))
+        return rSocketRequester?.route("user.friendship.info")?.data(UserInfoRequest(phoneNumber, members))
             ?.retrieveFlux<UserDto>() ?: Flux.empty()
     }
 

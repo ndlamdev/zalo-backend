@@ -9,14 +9,14 @@
 package com.lamnguyen.auth.service.kafka
 
 import com.lamnguyen.auth.events.OtpCreateAccountEvent
-import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
 @Service
-class SmsSenderKafkaServiceImpl(val kafkaTemplate: KafkaTemplate<String, Any>) : IOtpSenderKafkaService {
+class SmsSenderKafkaServiceImpl(val kafkaTemplate: ReactiveKafkaProducerTemplate<String, Any>) :
+    IOtpSenderKafkaService {
     override fun sendOtp(address: String, otp: String): Mono<Void> {
-        kafkaTemplate.send("create-account-otp", OtpCreateAccountEvent(address, otp))
-        return Mono.empty()
+        return kafkaTemplate.send("create-account-otp", OtpCreateAccountEvent(address, otp)).then()
     }
 }

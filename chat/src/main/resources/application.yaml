@@ -2,6 +2,44 @@ spring:
   application:
     name: chat
 
+  r2dbc:
+    url: r2dbc:mysql://${application.db.mysql.server}/${application.db.mysql.database}
+    username: ${application.db.mysql.username}
+    password: ${application.db.mysql.password}
+
+  flyway:
+    url: jdbc:mysql://${application.db.mysql.server}/${application.db.mysql.database}
+    user: ${application.db.mysql.username}
+    password: ${application.db.mysql.password}
+    locations: classpath:db/mysql/migration
+
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVER:localhost:9092,localhost:9093,localhost:9094}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring:
+          json:
+            type:
+              mapping: create-user:com.lamnguyen.auth.events.CreateUserEvent
+
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: ChatMessage
+            type:
+              mapping: ChatMessage:com.lamnguyen.chat.domain.message.ChatMessage
+  rsocket:
+    server:
+      port: ${RSOCKET_PORT:8104}
+      transport: tcp
+
+
   profiles:
     active: local
 

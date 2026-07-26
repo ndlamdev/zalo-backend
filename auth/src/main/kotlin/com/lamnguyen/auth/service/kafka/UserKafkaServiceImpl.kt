@@ -9,14 +9,14 @@
 package com.lamnguyen.auth.service.kafka
 
 import com.lamnguyen.auth.events.CreateUserEvent
-import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
 @Service
-class UserKafkaServiceImpl(val kafkaTemplate: KafkaTemplate<String, Any>) : IUserKafkaService {
+class UserKafkaServiceImpl(private val kafkaTemplate: ReactiveKafkaProducerTemplate<String, Any>) : IUserKafkaService {
     override fun createUser(phoneNumber: String): Mono<Boolean> {
-        kafkaTemplate.send("create-user", CreateUserEvent(phoneNumber)).isDone
-        return Mono.just(true)
+        return kafkaTemplate.send("create-user", CreateUserEvent(phoneNumber))
+            .thenReturn(true)
     }
 }

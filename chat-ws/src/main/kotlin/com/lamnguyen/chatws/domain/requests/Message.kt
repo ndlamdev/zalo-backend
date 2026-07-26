@@ -10,11 +10,10 @@ package com.lamnguyen.chatws.domain.requests
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
-import com.nimbusds.openid.connect.sdk.assurance.evidences.attachment.Attachment
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 open class Message {
-    var roomChatId: String? = null
+    var conversationId: String? = null
     var content: String? = null
     var users: List<String> = emptyList()
     var attachments: List<Any> = emptyList()

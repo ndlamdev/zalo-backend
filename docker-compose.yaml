@@ -49,6 +49,8 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
       KAFKA_BROKER_ID: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
       KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
@@ -113,20 +115,20 @@ services:
 #      - ./docker/kafka/kafka3/secrets:/etc/kafka/secrets
 #      - ./docker/kafka/kafka3/lib/data:/var/lib/kafka/data
 #
-#  kafka_ui:
-#    image: provectuslabs/kafka-ui:v0.7.2
-#    container_name: kafka_ui_container
-#    environment:
-#      KAFKA_CLUSTERS_0_NAME: "dev-cluster"
-#      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka1:19092"
-#      KAFKA_CLUSTERS_0_ZOOKEEPER: "zookeeper:2181"
-#    ports:
-#      - "9000:8080"
-#    networks:
-#      - message_queue
-#    depends_on:
-#      - kafka1
-#      - zookeeper
+  kafka_ui:
+    image: provectuslabs/kafka-ui:v0.7.2
+    container_name: kafka_ui_container
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "dev-cluster"
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka1:19092"
+      KAFKA_CLUSTERS_0_ZOOKEEPER: "zookeeper:2181"
+    ports:
+      - "9000:8080"
+    networks:
+      - message_queue
+    depends_on:
+      - kafka1
+      - zookeeper
 
 networks:
   message_queue:

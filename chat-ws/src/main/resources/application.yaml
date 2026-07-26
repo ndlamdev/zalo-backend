@@ -11,17 +11,8 @@ spring:
         spring:
           json:
             type:
-              mapping: chat-message:com.lamnguyen.chatws.domain.messages.ChatMessage
-    consumer:
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring:
-          json:
-            trusted:
-              packages: chat-message,room-chat-members
-            type:
-              mapping: chat-message:com.lamnguyen.chatws.domain.messages.ChatMessage,room-chat-members:com.lamnguyen.chatws.domain.messages.RoomChatMembers
+              mapping: ChatMessage:com.lamnguyen.chatws.domain.messages.ChatMessage
+
   profiles:
     active: ${PROFILE:local}
 

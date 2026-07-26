@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.Resource
 
 
-@Configuration("project-redisson-config")
+@Configuration("project-redisson-config", proxyBeanMethods = false)
 class RedissonConfig {
     @Bean
     fun redissonConfig(@Value("classpath:/redisson.yaml") configFile: Resource): Config {

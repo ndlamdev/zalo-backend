@@ -16,36 +16,43 @@ import org.apache.kafka.common.header.internals.RecordHeaders
 import org.springframework.http.HttpHeaders
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.messaging.handler.annotation.MessageMapping
-import org.springframework.messaging.simp.annotation.SendToUser
-import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Controller
 
 
 @Controller
 class ChatController(
     private val template: KafkaTemplate<String, ChatMessage>,
+    private val messagingTemplate: SimpMessagingTemplate
 ) {
+    //    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN')")
     @MessageMapping("/chat")
-    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN')")
-    @SendToUser("/topic/messages")
     fun handleTextMessage(message: Message, principal: UserHandshakeHandler.StompPrincipal): Message {
-        return message
+        return sendMessage(message, principal)
     }
 
-
-    private fun sendMessage(message: Message, principal: UserHandshakeHandler.StompPrincipal) {
+    private fun sendMessage(message: Message, principal: UserHandshakeHandler.StompPrincipal): Message {
         val headers = RecordHeaders()
         headers.add(HttpHeaders.AUTHORIZATION, principal.token.toByteArray())
+        headers.add("owner", principal.name!!.toByteArray())
 
         val data = ProducerRecord(
             "messages",
             null,
-            message.javaClass.name,
+            principal.name,
             ChatMessage(message).apply {
                 senderPhoneNumber = principal.name
             },
             headers
         )
+
         template.send(data)
+
+        return message
+    }
+
+    @MessageMapping("chat.receive")
+    fun receiveMessage(user: String, message: Message) {
+        messagingTemplate.convertAndSendToUser(user, "/chat", message)
     }
 }
