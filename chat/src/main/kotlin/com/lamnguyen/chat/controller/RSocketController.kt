@@ -11,20 +11,21 @@ package com.lamnguyen.chat.controller
 import com.lamnguyen.chat.domain.dto.ConversationDto
 import com.lamnguyen.chat.domain.requests.ConversationInfoRequest
 import com.lamnguyen.chat.services.business.IConversationService
+import org.springframework.messaging.handler.annotation.DestinationVariable
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.PathVariable
 import reactor.core.publisher.Mono
 
-@Controller("chat-service")
+@Controller
 class RSocketController(val conversationService: IConversationService) {
-    @MessageMapping("conversation-info")
+    @MessageMapping("chat.conversation")
     fun getConversation(request: ConversationInfoRequest): Mono<ConversationDto> {
         return conversationService.getConversationInfo(request.ownerPhone, request.users)
     }
 
-    @MessageMapping("conversation-info.{conversationId}")
-    fun getConversation(@PathVariable conversationId: String): Mono<ConversationDto> {
+    @MessageMapping("chat.conversation.{conversationId}")
+    fun getConversation(@DestinationVariable conversationId: String): Mono<ConversationDto> {
         return conversationService.getConversationInfo(conversationId)
     }
 }

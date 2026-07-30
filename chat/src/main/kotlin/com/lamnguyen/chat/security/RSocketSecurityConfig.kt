@@ -24,7 +24,8 @@ class RSocketSecurityConfig {
         rsocket
             .authorizePayload { authorize: AuthorizePayloadsSpec? ->
                 authorize!!
-                    .anyRequest().authenticated()
+                    .setup().permitAll()
+                    .anyRequest().permitAll()
             }
         return rsocket.build()
     }

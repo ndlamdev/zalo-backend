@@ -48,5 +48,10 @@ class ConversationHandler(
             .flatMap { ok(it) }
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER', 'USER_GET_ALL_ROOM_CHAT')")
+    fun getConversationBySoftId(request: ServerRequest): Mono<ServerResponse?> {
+        val softId = request.pathVariable("softId")
+        return conversationService.getConversationBySoftId(softId).flatMap { ok(it) }
+    }
 }
 

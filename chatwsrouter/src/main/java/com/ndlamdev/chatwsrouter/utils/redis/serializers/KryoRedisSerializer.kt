@@ -1,4 +1,4 @@
-package com.lamnguyen.chatws.utils.redis.serializers
+package com.ndlamdev.chatwsrouter.utils.redis.serializers
 
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.SerializerFactory
@@ -8,6 +8,7 @@ import com.esotericsoftware.kryo.serializers.CompatibleFieldSerializer.Compatibl
 import org.springframework.data.redis.serializer.RedisSerializer
 import org.springframework.data.redis.serializer.SerializationException
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 
 class KryoRedisSerializer<T>(
     private val type: Class<T>,

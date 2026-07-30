@@ -8,7 +8,7 @@
 
 package com.ndlamdev.chatwsrouter.services.kafka.v1
 
-import com.ndlamdev.chatwsrouter.domain.dto.ChatMessage
+import com.ndlamdev.chatwsrouter.domain.message.ChatMessage
 import com.ndlamdev.chatwsrouter.services.kafka.IMessageConsumer
 import com.ndlamdev.chatwsrouter.services.rsocket.IChatWsServiceRequester
 import org.apache.kafka.clients.consumer.ConsumerRecord

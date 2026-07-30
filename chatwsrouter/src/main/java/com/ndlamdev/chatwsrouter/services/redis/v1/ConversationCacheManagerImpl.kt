@@ -38,16 +38,16 @@ class ConversationCacheManagerImpl(
         return conversation.flatMap {
             Mono.zip(
                 super.cacheData(generateKey(it.id!!), conversation, 60, ChronoUnit.MINUTES),
-                super.cacheData(generateSoftId(it.id!!), conversation, 60, ChronoUnit.MINUTES)
+                super.cacheData(generateSoftId(it.softId!!), conversation, 60, ChronoUnit.MINUTES)
             ).then(conversation)
         }
     }
 
     private fun generateKey(conversationId: String): String {
-        return ICacheRedis.hashKeys("conversation", conversationId)
+        return ICacheRedis.hashKeys("Conversation", "PrimaryKey", conversationId)
     }
 
     private fun generateSoftId(softId: String): String {
-        return ICacheRedis.hashKeys("conversation", ICacheRedis.joinKeys("soft-id", softId))
+        return ICacheRedis.hashKeys("Conversation", "SoftId", softId)
     }
 }

@@ -1,5 +1,6 @@
 package com.lamnguyen.chat.entities
 
+import com.lamnguyen.chat.utils.annotations.JsonDateTimeFormat
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 import java.time.LocalDateTime
@@ -12,6 +13,7 @@ class ConversationMemberMetadata : BaseEntity() {
     @Column("member_id")
     var memberId: String? = null
 
+    @JsonDateTimeFormat
     @Column("last_read_message_at")
     var lastReadMessageAt: LocalDateTime? = null
 

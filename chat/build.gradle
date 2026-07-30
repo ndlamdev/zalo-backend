@@ -62,6 +62,7 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-rsocket"
     implementation "org.springframework.security:spring-security-rsocket"
     implementation "com.fasterxml.uuid:java-uuid-generator:5.2.0"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 }
 
 kotlin {

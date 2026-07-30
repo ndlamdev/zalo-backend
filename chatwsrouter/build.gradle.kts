@@ -36,6 +36,8 @@ dependencies {
     implementation("org.springframework.security:spring-security-rsocket")
     implementation("org.springframework.security:spring-security-messaging")
     testImplementation("org.springframework.security:spring-security-test")
+    implementation("com.esotericsoftware:kryo:5.6.2")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 }
 
 tasks.withType<Test> {

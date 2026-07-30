@@ -65,6 +65,7 @@ class MainRouter {
             .path("/v1") { v1 -> v1
                 .POST("/conversation", charHandler::createConversation)
                 .GET("/conversations", charHandler::getAllConversation)
+                .GET("/conversations/soft-id/{softId}", charHandler::getConversationBySoftId)
             }
             // @formatter:on
             .build()

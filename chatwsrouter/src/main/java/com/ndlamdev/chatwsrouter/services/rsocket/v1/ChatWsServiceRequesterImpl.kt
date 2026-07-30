@@ -8,7 +8,7 @@
 
 package com.ndlamdev.chatwsrouter.services.rsocket.v1
 
-import com.ndlamdev.chatwsrouter.domain.dto.ChatMessage
+import com.ndlamdev.chatwsrouter.domain.message.ChatMessage
 import com.ndlamdev.chatwsrouter.services.business.IConversationService
 import com.ndlamdev.chatwsrouter.services.factory.IRSocketChatWsServiceRequesterFactory
 import com.ndlamdev.chatwsrouter.services.rsocket.IChatWsServiceRequester
@@ -28,7 +28,7 @@ class ChatWsServiceRequesterImpl(
             .flatMapMany { conversation ->
                 Flux.fromIterable(conversation.members)
                     .flatMap { member ->
-                        rSocketChatWsRequesterServiceFactory.getRSocketRequester(member.id!!)
+                        rSocketChatWsRequesterServiceFactory.getRSocketRequester(member.userId!!)
                     }.flatMap { rSocket -> rSocket.route("chat.receive").data(message).send() }
             }.then(Mono.empty())
     }
@@ -39,7 +39,12 @@ class ChatWsServiceRequesterImpl(
                 Flux.fromIterable(conversation.members)
                     .flatMap { member ->
                         rSocketChatWsRequesterServiceFactory.getRSocketRequester(member.id!!)
-                    }.flatMap { rSocket -> rSocket.route("chat.receive").data(message).send() }
+                            .flatMap { rSocket ->
+                                rSocket.route("chat.receive")
+                                    .data(ChatMessage.Companion.Message.parse(member.userId!!, message))
+                                    .send()
+                            }
+                    }
             }.then(Mono.empty())
     }
 }

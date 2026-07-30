@@ -22,4 +22,5 @@ interface IConversationService {
     fun findById(conversationId: String): Mono<Conversation>
     fun getConversationInfo(conversationId: String): Mono<ConversationDto>
     fun getConversationInfo(ownerPhone: String, users: List<String>): Mono<ConversationDto>
+    fun getConversationBySoftId(softId: String): Mono<ConversationDto>
 }

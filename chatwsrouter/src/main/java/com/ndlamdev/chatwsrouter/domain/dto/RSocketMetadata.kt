@@ -1,3 +1,7 @@
 package com.ndlamdev.chatwsrouter.domain.dto
 
-data class RSocketMetadata(val host: String, val port: Int, val dataMime: String)
+class RSocketMetadata {
+    var host: String = "localhost"
+    var port: Int = 0
+    var dataMime: String = "application/json"
+}

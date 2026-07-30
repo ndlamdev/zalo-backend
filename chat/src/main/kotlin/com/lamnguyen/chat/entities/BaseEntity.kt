@@ -1,6 +1,12 @@
 package com.lamnguyen.chat.entities
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer
+import com.lamnguyen.chat.utils.annotations.JsonDateTimeFormat
 import org.springframework.data.annotation.CreatedBy
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
@@ -14,9 +20,11 @@ open class BaseEntity : Persistable<String> {
     @Id
     private var id: String? = null
 
+    @JsonDateTimeFormat
     @CreatedDate
     var createdAt: LocalDateTime? = null
 
+    @JsonDateTimeFormat
     @LastModifiedDate
     var updatedAt: LocalDateTime? = null
 

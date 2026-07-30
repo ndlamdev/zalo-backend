@@ -1,6 +1,7 @@
 spring:
   application:
     name: chatwsrouter
+
   profiles:
     active: local
 
@@ -19,3 +20,5 @@ spring:
               packages: ChatMessage
             type:
               mapping: ChatMessage:com.ndlamdev.chatwsrouter.domain.message.ChatMessage
+server:
+  port: ${SERVER_PORT:8006}

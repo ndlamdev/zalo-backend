@@ -155,7 +155,7 @@ interface IConversationRepository : R2dbcRepository<Conversation, String> {
                 c.*,
             
                 -- Metadata của người đang xem conversation
-               false AS viewer_is_pinned,
+               'FALSE' AS viewer_is_pinned,
             
                 -- Member thuộc conversation
                 member.id AS member_id,
@@ -191,7 +191,7 @@ interface IConversationRepository : R2dbcRepository<Conversation, String> {
                 c.*,
             
                 -- Metadata của người đang xem conversation
-                false AS viewer_is_pinned,
+                'FALSE' AS viewer_is_pinned,
             
                 -- Member thuộc conversation
                 member.id AS member_id,

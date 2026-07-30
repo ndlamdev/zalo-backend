@@ -8,7 +8,7 @@
 
 package com.ndlamdev.chatwsrouter.services.kafka
 
-import com.ndlamdev.chatwsrouter.domain.dto.ChatMessage
+import com.ndlamdev.chatwsrouter.domain.message.ChatMessage
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.kafka.annotation.KafkaListener
 

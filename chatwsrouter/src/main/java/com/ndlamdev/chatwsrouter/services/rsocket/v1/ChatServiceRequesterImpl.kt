@@ -23,12 +23,12 @@ class ChatServiceRequesterImpl(manager: RSocketRequesterManager) : IChatServiceR
         manager.get(RSocketServerName.ChatServiceRequester) ?: throw Exception("ChatServiceRequester not set")
 
     override fun getConversationInfo(owner: String, users: List<String>): Mono<ConversationDto> {
-        return chatRequester.route("chat-service.conversation-info")
+        return chatRequester.route("chat.conversation")
             .data(ConversationInfoRequest(owner, users)).retrieveMono<ConversationDto>()
     }
 
     override fun getConversationInfo(conversationId: String): Mono<ConversationDto> {
-        return chatRequester.route("chat-service.conversation-info.$conversationId")
+        return chatRequester.route("chat.conversation.$conversationId")
             .retrieveMono<ConversationDto>()
     }
 }

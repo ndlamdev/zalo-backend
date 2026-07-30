@@ -1,5 +1,6 @@
 package com.ndlamdev.chatwsrouter.domain.dto
 
+import com.ndlamdev.chatwsrouter.utils.annotation.JsonDateTimeFormat
 import java.time.LocalDateTime
 
 class ConversationDto : BaseDto() {
@@ -17,6 +18,7 @@ class ConversationDto : BaseDto() {
 
     var lastMessageId: String? = null
 
+    @JsonDateTimeFormat
     var lastMessageAt: LocalDateTime? = null
 
     var isMuted: Boolean = false

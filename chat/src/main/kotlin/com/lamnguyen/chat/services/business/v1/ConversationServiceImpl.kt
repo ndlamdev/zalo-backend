@@ -176,10 +176,16 @@ class ConversationServiceImpl(
             )
         )
         val rows = conversationRepository.findDtoBySoftId(softId)
-            .switchIfEmpty(createConversation(CreateConversationRequest().apply {
-                members = distinctMembers
-                admin = ownerPhone
-            }).flatMapMany { conversationRepository.findDtoBySoftId(softId) })
+            .switchIfEmpty(
+                createConversation(ownerPhone, users)
+                    .flatMapMany {
+                        conversationRepository.findDtoBySoftId(softId)
+                    })
+        return collectConversation(rows).map { it.first() }
+    }
+
+    override fun getConversationBySoftId(softId: String): Mono<ConversationDto> {
+        val rows = conversationRepository.findDtoBySoftId(softId)
         return collectConversation(rows).map { it.first() }
     }
 }

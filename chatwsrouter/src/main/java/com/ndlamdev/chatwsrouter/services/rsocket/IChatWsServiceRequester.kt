@@ -8,7 +8,7 @@
 
 package com.ndlamdev.chatwsrouter.services.rsocket
 
-import com.ndlamdev.chatwsrouter.domain.dto.ChatMessage
+import com.ndlamdev.chatwsrouter.domain.message.ChatMessage
 import reactor.core.publisher.Mono
 
 interface IChatWsServiceRequester {

@@ -1,5 +1,6 @@
 package com.lamnguyen.chat.entities
 
+import com.lamnguyen.chat.utils.annotations.JsonDateTimeFormat
 import com.lamnguyen.chat.utils.enums.MemberRole
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
@@ -15,6 +16,7 @@ class Member : BaseEntity() {
 
     var role: MemberRole = MemberRole.USER
 
+    @JsonDateTimeFormat
     @Column("joined_at")
     var joinedAt: LocalDateTime? = null
 

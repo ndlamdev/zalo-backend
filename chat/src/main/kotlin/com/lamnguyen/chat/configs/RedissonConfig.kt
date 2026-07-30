@@ -32,24 +32,4 @@ class RedissonConfig {
     fun redissonConnectionFactory(config: Config): RedissonConnectionFactory {
         return RedissonConnectionFactory(config)
     }
-
-    @Bean
-    fun conversationRedissonClient(factory: RedissonConnectionFactory): ReactiveRedisTemplate<String?, Conversation?> {
-        val context = RedisSerializationContext
-            .newSerializationContext<String?, Conversation?>(StringRedisSerializer())
-            .value(KryoRedisSerializer(Conversation::class.java))
-            .build()
-
-        return ReactiveRedisTemplate(factory, context)
-    }
-
-    @Bean
-    fun conversationMemberRedissonClient(factory: RedissonConnectionFactory): ReactiveRedisTemplate<String?, ConversationMemberMetadata?> {
-        val context = RedisSerializationContext
-            .newSerializationContext<String?, ConversationMemberMetadata?>(StringRedisSerializer())
-            .value(KryoRedisSerializer(ConversationMemberMetadata::class.java))
-            .build()
-
-        return ReactiveRedisTemplate(factory, context)
-    }
 }

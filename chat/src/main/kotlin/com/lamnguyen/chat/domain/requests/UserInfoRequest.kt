@@ -8,5 +8,4 @@
 
 package com.lamnguyen.chat.domain.requests
 
-data class UserInfoRequest(val phoneNumber: String, val members: List<String>) {
-}
+data class UserInfoRequest(val phoneNumber: String, val members: List<String>)

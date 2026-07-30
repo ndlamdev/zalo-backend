@@ -1,5 +1,11 @@
 package com.lamnguyen.chat.entities
 
+import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer
+import com.lamnguyen.chat.utils.annotations.JsonDateTimeFormat
 import com.lamnguyen.chat.utils.enums.ConversationType
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
@@ -25,6 +31,7 @@ open class Conversation : BaseEntity() {
     @Column("last_message_id")
     var lastMessageId: String? = null
 
+    @JsonDateTimeFormat
     @Column("last_message_at")
     var lastMessageAt: LocalDateTime? = null
 

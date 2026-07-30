@@ -7,6 +7,7 @@ import java.time.LocalDateTime
 data class ConversationMemberRowDto(
     // conversation c.*
     val id: String,
+    val softId: String,
     val admin: String?,
     val type: ConversationType?,
     val title: String?,

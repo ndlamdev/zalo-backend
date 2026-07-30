@@ -1,5 +1,6 @@
 package com.ndlamdev.chatwsrouter.domain.dto
 
+import com.ndlamdev.chatwsrouter.utils.annotation.JsonDateTimeFormat
 import java.time.LocalDateTime
 
 class MemberDto : BaseDto() {
@@ -9,6 +10,7 @@ class MemberDto : BaseDto() {
 
     var role: MemberRole = MemberRole.USER
 
+    @JsonDateTimeFormat
     var joinedAt: LocalDateTime? = null
 
     var joinedBy: String? = null

@@ -1,5 +1,6 @@
 package com.ndlamdev.chatwsrouter.domain.dto
 
+import com.ndlamdev.chatwsrouter.utils.annotation.JsonDateTimeFormat
 import java.time.LocalDateTime
 
 class ConversationMemberMetadataDto : BaseDto() {
@@ -7,6 +8,7 @@ class ConversationMemberMetadataDto : BaseDto() {
 
     var memberId: String? = null
 
+    @JsonDateTimeFormat
     var lastReadMessageAt: LocalDateTime? = null
 
     var pinned: Boolean = false
