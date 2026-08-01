@@ -1,29 +1,17 @@
 plugins {
-    id "org.springframework.boot" version "3.5.4"
-    id "io.spring.dependency-management" version "1.1.7"
-    id "org.jetbrains.kotlin.jvm" version "1.9.25"
-    id "org.jetbrains.kotlin.plugin.spring" version "1.9.25"
-    id "org.jetbrains.kotlin.kapt" version "2.2.0"
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependency.management)
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.spring)
+    alias(libs.plugins.kotlin.kapt)
 }
 
-ext {
-    mapstructVersion = "1.6.3"
-    redissonVersion = "3.50.0"
-}
-
-
-group = 'com.lamnguyen'
-version = '0.0.1-SNAPSHOT'
+group = "com.lamnguyen"
+version = "0.0.1-SNAPSHOT"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
@@ -32,46 +20,36 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
-    implementation 'io.projectreactor.kotlin:reactor-kotlin-extensions'
-    implementation 'org.jetbrains.kotlin:kotlin-reflect'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
-    implementation 'org.springframework.kafka:spring-kafka'
-    implementation 'org.flywaydb:flyway-core'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
-    implementation 'org.springframework.boot:spring-boot-starter-rsocket'
-    compileOnly 'org.projectlombok:lombok'
-    runtimeOnly 'io.asyncer:r2dbc-mysql:1.4.2'
-    implementation 'org.flywaydb:flyway-mysql:12.6.1'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'io.projectreactor:reactor-test'
-    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test'
-    testImplementation 'org.springframework.kafka:spring-kafka-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    runtimeOnly 'com.mysql:mysql-connector-j'
-    implementation 'com.googlecode.libphonenumber:libphonenumber:9.0.9'
-    implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.9'
-    implementation 'org.apache.commons:commons-lang3:3.18.0'
-    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
-    kapt "org.mapstruct:mapstruct-processor:${mapstructVersion}"
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0-rc1'
-    implementation "org.redisson:redisson:${redissonVersion}"
-    implementation "org.redisson:redisson-spring-data-35:${redissonVersion}"
+    implementation(libs.spring.boot.actuator)
+    implementation(libs.spring.boot.data.r2dbc)
+    implementation(libs.spring.boot.webflux)
+    implementation(libs.spring.boot.validation)
+    implementation(libs.spring.boot.oauth2.resource.server)
+    implementation(libs.spring.boot.data.redis.reactive)
+    implementation(libs.spring.boot.rsocket)
+    implementation(libs.jackson.kotlin)
+    implementation(libs.kotlin.reflect)
+    implementation(libs.kotlin.coroutines.reactor)
+    implementation(libs.reactor.kotlin)
+    implementation(libs.spring.kafka)
+    implementation(libs.flyway.core)
+    implementation(libs.flyway.mysql)
+    runtimeOnly(libs.r2dbc.mysql)
+    runtimeOnly(libs.mysql.driver)
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
+    implementation(libs.libphonenumber)
+    implementation(libs.springdoc.webflux)
+    implementation(libs.commons.lang3)
+    implementation(libs.mapstruct)
+    kapt(libs.mapstruct.processor)
+    implementation(libs.jackson.jsr310)
+    implementation(libs.redisson)
+    implementation(libs.redisson.spring.data)
 }
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.addAll '-Xjsr305=strict'
+        freeCompilerArgs.add("-Xjsr305=strict")
     }
-}
-
-tasks.named('test') {
-    useJUnitPlatform()
 }

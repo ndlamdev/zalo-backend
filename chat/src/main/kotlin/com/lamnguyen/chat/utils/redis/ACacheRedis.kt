@@ -34,11 +34,10 @@ abstract class ACacheRedis<T>(
                     .flatMap { getData(key) }
 
                 data.flatMap { dataInDb ->
-                    if (amount == null || unit == null) return@flatMap redisTemple.opsForValue()
+                    if (amount == null || unit == null) redisTemple.opsForValue()
                         .set(key, dataInDb!!)
                         .map { dataInDb }
-
-                    return@flatMap redisTemple.opsForValue()
+                    else redisTemple.opsForValue()
                         .set(key, dataInDb!!, Duration.of(amount, unit))
                         .map { dataInDb }
                 }
@@ -57,7 +56,7 @@ abstract class ACacheRedis<T>(
         unit: ChronoUnit?
     ): Flux<T> {
         val locker = redissonClient.getLock("lock:$key")
-        val result =  locker.tryLock(10, 5, TimeUnit.SECONDS)
+        val result = locker.tryLock(10, 5, TimeUnit.SECONDS)
             .flatMapMany { lock ->
                 if (!lock) return@flatMapMany Mono.delay(Duration.ofMillis(100))
                     .thenMany(getAllData(key))
@@ -68,8 +67,8 @@ abstract class ACacheRedis<T>(
                         redisTemple.opsForList()
                             .leftPushAll(key, dataInDb)
                             .flatMap {
-                                if (amount == null || unit == null) return@flatMap Mono.empty()
-                                redisTemple.expire(key, Duration.of(amount, unit))
+                                if (amount == null || unit == null) Mono.empty()
+                                else redisTemple.expire(key, Duration.of(amount, unit))
                             }
                             .thenReturn(dataInDb)
                     }.flatMapMany { Flux.fromIterable(it) }

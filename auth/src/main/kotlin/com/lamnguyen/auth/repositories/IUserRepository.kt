@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono
 
 @Repository
 interface IUserRepository : ReactiveCrudRepository<User, String> {
-    fun findByPhoneNumber(phoneNumber: String): Mono<User?>
+    fun findByPhoneNumber(phoneNumber: String): Mono<User>
 
     fun existsUserByPhoneNumber(phoneNumber: String): Mono<Boolean>
 

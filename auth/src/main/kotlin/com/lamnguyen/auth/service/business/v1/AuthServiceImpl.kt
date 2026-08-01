@@ -91,7 +91,7 @@ class AuthServiceImpl(
                     otpCacheManager.startSessionValidateAccount(phoneNumber)
                 )
             ).then()
-            .doOnError { println(it)  }
+            .doOnError { println(it) }
             .onErrorResume { Mono.error(ApplicationException(ExceptionEnum.REGISTER_ERROR)) }
     }
 
@@ -180,17 +180,14 @@ class AuthServiceImpl(
         val monoUser = userRepository.findByPhoneNumber(phoneNumberFormated)
         val monoRoles = roleRepository.findByUserPhoneNumber(phoneNumberFormated)
         return Mono.zip(monoUser, monoRoles.collectList())
-            .mapNotNull {
+            .map {
                 val user = it.t1
                 val roles = it.t2
 
-                if (user == null || roles == null)
-                    throw ApplicationException(ExceptionEnum.USER_NOT_EXISTS)
-
-                return@mapNotNull jwtHelper.createAccessToken(
+                jwtHelper.createAccessToken(
                     accessTokenId,
                     user,
-                    roles.stream().map { role -> role!!.name }.toList(),
+                    roles.stream().map { role -> role.name }.toList(),
                     refreshTokenId
                 ).tokenValue
             }

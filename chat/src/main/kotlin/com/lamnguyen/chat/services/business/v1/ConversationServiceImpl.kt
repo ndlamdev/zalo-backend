@@ -117,7 +117,7 @@ class ConversationServiceImpl(
                         users.add(admin)
                         val members = users.asSequence().map { member -> member.id!! }.toList()
 
-                        return@flatMap cmmService.addMembers(it.id!!, members).collectList()
+                        cmmService.addMembers(it.id!!, members).collectList()
                             .thenReturn(it)
                     }
             }

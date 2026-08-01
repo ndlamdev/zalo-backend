@@ -86,7 +86,7 @@ class AuthenticationHandler(
      */
     fun validateAccount(request: ServerRequest): Mono<ServerResponse?> {
         return request.bodyToMono<OtpRequest>()
-            .flatMap{ authService.validateAccount(it.phoneNumber, it.otp) }
+            .flatMap { authService.validateAccount(it.phoneNumber, it.otp) }
             .then(ok("Validate otp successfully!"))
     }
 
@@ -100,7 +100,7 @@ class AuthenticationHandler(
         return ReactiveSecurityContextHolder.getContext().flatMap { securityContext ->
             val auth = securityContext.authentication as JwtAuthenticationToken
             return@flatMap ok(null) { it ->
-                it.addAll(authProperty.userRoles, auth.authorities.map { it -> it.authority })
+                it.addAll(authProperty.userRoles, auth.authorities.map { it.authority })
                 it.add(authProperty.userPhoneNumber, auth.name)
             }
         }

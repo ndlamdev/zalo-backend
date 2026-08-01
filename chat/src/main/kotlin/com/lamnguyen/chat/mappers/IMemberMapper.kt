@@ -17,38 +17,13 @@ import org.mapstruct.Mappings
 @Mapper(componentModel = "spring")
 interface IMemberMapper {
     @Mappings(
-        Mapping(target = "id", "memberId"),
-        Mapping(target = "userId", "memberUserId"),
-        Mapping(target = "active", "memberIsActive"),
-        Mapping(target = "muted", "memberIsMuted"),
-        Mapping(target = "role", "memberRole"),
-        Mapping(target = "joinedAt", "memberJoinedAt"),
-        Mapping(target = "joinedBy", "memberJoinedBy"),
+        Mapping(target = "id", source = "memberId"),
+        Mapping(target = "userId", source = "memberUserId"),
+        Mapping(target = "active", source = "memberIsActive"),
+        Mapping(target = "muted", source = "memberIsMuted"),
+        Mapping(target = "role", source = "memberRole"),
+        Mapping(target = "joinedAt", source = "memberJoinedAt"),
+        Mapping(target = "joinedBy", source = "memberJoinedBy"),
     )
     fun toEntity(row: ConversationMemberRowDto): Member
-
-    /**
-     *  @Column("conversation_id")
-     *     var conversationId: String? = null
-     *
-     *     @Column("user_id")
-     *     var userId: String? = null
-     *
-     *     var role: MemberRole = MemberRole.USER
-     *
-     *     @Column("joined_at")
-     *     var joinedAt: LocalDateTime? = null
-     *
-     *     @Column("joined_by")
-     *     var joinedBy: String? = null
-     *
-     *     @Column("is_muted")
-     *     var isMuted: Boolean = false
-     *
-     *     @Column("is_active")
-     *     var isActive: Boolean = true
-     *
-     *     @Transient
-     *     var metadata: ConversationMemberMetadata? = null
-     */
 }

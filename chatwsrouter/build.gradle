@@ -1,0 +1,37 @@
+plugins {
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependency.management)
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.spring)
+}
+
+group = "com.ndlamdev"
+version = "0.0.1-SNAPSHOT"
+description = "chatwsrouter"
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation(libs.reactor.kotlin)
+    implementation(libs.kotlin.reflect)
+    implementation(libs.kotlin.coroutines.reactor)
+    implementation(libs.spring.boot.data.redis.reactive)
+    implementation(libs.spring.boot.rsocket)
+    implementation(libs.spring.boot.webflux)
+    implementation(libs.spring.boot.security)
+    implementation(libs.spring.security.rsocket)
+    implementation(libs.spring.security.messaging)
+    implementation(libs.spring.kafka)
+    implementation(libs.redisson)
+    implementation(libs.redisson.spring.data)
+    implementation(libs.jackson.jsr310)
+    implementation(libs.kryo)
+}

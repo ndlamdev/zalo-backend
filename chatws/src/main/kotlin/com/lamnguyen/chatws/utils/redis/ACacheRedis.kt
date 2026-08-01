@@ -6,7 +6,7 @@
  *  User: kimin
  **/
 
-package com.lamnguyen.auth.utils.redis
+package com.lamnguyen.chatws.utils.redis
 
 import org.redisson.api.RedissonReactiveClient
 import org.springframework.data.redis.core.ReactiveRedisTemplate
@@ -80,8 +80,9 @@ abstract class ACacheRedis<T>(
             .thenMany(result)
     }
 
-    override fun clearCache(key: String): Mono<Long> {
-        return redisTemple.delete(key)
+    override fun clearCache(key: String) {
+        redisTemple.delete(key)
+            .subscribe()
     }
 
     override fun getData(

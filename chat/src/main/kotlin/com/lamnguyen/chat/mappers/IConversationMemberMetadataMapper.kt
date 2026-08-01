@@ -17,36 +17,11 @@ import org.mapstruct.Mappings
 @Mapper(componentModel = "spring")
 interface IConversationMemberMetadataMapper {
     @Mappings(
-        Mapping(target = "id", "memberMetadataId"),
-        Mapping(target = "lastReadMessageAt", "memberLastReadMessageAt"),
-        Mapping(target = "pinned", "memberIsPinned"),
-        Mapping(target = "muted", "memberMetadataIsMuted"),
-        Mapping(target = "archived", "memberIsArchived"),
+        Mapping(target = "id", source = "memberMetadataId"),
+        Mapping(target = "lastReadMessageAt", source = "memberLastReadMessageAt"),
+        Mapping(target = "pinned", source = "memberIsPinned"),
+        Mapping(target = "muted", source = "memberMetadataIsMuted"),
+        Mapping(target = "archived", source = "memberIsArchived"),
     )
     fun toEntity(row: ConversationMemberRowDto): ConversationMemberMetadata
-
-    /**
-     *  @Column("conversation_id")
-     *     var conversationId: String? = null
-     *
-     *     @Column("user_id")
-     *     var userId: String? = null
-     *
-     *     var role: MemberRole = MemberRole.USER
-     *
-     *     @Column("joined_at")
-     *     var joinedAt: LocalDateTime? = null
-     *
-     *     @Column("joined_by")
-     *     var joinedBy: String? = null
-     *
-     *     @Column("is_muted")
-     *     var isMuted: Boolean = false
-     *
-     *     @Column("is_active")
-     *     var isActive: Boolean = true
-     *
-     *     @Transient
-     *     var metadata: ConversationMemberMetadata? = null
-     */
 }
