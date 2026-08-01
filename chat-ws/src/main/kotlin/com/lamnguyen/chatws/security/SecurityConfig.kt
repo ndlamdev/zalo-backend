@@ -15,17 +15,22 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
-import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.AuthenticationFilter
 
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
+    private val jwtHelper: JwtHelper,
+    val authProperty: ApplicationProperty.Companion.AuthProperty,
     private val applicationProperty: ApplicationProperty,
 ) {
     @Bean
     fun securityFilterChain(httpSecurity: HttpSecurity): SecurityFilterChain? {
         return httpSecurity
+            .addFilterAfter(
+                JwtAuthenticationFilter(authProperty, jwtHelper), AuthenticationFilter::class.java
+            )
             .authorizeHttpRequests { exchange ->
                 exchange.requestMatchers(*applicationProperty.whitelist.toTypedArray()).permitAll()
                     .anyRequest().authenticated()

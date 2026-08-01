@@ -9,7 +9,6 @@
 package com.lamnguyen.auth.security.filters
 
 import com.lamnguyen.auth.domain.responses.TokenResponse
-import com.lamnguyen.auth.utils.enums.Keyword
 import com.lamnguyen.auth.utils.helpers.JwtHelper
 import com.lamnguyen.auth.utils.properties.ApplicationProperty
 import org.springframework.http.HttpMethod

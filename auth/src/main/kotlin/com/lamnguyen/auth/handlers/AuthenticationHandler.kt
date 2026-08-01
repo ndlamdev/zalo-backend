@@ -8,9 +8,9 @@
 
 package com.lamnguyen.auth.handlers
 
+import com.lamnguyen.auth.domain.requests.OtpRequest
 import com.lamnguyen.auth.domain.requests.PhoneNumberRequest
 import com.lamnguyen.auth.domain.requests.RegisterRequest
-import com.lamnguyen.auth.domain.requests.OtpRequest
 import com.lamnguyen.auth.exceptions.ApplicationException
 import com.lamnguyen.auth.exceptions.ExceptionEnum
 import com.lamnguyen.auth.service.business.IAuthService

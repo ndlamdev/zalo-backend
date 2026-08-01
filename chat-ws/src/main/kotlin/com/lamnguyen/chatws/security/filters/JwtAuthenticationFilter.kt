@@ -8,64 +8,67 @@
 
 package com.lamnguyen.chatws.security.filters
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.lamnguyen.chatws.domain.dto.ApiResponseError
 import com.lamnguyen.chatws.utils.helpers.JwtHelper
 import com.lamnguyen.chatws.utils.properties.ApplicationProperty
+import com.nimbusds.jose.shaded.gson.Gson
+import jakarta.servlet.Filter
+import jakarta.servlet.FilterChain
+import jakarta.servlet.ServletRequest
+import jakarta.servlet.ServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.context.ReactiveSecurityContextHolder
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
-import org.springframework.web.server.ServerWebExchange
-import org.springframework.web.server.WebFilter
-import org.springframework.web.server.WebFilterChain
-import reactor.core.publisher.Mono
 
 
 class JwtAuthenticationFilter(
     val authProperty: ApplicationProperty.Companion.AuthProperty,
     val jwtHelper: JwtHelper
-) : WebFilter {
-    override fun filter(
-        exchange: ServerWebExchange,
-        chain: WebFilterChain
-    ): Mono<Void?> {
-        val tokens = exchange.request.headers[HttpHeaders.AUTHORIZATION]
+) : Filter {
+    override fun doFilter(
+        request: ServletRequest?,
+        response: ServletResponse?,
+        chain: FilterChain?
+    ) {
+        val httpRequest = request as HttpServletRequest
+        val httpResponse = response as HttpServletResponse
+
+        val tokens = httpRequest.getHeader(HttpHeaders.AUTHORIZATION)
         if (tokens.isNullOrEmpty()) {
-            return chain.filter(exchange)
+            chain?.doFilter(request, response)
+            return
         }
 
-        val token = tokens.first().substring(7)
+        val token = tokens.substring(7)
+
 
         try {
-            val authorities = exchange
-                .request
-                .headers[authProperty.userRoles]
-                ?.map { SimpleGrantedAuthority(it) }
-                ?.toMutableSet()
-                ?: mutableSetOf()
+            val authorities = httpRequest.getHeaders(authProperty.userRoles)
+                .asSequence()
+                .map { SimpleGrantedAuthority(it) }
+                .toMutableSet()
 
             val authentication = jwtHelper.initAuthenticationToken(token, authorities)
 
             val context = SecurityContextImpl(authentication)
-            val contextHolder = ReactiveSecurityContextHolder
-                .withSecurityContext(Mono.just(context))
-            return chain.filter(exchange)
-                .contextWrite(contextHolder)
+            SecurityContextHolder.setContext(context)
+
+            chain?.doFilter(request, response)
         } catch (e: Exception) {
-            val bufferFactory = exchange.response.bufferFactory()
-            exchange.response.statusCode = HttpStatus.UNAUTHORIZED
-            exchange.response.headers.contentType = MediaType.APPLICATION_JSON
+            httpResponse.status = HttpStatus.UNAUTHORIZED.value()
+            httpResponse.contentType = MediaType.APPLICATION_JSON.toString()
             val bodyResponse = ApiResponseError<Any>().apply {
                 code = HttpStatus.UNAUTHORIZED.value()
                 error = HttpStatus.UNAUTHORIZED.reasonPhrase
                 detail = e.localizedMessage
                 trace = e.stackTrace
             }
-            val response = bufferFactory.wrap(ObjectMapper().writeValueAsBytes(bodyResponse))
-            return exchange.response.writeWith(Mono.just(response))
+            httpResponse.writer.write(Gson().toJson(bodyResponse))
         }
     }
 }

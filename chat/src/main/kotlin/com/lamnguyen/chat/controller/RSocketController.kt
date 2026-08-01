@@ -14,7 +14,6 @@ import com.lamnguyen.chat.services.business.IConversationService
 import org.springframework.messaging.handler.annotation.DestinationVariable
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.stereotype.Controller
-import org.springframework.web.bind.annotation.PathVariable
 import reactor.core.publisher.Mono
 
 @Controller

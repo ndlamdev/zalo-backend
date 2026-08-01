@@ -21,6 +21,7 @@ import com.lamnguyen.chat.repositories.IConversationRepository
 import com.lamnguyen.chat.services.business.IConversationMemberMetadataService
 import com.lamnguyen.chat.services.business.IConversationService
 import com.lamnguyen.chat.services.business.IMemberService
+import com.lamnguyen.chat.services.business.IMessageService
 import com.lamnguyen.chat.services.rsocket.IUserRequester
 import com.lamnguyen.chat.utils.enums.ConversationType
 import com.lamnguyen.chat.utils.helpers.KeyGenerator
@@ -32,19 +33,18 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
-import kotlin.collections.orEmpty
 
 @Service
 class ConversationServiceImpl(
-    val conversationRepository: IConversationRepository,
-    val userRequester: IUserRequester,
-    val memberService: IMemberService,
-    val cmmService: IConversationMemberMetadataService,
-    val conversationMapper: IConversationMapper,
-    val memberMapper: IMemberMapper,
-    val conversationMemberMetadataMapper: IConversationMemberMetadataMapper,
-) :
-    IConversationService {
+    private val conversationRepository: IConversationRepository,
+    private val userRequester: IUserRequester,
+    private val memberService: IMemberService,
+    private val cmmService: IConversationMemberMetadataService,
+    private val conversationMapper: IConversationMapper,
+    private val memberMapper: IMemberMapper,
+    private val conversationMemberMetadataMapper: IConversationMemberMetadataMapper,
+    private val messageService: IMessageService
+) : IConversationService {
 
     @Transactional
     override fun createConversation(createConversationRequest: CreateConversationRequest): Mono<Conversation> {
@@ -128,10 +128,23 @@ class ConversationServiceImpl(
     }
 
     override fun getAllConversation(phoneNumber: String): Mono<List<ConversationDto>> {
-        return collectConversation(conversationRepository.findAllDtoByPhoneNumberContains(phoneNumber))
+        val conversationRows = conversationRepository.findAllDtoByPhoneNumberContains(phoneNumber)
+        return collectHashMapConversation(conversationRows)
+            .flatMap { conversations ->
+                val ids = conversations.keys.toList()
+
+                messageService.getLastMessageAndPinMessages(ids)
+                    .doOnNext { message ->
+                        val conversation = conversations[message.conversationId!!] ?: return@doOnNext
+                        if (message.isPinned)
+                            conversation.pinMessages.add(message)
+                        else conversation.lastMessage = message
+                    }
+                    .collectList().thenReturn(conversations.values.toList())
+            }
     }
 
-    private fun collectConversation(rows: Flux<ConversationMemberRowDto>): Mono<List<ConversationDto>> {
+    private fun collectHashMapConversation(rows: Flux<ConversationMemberRowDto>): Mono<HashMap<String, ConversationDto>> {
         return rows.collect(
             { LinkedHashMap<String, ConversationDto>() },
             { conversations, row ->
@@ -146,7 +159,10 @@ class ConversationServiceImpl(
                 )
             }
         )
-            .map { conversations -> conversations.values.toList() }
+    }
+
+    private fun collectListConversation(rows: Flux<ConversationMemberRowDto>): Mono<List<ConversationDto>> {
+        return collectHashMapConversation(rows).map { it.values.toList() }
     }
 
     override fun existConversationById(conversationId: String): Mono<Boolean> {
@@ -159,7 +175,7 @@ class ConversationServiceImpl(
 
     override fun getConversationInfo(conversationId: String): Mono<ConversationDto> {
         val rows = conversationRepository.findDtoByConversationId(conversationId)
-        return collectConversation(rows).map { it.first() }
+        return collectListConversation(rows).map { it.first() }
     }
 
     @Transactional
@@ -181,11 +197,11 @@ class ConversationServiceImpl(
                     .flatMapMany {
                         conversationRepository.findDtoBySoftId(softId)
                     })
-        return collectConversation(rows).map { it.first() }
+        return collectListConversation(rows).map { it.first() }
     }
 
     override fun getConversationBySoftId(softId: String): Mono<ConversationDto> {
         val rows = conversationRepository.findDtoBySoftId(softId)
-        return collectConversation(rows).map { it.first() }
+        return collectListConversation(rows).map { it.first() }
     }
 }

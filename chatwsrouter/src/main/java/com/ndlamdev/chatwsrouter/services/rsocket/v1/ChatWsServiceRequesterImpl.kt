@@ -8,7 +8,9 @@
 
 package com.ndlamdev.chatwsrouter.services.rsocket.v1
 
+import com.ndlamdev.chatwsrouter.domain.dto.Message
 import com.ndlamdev.chatwsrouter.domain.message.ChatMessage
+import com.ndlamdev.chatwsrouter.domain.message.ReceiveMessage
 import com.ndlamdev.chatwsrouter.services.business.IConversationService
 import com.ndlamdev.chatwsrouter.services.factory.IRSocketChatWsServiceRequesterFactory
 import com.ndlamdev.chatwsrouter.services.rsocket.IChatWsServiceRequester
@@ -29,7 +31,18 @@ class ChatWsServiceRequesterImpl(
                 Flux.fromIterable(conversation.members)
                     .flatMap { member ->
                         rSocketChatWsRequesterServiceFactory.getRSocketRequester(member.userId!!)
-                    }.flatMap { rSocket -> rSocket.route("chat.receive").data(message).send() }
+                            .flatMap { requester ->
+                                val receiveMessage = ReceiveMessage().apply {
+                                    this.user = member.userId
+                                    this.content = message.content
+                                    this.attachments = message.attachments
+                                    this.senderPhoneNumber = message.senderPhoneNumber
+                                    this.type = message.type
+                                    this.timestamp = message.timestamp
+                                }
+                                requester.route("chat.receive").data(receiveMessage).send()
+                            }
+                    }
             }.then(Mono.empty())
     }
 
@@ -41,7 +54,7 @@ class ChatWsServiceRequesterImpl(
                         rSocketChatWsRequesterServiceFactory.getRSocketRequester(member.id!!)
                             .flatMap { rSocket ->
                                 rSocket.route("chat.receive")
-                                    .data(ChatMessage.Companion.Message.parse(member.userId!!, message))
+                                    .data(Message.parse(member.userId!!, message))
                                     .send()
                             }
                     }

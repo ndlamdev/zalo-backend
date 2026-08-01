@@ -8,7 +8,6 @@
 
 package com.lamnguyen.chatws.configs
 
-import com.lamnguyen.chatws.configs.handlers.UserHandshakeHandler
 import com.lamnguyen.chatws.configs.interceptors.AuthHandshakeInterceptor
 import org.springframework.context.annotation.Configuration
 import org.springframework.messaging.simp.config.MessageBrokerRegistry
@@ -20,19 +19,19 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Configuration
 @EnableWebSocketMessageBroker
 class WebSocketConfig(
-    val authHandshakeInterceptor: AuthHandshakeInterceptor,
-    val userHandshakeHandler: UserHandshakeHandler,
-) : WebSocketMessageBrokerConfigurer {
+    private val authHandshakeInterceptor: AuthHandshakeInterceptor,
+) :
+    WebSocketMessageBrokerConfigurer {
+
     override fun configureMessageBroker(registry: MessageBrokerRegistry) {
         registry.enableSimpleBroker("/notify", "/queue") // prefix nhận subscribe 1 topic
-        registry.setApplicationDestinationPrefixes("/app") // prefix nhận message và gửi cho toàn app (Không đăng nhập)
-        registry.setUserDestinationPrefix("/user") //  prefix nhận message và gửi cho từng user (Đã đăng nhập)
+        registry.setApplicationDestinationPrefixes("/app") // prefix nhận message và gửi cho toàn bộ user đã subcribe với prefix được cấu hình bằng enableSimpleBroker (Không đăng nhập)
+        registry.setUserDestinationPrefix("/user") //  prefix nhận message và gửi cho từng user với prefix được cấu hình bằng enableSimpleBroker (Đã đăng nhập)
     }
 
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
         registry.addEndpoint("/chat-websocket")
             .addInterceptors(authHandshakeInterceptor)
-            .setHandshakeHandler(userHandshakeHandler)
             .setAllowedOrigins("*") // đăng ký connect
     }
 }

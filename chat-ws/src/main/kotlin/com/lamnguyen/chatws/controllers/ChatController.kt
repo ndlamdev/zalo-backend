@@ -8,8 +8,8 @@
 
 package com.lamnguyen.chatws.controllers
 
-import com.lamnguyen.chatws.configs.handlers.UserHandshakeHandler
 import com.lamnguyen.chatws.domain.messages.ChatMessage
+import com.lamnguyen.chatws.domain.messages.ReceiveMessage
 import com.lamnguyen.chatws.domain.requests.Message
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.header.internals.RecordHeaders
@@ -17,31 +17,33 @@ import org.springframework.http.HttpHeaders
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.simp.SimpMessagingTemplate
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Controller
 
 
 @Controller
 class ChatController(
     private val template: KafkaTemplate<String, ChatMessage>,
-    private val messagingTemplate: SimpMessagingTemplate
+    private val messagingTemplate: SimpMessagingTemplate,
 ) {
-    //    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN')")
     @MessageMapping("/chat")
-    fun handleTextMessage(message: Message, principal: UserHandshakeHandler.StompPrincipal): Message {
-        return sendMessage(message, principal)
+    fun handleTextMessage(message: Message, token: JwtAuthenticationToken): Message {
+        return sendMessage(message, token)
     }
 
-    private fun sendMessage(message: Message, principal: UserHandshakeHandler.StompPrincipal): Message {
+    private fun sendMessage(message: Message, token: JwtAuthenticationToken): Message {
         val headers = RecordHeaders()
-        headers.add(HttpHeaders.AUTHORIZATION, principal.token.toByteArray())
-        headers.add("owner", principal.name!!.toByteArray())
+        val name = token.name
+
+        headers.add(HttpHeaders.AUTHORIZATION, token.token.tokenValue.toByteArray())
+        headers.add("owner", name.toByteArray())
 
         val data = ProducerRecord(
             "messages",
             null,
-            principal.name,
+            name,
             ChatMessage(message).apply {
-                senderPhoneNumber = principal.name
+                senderPhoneNumber = name
             },
             headers
         )
@@ -52,7 +54,7 @@ class ChatController(
     }
 
     @MessageMapping("chat.receive")
-    fun receiveMessage(user: String, message: Message) {
-        messagingTemplate.convertAndSendToUser(user, "/chat", message)
+    fun receiveMessage(message: ReceiveMessage) {
+        messagingTemplate.convertAndSendToUser(message.user, "/queue/chat", message)
     }
 }

@@ -9,8 +9,6 @@
 package com.lamnguyen.user.domain.dto
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.springframework.security.core.Authentication
-import java.util.stream.Collectors
 
 class AccessTokenPayload : SimplePayload() {
     var refreshTokenId: String? = null

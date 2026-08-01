@@ -8,7 +8,6 @@
 
 package com.lamnguyen.auth.repositories
 
-import com.lamnguyen.auth.model.Permission
 import com.lamnguyen.auth.model.RolesOfUser
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import org.springframework.stereotype.Repository

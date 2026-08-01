@@ -3,7 +3,7 @@ package com.lamnguyen.chatws.domain.messages
 import com.lamnguyen.chatws.utils.enums.ContentMessageType
 import java.time.Instant
 
-class Message {
+class ReceiveMessage {
     var content: String? = null
     var user: String = ""
     var attachments: List<Any> = emptyList()

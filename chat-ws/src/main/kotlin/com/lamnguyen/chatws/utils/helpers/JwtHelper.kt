@@ -12,10 +12,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.lamnguyen.chatws.domain.dto.AccessTokenPayload
 import com.lamnguyen.chatws.utils.properties.ApplicationProperty
 import org.springframework.security.authentication.AbstractAuthenticationToken
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Component
 
 @Component
@@ -44,11 +44,6 @@ class JwtHelper(
             authorities.add(SimpleGrantedAuthority(role))
         }
 
-
-        return UsernamePasswordAuthenticationToken(
-            payload.phoneNumber,
-            null,
-            authorities
-        )
+        return JwtAuthenticationToken(jwt, authorities)
     }
 }

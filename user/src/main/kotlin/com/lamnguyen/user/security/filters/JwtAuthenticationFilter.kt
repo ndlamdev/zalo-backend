@@ -33,7 +33,7 @@ class JwtAuthenticationFilter(
         chain: WebFilterChain
     ): Mono<Void?> {
         val tokens = exchange.request.headers[HttpHeaders.AUTHORIZATION]
-        if (tokens == null || tokens.isEmpty()) {
+        if (tokens.isNullOrEmpty()) {
             return chain.filter(exchange)
         }
 

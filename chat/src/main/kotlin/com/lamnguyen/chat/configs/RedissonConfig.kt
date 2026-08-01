@@ -1,8 +1,5 @@
 package com.lamnguyen.chat.configs
 
-import com.lamnguyen.chat.entities.Conversation
-import com.lamnguyen.chat.entities.ConversationMemberMetadata
-import com.lamnguyen.chat.utils.redis.serializers.KryoRedisSerializer
 import org.redisson.Redisson
 import org.redisson.api.RedissonReactiveClient
 import org.redisson.config.Config
@@ -11,9 +8,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.Resource
-import org.springframework.data.redis.core.ReactiveRedisTemplate
-import org.springframework.data.redis.serializer.RedisSerializationContext
-import org.springframework.data.redis.serializer.StringRedisSerializer
 
 
 @Configuration("project-redisson-config")

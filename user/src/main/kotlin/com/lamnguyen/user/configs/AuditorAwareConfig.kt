@@ -15,8 +15,7 @@ class AuditorAwareConfig {
     fun myAuditorProvider(): ReactiveAuditorAware<String> {
         return ReactiveAuditorAware<String> {
             ReactiveSecurityContextHolder.getContext().flatMap { securityContext ->
-                val auth = securityContext.authentication
-                if (auth == null) return@flatMap Mono.empty()
+                val auth = securityContext.authentication ?: return@flatMap Mono.empty()
                 return@flatMap Mono.just(auth.name)
             }
         }
