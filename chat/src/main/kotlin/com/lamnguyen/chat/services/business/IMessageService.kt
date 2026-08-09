@@ -14,5 +14,4 @@ import reactor.core.publisher.Mono
 
 interface IMessageService {
     fun save(message: Message): Mono<Message>
-    fun getLastMessageAndPinMessages(conversationIds: List<String>): Flux<Message>
 }

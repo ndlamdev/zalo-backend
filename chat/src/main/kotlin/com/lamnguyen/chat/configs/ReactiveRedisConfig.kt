@@ -1,5 +1,6 @@
 package com.lamnguyen.chat.configs
 
+import com.lamnguyen.chat.domain.dto.ConversationDto
 import com.lamnguyen.chat.entities.Conversation
 import com.lamnguyen.chat.entities.ConversationMemberMetadata
 import com.lamnguyen.chat.utils.redis.serializers.KryoRedisSerializer
@@ -29,20 +30,13 @@ class ReactiveRedisConfig {
     }
 
     @Bean
-    fun conversationRedissonClient(factory: RedissonConnectionFactory): ReactiveRedisTemplate<String?, Conversation?> {
-        val context = RedisSerializationContext
-            .newSerializationContext<String?, Conversation?>(StringRedisSerializer())
-            .value(KryoRedisSerializer(Conversation::class.java))
-            .build()
+    fun conversationRedissonClient(factory: RedissonConnectionFactory): ReactiveRedisTemplate<String?, ConversationDto?> {
+        val keySerializer = StringRedisSerializer()
+        val valueSerializer = KryoRedisSerializer(ConversationDto::class.java)
 
-        return ReactiveRedisTemplate(factory, context)
-    }
-
-    @Bean
-    fun conversationMemberRedissonClient(factory: RedissonConnectionFactory): ReactiveRedisTemplate<String?, ConversationMemberMetadata?> {
         val context = RedisSerializationContext
-            .newSerializationContext<String?, ConversationMemberMetadata?>(StringRedisSerializer())
-            .value(KryoRedisSerializer(ConversationMemberMetadata::class.java))
+            .newSerializationContext<String?, ConversationDto?>(keySerializer)
+            .value(valueSerializer)
             .build()
 
         return ReactiveRedisTemplate(factory, context)

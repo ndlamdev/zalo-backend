@@ -6,7 +6,6 @@ import com.lamnguyen.chat.entities.Message
 
 class ConversationDto : Conversation() {
     var pinned: Boolean = false
-    var members: MutableList<Member> = mutableListOf()
     var lastMessage: Message? = null
-    var pinMessages: MutableList<Message> = mutableListOf()
+    var totalMessageUnread: Int = 0
 }

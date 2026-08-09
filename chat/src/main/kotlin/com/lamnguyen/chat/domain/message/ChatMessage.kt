@@ -3,6 +3,7 @@ package com.lamnguyen.chat.domain.message
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import java.time.Instant
+import java.time.LocalDateTime
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 class ChatMessage {
@@ -12,7 +13,7 @@ class ChatMessage {
     var attachments: List<Any> = emptyList()
     var senderPhoneNumber: String? = null
     var type: ContentMessageType? = ContentMessageType.TEXT
-    var timestamp: Instant? = Instant.now()
+    var time: LocalDateTime? = LocalDateTime.now()
 
     companion object {
         enum class ContentMessageType {

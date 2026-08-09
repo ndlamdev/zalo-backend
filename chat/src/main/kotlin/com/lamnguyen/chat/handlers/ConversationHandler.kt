@@ -44,7 +44,7 @@ class ConversationHandler(
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER', 'USER_GET_ALL_ROOM_CHAT')")
     fun getAllConversation(request: ServerRequest): Mono<ServerResponse?> {
         return ReactiveSecurityContextHolder.getContext()
-            .flatMap { securityContext -> conversationService.getAllConversation(securityContext.authentication.name) }
+            .flatMap { securityContext -> conversationService.getAllDetailConversation(securityContext.authentication.name) }
             .flatMap { ok(it) }
     }
 

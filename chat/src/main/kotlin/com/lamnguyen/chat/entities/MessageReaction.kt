@@ -1,14 +1,12 @@
 package com.lamnguyen.chat.entities
 
-import org.springframework.data.relational.core.mapping.Column
-import org.springframework.data.relational.core.mapping.Table
+import org.springframework.data.mongodb.core.mapping.Field
 
-@Table("message_reaction")
-class MessageReaction : BaseEntity() {
-    @Column("message_id")
+class MessageReaction {
+    @Field("message_id")
     var messageId: String? = null
 
-    @Column("member_id")
+    @Field("member_id")
     var memberId: String? = null
 
     var emoji: String? = null

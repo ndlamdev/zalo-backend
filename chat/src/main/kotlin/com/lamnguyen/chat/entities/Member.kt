@@ -2,33 +2,26 @@ package com.lamnguyen.chat.entities
 
 import com.lamnguyen.chat.utils.annotations.JsonDateTimeFormat
 import com.lamnguyen.chat.utils.enums.MemberRole
-import org.springframework.data.relational.core.mapping.Column
-import org.springframework.data.relational.core.mapping.Table
+import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.mongodb.core.mapping.Field
 import java.time.LocalDateTime
 
-@Table("member")
-class Member : BaseEntity() {
-    @Column("conversation_id")
-    var conversationId: String? = null
+@Document("member")
+class Member {
+    var id: String? = null
 
-    @Column("user_id")
-    var userId: String? = null
+    @Field("phone_number")
+    var phoneNumber: String? = null
 
     var role: MemberRole = MemberRole.USER
 
     @JsonDateTimeFormat
-    @Column("joined_at")
+    @Field("joined_at")
     var joinedAt: LocalDateTime? = null
 
-    @Column("joined_by")
+    @Field("joined_by")
     var joinedBy: String? = null
 
-    @Column("is_muted")
-    var muted: Boolean = false
-
-    @Column("is_active")
-    var active: Boolean = true
-
-    @Transient
+    @Field("metadata")
     var metadata: ConversationMemberMetadata? = null
 }

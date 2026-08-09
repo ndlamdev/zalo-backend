@@ -1,28 +1,26 @@
 package com.lamnguyen.chat.entities
 
 import com.lamnguyen.chat.utils.annotations.JsonDateTimeFormat
-import org.springframework.data.relational.core.mapping.Column
-import org.springframework.data.relational.core.mapping.Table
+import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.mongodb.core.mapping.Field
 import java.time.LocalDateTime
 
-@Table("conversation_member_metadata")
-class ConversationMemberMetadata : BaseEntity() {
-    @Column("conversation_id")
-    var conversationId: String? = null
-
-    @Column("member_id")
-    var memberId: String? = null
+@Document("conversation_member_metadata")
+class ConversationMemberMetadata {
+    @JsonDateTimeFormat
+    @Field("deleted_conversation_at")
+    var deletedConversationAt: LocalDateTime? = LocalDateTime.now()
 
     @JsonDateTimeFormat
-    @Column("last_read_message_at")
-    var lastReadMessageAt: LocalDateTime? = null
+    @Field("last_read_message_at")
+    var lastReadMessageAt: LocalDateTime? = LocalDateTime.now()
 
-    @Column("is_pinned")
+    @Field("is_pinned")
     var pinned: Boolean = false
 
-    @Column("is_muted")
+    @Field("is_muted")
     var muted: Boolean = false
 
-    @Column("is_archived")
+    @Field("is_archived")
     var archived: Boolean = false
 }

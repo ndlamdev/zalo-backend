@@ -1,19 +1,19 @@
 package com.lamnguyen.chat.entities
 
-import org.springframework.data.relational.core.mapping.Column
-import org.springframework.data.relational.core.mapping.Table
+import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.mongodb.core.mapping.Field
 
-@Table("message_history")
+@Document("message_history")
 class MessageHistory : BaseEntity() {
-    @Column("message_id")
+    @Field("message_id")
     var messageId: Long = 0
 
-    @Column("editor_id")
+    @Field("editor_id")
     var editorId: Long = 0
 
-    @Column("old_content")
+    @Field("old_content")
     var oldContent: String? = null
 
-    @Column("new_content")
+    @Field("new_content")
     var newContent: String? = null
 }

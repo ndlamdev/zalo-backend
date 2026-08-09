@@ -1,21 +1,21 @@
 package com.lamnguyen.chat.entities
 
-import org.springframework.data.relational.core.mapping.Column
-import org.springframework.data.relational.core.mapping.Table
+import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.mongodb.core.mapping.Field
 
-@Table("attachment")
+@Document("attachment")
 class Attachment : BaseEntity() {
-    @Column("message_id")
+    @Field("message_id")
     var messageId: String? = null
 
     var url: String? = null
 
     var type: Byte? = null
 
-    @Column("file_name")
+    @Field("file_name")
     var fileName: String? = null
 
-    @Column("file_size")
+    @Field("file_size")
     var fileSize: Long? = null
 
     var width: Int? = null

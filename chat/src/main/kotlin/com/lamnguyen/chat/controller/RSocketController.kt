@@ -21,6 +21,11 @@ class RSocketController(val conversationService: IConversationService) {
     @MessageMapping("chat.conversation")
     fun getConversation(request: ConversationInfoRequest): Mono<ConversationDto> {
         return conversationService.getConversationInfo(request.ownerPhone, request.users)
+            .switchIfEmpty(
+                conversationService.createConversation(request.ownerPhone, request.users, "ChatWsRouterService")
+                    .flatMap { conversation ->
+                        conversationService.getConversationBySoftId(conversation.softId!!)
+                    })
     }
 
     @MessageMapping("chat.conversation.{conversationId}")

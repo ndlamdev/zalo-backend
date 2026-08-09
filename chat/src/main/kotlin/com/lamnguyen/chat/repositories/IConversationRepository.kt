@@ -8,218 +8,205 @@
 
 package com.lamnguyen.chat.repositories
 
-import com.lamnguyen.chat.domain.dto.ConversationMemberRowDto
+import com.lamnguyen.chat.domain.dto.ConversationDto
 import com.lamnguyen.chat.entities.Conversation
-import org.springframework.data.r2dbc.repository.Query
-import org.springframework.data.r2dbc.repository.R2dbcRepository
+import org.springframework.data.mongodb.repository.Aggregation
+import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
-interface IConversationRepository : R2dbcRepository<Conversation, String> {
-    @Query(
-        value = """
-            SELECT
-                c.*,
-            
-                -- Metadata của người đang xem conversation
-                viewer_metadata.is_pinned AS viewer_is_pinned,
-            
-                -- Member thuộc conversation
-                member.id AS member_id,
-                member.user_id AS member_user_id,
-                member.role AS member_role,
-                member.joined_at AS member_joined_at,
-                member.joined_by AS member_joined_by,
-                member.is_muted AS member_is_muted,
-                member.is_active AS member_is_active,
-            
-                -- Metadata tương ứng của member ở trên
-                member_metadata.id AS member_metadata_id,
-                member_metadata.last_read_message_at AS member_last_read_message_at,
-                member_metadata.is_pinned AS member_is_pinned,
-                member_metadata.is_muted AS member_metadata_is_muted,
-                member_metadata.is_archived AS member_is_archived
-            FROM conversation c
-            
-            -- `viewer`: xác định các conversation mà user hiện tại được phép thấy
-                     JOIN member viewer
-                          ON viewer.conversation_id = c.id
-                              AND viewer.user_id = :phoneNumber
-                              AND viewer.is_active = true
-            
-                     LEFT JOIN conversation_member_metadata viewer_metadata
-                               ON viewer_metadata.member_id = viewer.id
-            
-            -- `member`: lấy tất cả member của từng conversation đó
-                     JOIN member
-                          ON member.conversation_id = c.id
-                              AND member.is_active = true
-            
-                     LEFT JOIN conversation_member_metadata member_metadata
-                               ON member_metadata.member_id = member.id
-            ORDER BY c.last_message_at DESC"""
-    )
-    fun findAllDtoByPhoneNumberContains(phoneNumber: String): Flux<ConversationMemberRowDto>
-
-    @Query(
-        value = """
-            SELECT
-                c.*,
-            
-                -- Metadata của người đang xem conversation
-                viewer_metadata.is_pinned AS viewer_is_pinned,
-            
-                -- Member thuộc conversation
-                member.id AS member_id,
-                member.user_id AS member_user_id,
-                member.role AS member_role,
-                member.joined_at AS member_joined_at,
-                member.joined_by AS member_joined_by,
-                member.is_muted AS member_is_muted,
-                member.is_active AS member_is_active,
-            
-                -- Metadata tương ứng của member ở trên
-                member_metadata.id AS member_metadata_id,
-                member_metadata.last_read_message_at AS member_last_read_message_at,
-                member_metadata.is_pinned AS member_is_pinned,
-                member_metadata.is_muted AS member_metadata_is_muted,
-                member_metadata.is_archived AS member_is_archived
-            FROM conversation c
-            -- `viewer`: xác định các conversation mà user hiện tại được phép thấy
-                     JOIN member viewer
-                          ON viewer.conversation_id = c.id
-                              AND viewer.user_id = :phoneNumber
-                              AND viewer.is_active = true
-            
-                     LEFT JOIN conversation_member_metadata viewer_metadata
-                               ON viewer_metadata.member_id = viewer.id
-            -- `member`: lấy tất cả member của từng conversation đó
-                     JOIN member
-                          ON member.conversation_id = c.id
-                              AND member.is_active = true
-            
-                     LEFT JOIN conversation_member_metadata member_metadata
-                               ON member_metadata.member_id = member.id
-            WHERE c.id = :conversationId
+interface IConversationRepository : ReactiveCrudRepository<Conversation, String> {
+    @Aggregation(
+        pipeline = [
             """
-    )
-    fun findDtoByConversationId(phoneNumber: String, conversationId: String): Flux<ConversationMemberRowDto>
+            {
+                ${"$"}match: {
+                    '${"$"}members.phone_number': ?0
+                }
+            }
+            """,
 
-    @Query(
-        value = """
-            SELECT
-                c.*,
-            
-                -- Metadata của người đang xem conversation
-                viewer_metadata.is_pinned AS viewer_is_pinned,
-            
-                -- Member thuộc conversation
-                member.id AS member_id,
-                member.user_id AS member_user_id,
-                member.role AS member_role,
-                member.joined_at AS member_joined_at,
-                member.joined_by AS member_joined_by,
-                member.is_muted AS member_is_muted,
-                member.is_active AS member_is_active,
-            
-                -- Metadata tương ứng của member ở trên
-                member_metadata.id AS member_metadata_id,
-                member_metadata.last_read_message_at AS member_last_read_message_at,
-                member_metadata.is_pinned AS member_is_pinned,
-                member_metadata.is_muted AS member_metadata_is_muted,
-                member_metadata.is_archived AS member_is_archived
-            FROM conversation c
-            -- `viewer`: xác định các conversation mà user hiện tại được phép thấy
-                     JOIN member viewer
-                          ON viewer.conversation_id = c.id
-                              AND viewer.user_id = :phoneNumber
-                              AND viewer.is_active = true
-            
-                     LEFT JOIN conversation_member_metadata viewer_metadata
-                               ON viewer_metadata.member_id = viewer.id
-            -- `member`: lấy tất cả member của từng conversation đó
-                     JOIN member
-                          ON member.conversation_id = c.id
-                              AND member.is_active = true
-            
-                     LEFT JOIN conversation_member_metadata member_metadata
-                               ON member_metadata.member_id = member.id
-            WHERE c.soft_id = :softId
             """
-    )
-    fun findDtoBySoftId(phoneNumber: String, softId: String): Flux<ConversationMemberRowDto>
+            {
+                ${"$"}set: {
+                    'viewer': {
+                        ${"$"}arrayElemAt: [
+                            {
+                                ${"$"}filter: {
+                                    input: '${"$"}members',
+                                    as: 'member',
+                                    cond: {
+                                        eq: [
+                                            '${"$$"}member.phone_number',
+                                            ?0
+                                        ]
+                                    }
+                                }
+                            },
+                            0
+                        ]
+                    }
+                }
+            }
+            """,
 
-    @Query(
-        value = """
-            SELECT
-                c.*,
-            
-                -- Metadata của người đang xem conversation
-               'FALSE' AS viewer_is_pinned,
-            
-                -- Member thuộc conversation
-                member.id AS member_id,
-                member.user_id AS member_user_id,
-                member.role AS member_role,
-                member.joined_at AS member_joined_at,
-                member.joined_by AS member_joined_by,
-                member.is_muted AS member_is_muted,
-                member.is_active AS member_is_active,
-            
-                -- Metadata tương ứng của member ở trên
-                member_metadata.id AS member_metadata_id,
-                member_metadata.last_read_message_at AS member_last_read_message_at,
-                member_metadata.is_pinned AS member_is_pinned,
-                member_metadata.is_muted AS member_metadata_is_muted,
-                member_metadata.is_archived AS member_is_archived
-            FROM conversation c
-            -- `member`: lấy tất cả member của từng conversation đó
-                     JOIN member
-                          ON member.conversation_id = c.id
-                              AND member.is_active = true
-            
-                     LEFT JOIN conversation_member_metadata member_metadata
-                               ON member_metadata.member_id = member.id
-            WHERE c.id = :conversationId
             """
-    )
-    fun findDtoByConversationId(conversationId: String): Flux<ConversationMemberRowDto>
+            {
+                ${"$"}lookup: {
+                    from: 'message',
+                    let: {
+                        'deleted_conversation_at':
+                            '${"$"}viewer.metadata.deleted_conversation_at'
+                    },
+                    pipeline: [
+                        {
+                            ${"$"}match: {
+                                gte: [
+                                    '${"$"}created_at',
+                                    '${"$$"}deleted_conversation_at'
+                                ]
+                            }
+                        },
+                        {
+                            sort: {
+                                'created_at': 1
+                            }
+                        }
+                    ],
+                    as: 'messages'
+                }
+            }
+            """,
 
-    @Query(
-        value = """
-            SELECT
-                c.*,
-            
-                -- Metadata của người đang xem conversation
-                'FALSE' AS viewer_is_pinned,
-            
-                -- Member thuộc conversation
-                member.id AS member_id,
-                member.user_id AS member_user_id,
-                member.role AS member_role,
-                member.joined_at AS member_joined_at,
-                member.joined_by AS member_joined_by,
-                member.is_muted AS member_is_muted,
-                member.is_active AS member_is_active,
-            
-                -- Metadata tương ứng của member ở trên
-                member_metadata.id AS member_metadata_id,
-                member_metadata.last_read_message_at AS member_last_read_message_at,
-                member_metadata.is_pinned AS member_is_pinned,
-                member_metadata.is_muted AS member_metadata_is_muted,
-                member_metadata.is_archived AS member_is_archived
-            FROM conversation c
-            -- `member`: lấy tất cả member của từng conversation đó
-                     JOIN member
-                          ON member.conversation_id = c.id
-                              AND member.is_active = true
-            
-                     LEFT JOIN conversation_member_metadata member_metadata
-                               ON member_metadata.member_id = member.id
-            WHERE c.soft_id = :softId
             """
+            {
+                ${"$"}set: {
+                    'messages': {
+                        map: {
+                            input: '${"$"}messages',
+                            as: 'message',
+                            in: {
+                                ${"$"}mergeObjects: [
+                                    'message',
+                                    {
+                                        'status': {
+                                            ${"$"}arrayElemAt: [
+                                                {
+                                                    ${"$"}filter: {
+                                                        input:
+                                                            '${"$$"}message.statuses',
+                                                        as: 'status',
+                                                        cond: {
+                                                            ${"$"}eq: [
+                                                                '${"$$"}status.member_id',
+                                                                '${"$"}viewer._id'
+                                                            ]
+                                                        }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+
+            """
+            {
+                ${"$"}set: {
+                    'pinned':
+                        '${"$"}viewer.metadata.is_pinned',
+
+                    'muted':
+                        '${"$"}viewer.metadata.is_muted',
+
+                    'archived':
+                        '${"$"}viewer.metadata.is_archived',
+
+                    'last_message': {
+                        ${"$"}arrayElemAt: [
+                            '${"$"}messages',
+                            -1
+                        ]
+                    },
+
+                    'total': {
+                        ${"$"}sum: {
+                            ${"$"}map: {
+                                input: '${"$"}messages',
+                                as: 'message',
+                                in: {
+                                    ${"$"}cond: [
+                                        {
+                                            ${"$"}eq: [
+                                                '${"$$"}message.status.status',
+                                                'SEND'
+                                            ]
+                                        },
+                                        1,
+                                        0
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+
+            """
+            {
+                ${"$"}unset: [
+                    'viewer',
+                    'messages',
+                    'members.metadata'
+                ]
+            }
+            """
+        ]
     )
-    fun findDtoBySoftId(softId: String): Flux<ConversationMemberRowDto>
+    fun findAllDetailDtoByPhoneNumberContains(phoneNumber: String): Flux<ConversationDto>
+
+    @Aggregation(
+        pipeline = [
+            """
+            {
+            ${"$"}match: {
+                "_id": ?0
+                }
+            }
+        """,
+            """
+            {
+                ${"$"}unset: [  "members.metadata"  ]
+            }
+        """
+        ]
+    )
+    fun findDtoByConversationId(conversationId: String): Mono<ConversationDto>
+
+    @Aggregation(
+        pipeline = [
+            """
+            {
+            ${"$"}match: {
+                "soft_id": ?0
+                }
+            }
+        """,
+            """
+            {
+                ${"$"}unset: [  "members.metadata"  ]
+            }
+        """
+        ]
+    )
+    fun findDtoBySoftId(softId: String): Mono<ConversationDto>
 
     fun findBySoftId(softId: String): Mono<Conversation>
     fun countBySoftId(softId: String): Mono<Int>

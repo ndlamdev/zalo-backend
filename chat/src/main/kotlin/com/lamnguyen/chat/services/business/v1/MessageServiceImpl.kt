@@ -16,12 +16,10 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @Service
-class MessageServiceImpl(val messageRepository: IMessageRepository) : IMessageService {
+class MessageServiceImpl(
+    private val messageRepository: IMessageRepository,
+) : IMessageService {
     override fun save(message: Message): Mono<Message> {
         return messageRepository.save(message)
-    }
-
-    override fun getLastMessageAndPinMessages(conversationIds: List<String>): Flux<Message> {
-        return messageRepository.findAllLastMessageAndPinMessages(conversationIds)
     }
 }

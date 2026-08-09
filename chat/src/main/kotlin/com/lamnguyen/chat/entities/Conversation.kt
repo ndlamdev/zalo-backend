@@ -1,14 +1,12 @@
 package com.lamnguyen.chat.entities
 
-import com.lamnguyen.chat.utils.annotations.JsonDateTimeFormat
 import com.lamnguyen.chat.utils.enums.ConversationType
-import org.springframework.data.relational.core.mapping.Column
-import org.springframework.data.relational.core.mapping.Table
-import java.time.LocalDateTime
+import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.mongodb.core.mapping.Field
 
-@Table("conversation")
+@Document("conversation")
 open class Conversation : BaseEntity() {
-    @Column("soft_id")
+    @Field("soft_id")
     var softId: String? = null
 
     var admin: String? = null
@@ -17,19 +15,12 @@ open class Conversation : BaseEntity() {
 
     var title: String? = null
 
-    @Column("avatar_url")
+    @Field("avatar_url")
     var avatarUrl: String? = null
 
-    @Column("theme")
+    @Field("theme")
     var theme: String? = null
 
-    @Column("last_message_id")
-    var lastMessageId: String? = null
-
-    @JsonDateTimeFormat
-    @Column("last_message_at")
-    var lastMessageAt: LocalDateTime? = null
-
-    @Column("is_muted")
-    var isMuted: Boolean = false
+    @Field("members")
+    var members: List<Member> = emptyList()
 }
