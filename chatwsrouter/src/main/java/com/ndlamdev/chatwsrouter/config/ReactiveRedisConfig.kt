@@ -2,7 +2,6 @@ package com.ndlamdev.chatwsrouter.config
 
 import com.ndlamdev.chatwsrouter.domain.dto.ConversationDto
 import com.ndlamdev.chatwsrouter.domain.dto.ConversationDto.Companion.ConversationType
-import com.ndlamdev.chatwsrouter.domain.dto.ConversationMemberMetadataDto
 import com.ndlamdev.chatwsrouter.domain.dto.MemberDto
 import com.ndlamdev.chatwsrouter.domain.dto.MemberDto.Companion.MemberRole
 import com.ndlamdev.chatwsrouter.domain.dto.RSocketMetadata
@@ -45,7 +44,6 @@ class ReactiveRedisConfig {
                 ConversationType::class.java,
                 MemberDto::class.java,
                 MemberRole::class.java,
-                ConversationMemberMetadataDto::class.java,
                 ArrayList::class.java
             )
 

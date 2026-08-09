@@ -30,10 +30,10 @@ class ChatWsServiceRequesterImpl(
             .flatMapMany { conversation ->
                 Flux.fromIterable(conversation.members)
                     .flatMap { member ->
-                        rSocketChatWsRequesterServiceFactory.getRSocketRequester(member.userId!!)
+                        rSocketChatWsRequesterServiceFactory.getRSocketRequester(member.phoneNumber!!)
                             .flatMap { requester ->
                                 val receiveMessage = ReceiveMessage().apply {
-                                    this.user = member.userId
+                                    this.user = member.phoneNumber
                                     this.content = message.content
                                     this.attachments = message.attachments
                                     this.senderPhoneNumber = message.senderPhoneNumber
@@ -54,7 +54,7 @@ class ChatWsServiceRequesterImpl(
                         rSocketChatWsRequesterServiceFactory.getRSocketRequester(member.id!!)
                             .flatMap { rSocket ->
                                 rSocket.route("chat.receive")
-                                    .data(Message.parse(member.userId!!, message))
+                                    .data(Message.parse(member.phoneNumber!!, message))
                                     .send()
                             }
                     }
