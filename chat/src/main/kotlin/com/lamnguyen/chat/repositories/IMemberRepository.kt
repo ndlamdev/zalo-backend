@@ -10,7 +10,6 @@ package com.lamnguyen.chat.repositories
 
 import com.lamnguyen.chat.domain.dto.MemberIdResult
 import com.lamnguyen.chat.entities.Conversation
-import com.lamnguyen.chat.entities.Member
 import org.springframework.data.mongodb.repository.Aggregation
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import reactor.core.publisher.Flux

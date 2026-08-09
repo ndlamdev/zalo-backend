@@ -9,7 +9,6 @@
 package com.lamnguyen.chat.services.business
 
 import com.lamnguyen.chat.entities.Message
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 interface IMessageService {

@@ -1,8 +1,6 @@
 package com.lamnguyen.chat.configs
 
 import com.lamnguyen.chat.domain.dto.ConversationDto
-import com.lamnguyen.chat.entities.Conversation
-import com.lamnguyen.chat.entities.ConversationMemberMetadata
 import com.lamnguyen.chat.utils.redis.serializers.KryoRedisSerializer
 import org.redisson.spring.data.connection.RedissonConnectionFactory
 import org.springframework.context.annotation.Bean
