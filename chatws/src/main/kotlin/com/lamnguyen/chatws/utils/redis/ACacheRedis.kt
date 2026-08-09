@@ -32,7 +32,11 @@ abstract class ACacheRedis<T>(
         return lock.tryLock(waitTime, leaseTime, timeUnit)
             .flatMap { action(it) }
             .doFinally {
-                lock.unlock().subscribe()
+                lock.isLocked
+                    .filter { it }
+                    .flatMap { lock.unlock() }
+                    .onErrorResume { Mono.empty() }
+                    .subscribe()
             }
     }
 
@@ -48,7 +52,11 @@ abstract class ACacheRedis<T>(
         return lock.tryLock(waitTime, leaseTime, timeUnit)
             .flatMapMany { action(it) }
             .doFinally {
-                lock.unlock().subscribe()
+                lock.isLocked
+                    .filter { it }
+                    .flatMap { lock.unlock() }
+                    .onErrorResume { Mono.empty() }
+                    .subscribe()
             }
     }
 

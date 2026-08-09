@@ -8,6 +8,7 @@
 
 package com.lamnguyen.chat.mappers
 
+import com.lamnguyen.chat.domain.dto.ConversationDto
 import com.lamnguyen.chat.domain.requests.CreateConversationRequest
 import com.lamnguyen.chat.entities.Conversation
 import org.mapstruct.Mapper
@@ -20,4 +21,6 @@ interface IConversationMapper {
         Mapping(target = "members", ignore = true),
     )
     fun toEntity(id: String, request: CreateConversationRequest): Conversation
+
+    fun toDto(conversation: Conversation): ConversationDto
 }

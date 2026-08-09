@@ -2,6 +2,7 @@ package com.lamnguyen.chat.services.redis.v1
 
 import com.lamnguyen.chat.domain.dto.ConversationDto
 import com.lamnguyen.chat.entities.Conversation
+import com.lamnguyen.chat.mappers.IConversationMapper
 import com.lamnguyen.chat.services.redis.IConversationCacheManager
 import com.lamnguyen.chat.utils.redis.ACacheRedis
 import org.redisson.api.RedissonReactiveClient
@@ -12,11 +13,12 @@ import reactor.core.publisher.Mono
 @Component
 class ConversationCacheManagerImpl(
     redissonClient: RedissonReactiveClient,
-    redisTemple: ReactiveRedisTemplate<String, ConversationDto>
+    redisTemple: ReactiveRedisTemplate<String, ConversationDto>,
+    private val conversationMapper: IConversationMapper
 ) : IConversationCacheManager, ACacheRedis<ConversationDto>(redissonClient, redisTemple) {
     override fun lockToCreate(key: String, action: () -> Mono<Conversation>): Mono<Conversation> {
         return executeMono("lock:$key") { lock ->
-            if (lock) action().map { it as ConversationDto }
+            if (lock) action().map(conversationMapper::toDto)
             else Mono.empty()
         }.map { it as Conversation }
     }
