@@ -45,3 +45,4 @@
 /notification/src/main/resources/configs/firebase-config.json
 **/cloudflared*
 **/*.sh
+docker/**

@@ -8,7 +8,20 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
     volumes:
-      - ./docker/mysql/data:/var/lib/mysql
+      - ./docker/mysql/var/lib/mysql:/var/lib/mysql
+
+  zola-mongodb:
+    image: mongo:latest
+    container_name: zola_mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: zola
+    volumes:
+        - ./docker/mongodb/data/db:/data/db
+        - ./docker/mongodb/init/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
 
   zola-redis:
     image: redis
@@ -30,9 +43,9 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     volumes:
-      - ./data/zookeeper/secrets:/etc/zookeeper/secrets
-      - ./data/zookeeper/lib/data:/var/lib/zookeeper/data
-      - ./data/zookeeper/lib/log:/var/lib/zookeeper/log
+      - ./docker/zookeeper/etc/zookeeper/secrets:/etc/zookeeper/secrets
+      - ./docker/zookeeper/var/lib/zookeeper/data:/var/lib/zookeeper/data
+      - ./docker/zookeeper/var/lib/zookeeper/log:/var/lib/zookeeper/log
 
   kafka1:
     image: confluentinc/cp-kafka:7.8.0
@@ -60,61 +73,61 @@ services:
     depends_on:
       - zookeeper
     volumes:
-      - ./docker/kafka/kafka1/secrets:/etc/kafka/secrets
-      - ./docker/kafka/kafka1/lib/data:/var/lib/kafka/data
+      - ./docker/kafka/kafka1/etc/kafka/secrets:/etc/kafka/secrets
+      - ./docker/kafka/kafka1/var/lib/kafka/data:/var/lib/kafka/data
 
-#  kafka2:
-#    image: confluentinc/cp-kafka:7.8.0
-#    container_name: kafka_2
-#    restart: unless-stopped
-#    ports:
-#      - "9093:9093"
-#      - "29093:29093"
-#    environment:
-#      KAFKA_LISTENERS: INTERNAL://kafka2:19093,EXTERNAL://0.0.0.0:9093
-#      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka2:19093,EXTERNAL://${DOCKER_HOST_IP:-localhost}:9093
-#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
-#      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-#      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-#      KAFKA_BROKER_ID: 2
-#      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
-#      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
-#      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
-#    networks:
-#      - message_queue
-#      - shared_network
-#    depends_on:
-#      - zookeeper
-#    volumes:
-#      - ./docker/kafka/kafka2/secrets:/etc/kafka/secrets
-#      - ./docker/kafka/kafka2/lib/data:/var/lib/kafka/data
-#
-#  kafka3:
-#    image: confluentinc/cp-kafka:7.8.0
-#    container_name: kafka_3
-#    restart: unless-stopped
-#    ports:
-#      - "9094:9094"
-#      - "29094:29094"
-#    environment:
-#      KAFKA_LISTENERS: INTERNAL://kafka3:19094,EXTERNAL://0.0.0.0:9094
-#      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka3:19094,EXTERNAL://${DOCKER_HOST_IP:-localhost}:9094
-#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
-#      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-#      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-#      KAFKA_BROKER_ID: 3
-#      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
-#      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
-#      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
-#    networks:
-#      - message_queue
-#      - shared_network
-#    depends_on:
-#      - zookeeper
-#    volumes:
-#      - ./docker/kafka/kafka3/secrets:/etc/kafka/secrets
-#      - ./docker/kafka/kafka3/lib/data:/var/lib/kafka/data
-#
+  #  kafka2:
+  #    image: confluentinc/cp-kafka:7.8.0
+  #    container_name: kafka_2
+  #    restart: unless-stopped
+  #    ports:
+  #      - "9093:9093"
+  #      - "29093:29093"
+  #    environment:
+  #      KAFKA_LISTENERS: INTERNAL://kafka2:19093,EXTERNAL://0.0.0.0:9093
+  #      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka2:19093,EXTERNAL://${DOCKER_HOST_IP:-localhost}:9093
+  #      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+  #      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+  #      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+  #      KAFKA_BROKER_ID: 2
+  #      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+  #      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+  #      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+  #    networks:
+  #      - message_queue
+  #      - shared_network
+  #    depends_on:
+  #      - zookeeper
+  #    volumes:
+  #      - ./docker/kafka/kafka2/etc/kafka/secrets:/etc/kafka/secrets
+  #      - ./docker/kafka/kafka2/var/lib/kafka/data:/var/lib/kafka/data
+  #
+  #  kafka3:
+  #    image: confluentinc/cp-kafka:7.8.0
+  #    container_name: kafka_3
+  #    restart: unless-stopped
+  #    ports:
+  #      - "9094:9094"
+  #      - "29094:29094"
+  #    environment:
+  #      KAFKA_LISTENERS: INTERNAL://kafka3:19094,EXTERNAL://0.0.0.0:9094
+  #      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka3:19094,EXTERNAL://${DOCKER_HOST_IP:-localhost}:9094
+  #      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+  #      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+  #      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+  #      KAFKA_BROKER_ID: 3
+  #      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+  #      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+  #      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+  #    networks:
+  #      - message_queue
+  #      - shared_network
+  #    depends_on:
+  #      - zookeeper
+  #    volumes:
+  #      - ./docker/kafka/kafka3/etc/kafka/secrets:/etc/kafka/secrets
+  #      - ./docker/kafka/kafka3/var/lib/kafka/data:/var/lib/kafka/data
+  #
   kafka_ui:
     image: provectuslabs/kafka-ui:v0.7.2
     container_name: kafka_ui_container
