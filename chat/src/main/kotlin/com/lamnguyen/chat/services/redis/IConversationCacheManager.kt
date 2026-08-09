@@ -6,5 +6,5 @@ import com.lamnguyen.chat.utils.redis.ICacheRedis
 import reactor.core.publisher.Mono
 
 interface IConversationCacheManager : ICacheRedis<ConversationDto> {
-    fun lockToCreate(key: String, createMethod: Mono<Conversation>): Mono<Conversation>
+    fun lockToCreate(key: String, action: () -> Mono<Conversation>): Mono<Conversation>
 }

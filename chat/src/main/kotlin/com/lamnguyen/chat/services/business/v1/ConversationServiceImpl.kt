@@ -62,37 +62,39 @@ class ConversationServiceImpl(
                 )
 
 
-        return conversationRepository.findBySoftId(softId)
-            .switchIfEmpty {
-                userRequester.getUserInfoFriendShip(admin, users)
-                    .collectList()
-                    .flatMap { users ->
-                        if (users.isEmpty()) return@flatMap Mono.error(ApplicationException(ExceptionEnum.LIST_MEMBER_IS_EMPTY))
+        return conversationCacheManager.lockToCreate(softId) {
+            conversationRepository.findBySoftId(softId)
+                .switchIfEmpty {
+                    userRequester.getUserInfoFriendShip(admin, users)
+                        .collectList()
+                        .flatMap { users ->
+                            if (users.isEmpty()) return@flatMap Mono.error(ApplicationException(ExceptionEnum.LIST_MEMBER_IS_EMPTY))
 
-                        if (users.size != distinctMembers.size) return@flatMap Mono.error(
-                            ApplicationException(
-                                ExceptionEnum.CONTAINS_USER_NOT_FOUND
+                            if (users.size != distinctMembers.size) return@flatMap Mono.error(
+                                ApplicationException(
+                                    ExceptionEnum.CONTAINS_USER_NOT_FOUND
+                                )
                             )
-                        )
 
-                        val phoneNumberMembers = users.map { it.phoneNumber }.toList()
-                        val conversationId = KeyGenerator.generateUuidV7()
+                            val phoneNumberMembers = users.map { it.phoneNumber }.toList()
+                            val conversationId = KeyGenerator.generateUuidV7()
 
-                        val conversation =
-                            Conversation().apply {
-                                this.id = conversationId
-                                this.isNewItem = true
-                                this.softId = softId
-                                this.admin = KeyGenerator.generateUuidV7()
-                                this.type =
-                                    if (phoneNumberMembers.size > 1) ConversationType.GROUP else ConversationType.PRIVATE
-                                this.createdBy = createdBy ?: "System"
-                                this.createdAt = LocalDateTime.now()
-                                this.updatedAt = this.createdAt
-                            }
-                        return@flatMap saveConversation(conversation, admin, phoneNumberMembers)
-                    }
-            }
+                            val conversation =
+                                Conversation().apply {
+                                    this.id = conversationId
+                                    this.isNewItem = true
+                                    this.softId = softId
+                                    this.admin = KeyGenerator.generateUuidV7()
+                                    this.type =
+                                        if (phoneNumberMembers.size > 1) ConversationType.GROUP else ConversationType.PRIVATE
+                                    this.createdBy = createdBy ?: "System"
+                                    this.createdAt = LocalDateTime.now()
+                                    this.updatedAt = this.createdAt
+                                }
+                            return@flatMap saveConversation(conversation, admin, phoneNumberMembers)
+                        }
+                }
+        }.switchIfEmpty { conversationRepository.findBySoftId(softId) }
     }
 
     private fun saveConversation(
@@ -115,7 +117,7 @@ class ConversationServiceImpl(
 
         conversation.members = member
 
-        return conversationCacheManager.lockToCreate(conversation.softId!!, conversationRepository.save(conversation))
+        return conversationRepository.save(conversation)
     }
 
     override fun removeConversation(id: String): Mono<Void> {

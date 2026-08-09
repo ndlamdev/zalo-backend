@@ -8,23 +8,16 @@ import org.redisson.api.RedissonReactiveClient
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
-import java.util.concurrent.TimeUnit
 
 @Component
 class ConversationCacheManagerImpl(
     redissonClient: RedissonReactiveClient,
     redisTemple: ReactiveRedisTemplate<String, ConversationDto>
 ) : IConversationCacheManager, ACacheRedis<ConversationDto>(redissonClient, redisTemple) {
-    override fun lockToCreate(key: String, createMethod: Mono<Conversation>): Mono<Conversation> {
-        val locker = redissonClient.getLock("lock:$key")
-
-        val result = locker.tryLock(10, 5, TimeUnit.SECONDS)
-            .filter { it }
-
-        return result
-            .flatMap { locker.isLocked }
-            .filter { it }
-            .flatMap { locker.unlock() }
-            .then(createMethod)
+    override fun lockToCreate(key: String, action: () -> Mono<Conversation>): Mono<Conversation> {
+        return executeMono("lock:$key") { lock ->
+            if (lock) action().map { it as ConversationDto }
+            else Mono.empty()
+        }.map { it as Conversation }
     }
 }

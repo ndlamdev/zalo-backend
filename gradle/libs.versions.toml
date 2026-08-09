@@ -56,7 +56,6 @@ spring-cloud-gateway = { module = "org.springframework.cloud:spring-cloud-starte
 # Spring
 ############################
 
-spring-jdbc = { module = "org.springframework:spring-jdbc" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka" }
 spring-security-rsocket = { module = "org.springframework.security:spring-security-rsocket" }
 spring-security-messaging = { module = "org.springframework.security:spring-security-messaging" }
