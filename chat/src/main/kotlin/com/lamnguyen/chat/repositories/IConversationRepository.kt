@@ -21,7 +21,7 @@ interface IConversationRepository : ReactiveCrudRepository<Conversation, String>
             """
             {
                 ${"$"}match: {
-                    '${"$"}members.phone_number': ?0
+                    'members.phone_number': ?0
                 }
             }
             """,
@@ -36,7 +36,7 @@ interface IConversationRepository : ReactiveCrudRepository<Conversation, String>
                                     input: '${"$"}members',
                                     as: 'member',
                                     cond: {
-                                        eq: [
+                                        ${"$"}eq: [
                                             '${"$$"}member.phone_number',
                                             ?0
                                         ]
@@ -58,17 +58,21 @@ interface IConversationRepository : ReactiveCrudRepository<Conversation, String>
                         'deleted_conversation_at':
                             '${"$"}viewer.metadata.deleted_conversation_at'
                     },
+                    localField: "_id",
+                    foreignField: "conversation_id",
                     pipeline: [
                         {
                             ${"$"}match: {
-                                gte: [
-                                    '${"$"}created_at',
-                                    '${"$$"}deleted_conversation_at'
-                                ]
+                                ${"$"}expr: {
+                                    ${"$"}gte: [
+                                        '${"$"}created_at',
+                                        '${"$$"}deleted_conversation_at'
+                                    ]
+                                }
                             }
                         },
                         {
-                            sort: {
+                            ${"$"}sort: {
                                 'created_at': 1
                             }
                         }
@@ -82,12 +86,12 @@ interface IConversationRepository : ReactiveCrudRepository<Conversation, String>
             {
                 ${"$"}set: {
                     'messages': {
-                        map: {
+                        ${"$"}map: {
                             input: '${"$"}messages',
                             as: 'message',
                             in: {
                                 ${"$"}mergeObjects: [
-                                    'message',
+                                    '${"$$"}message',
                                     {
                                         'status': {
                                             ${"$"}arrayElemAt: [
@@ -135,7 +139,7 @@ interface IConversationRepository : ReactiveCrudRepository<Conversation, String>
                         ]
                     },
 
-                    'total': {
+                    'total_message_unread': {
                         ${"$"}sum: {
                             ${"$"}map: {
                                 input: '${"$"}messages',
@@ -145,7 +149,7 @@ interface IConversationRepository : ReactiveCrudRepository<Conversation, String>
                                         {
                                             ${"$"}eq: [
                                                 '${"$$"}message.status.status',
-                                                'SEND'
+                                                'RECEIVED'
                                             ]
                                         },
                                         1,
@@ -164,6 +168,7 @@ interface IConversationRepository : ReactiveCrudRepository<Conversation, String>
                 ${"$"}unset: [
                     'viewer',
                     'messages',
+                    'last_message.statuses',
                     'members.metadata'
                 ]
             }
