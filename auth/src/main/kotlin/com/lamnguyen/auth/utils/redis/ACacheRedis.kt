@@ -20,33 +20,57 @@ abstract class ACacheRedis<T>(
     val redissonClient: RedissonReactiveClient,
     val redisTemple: ReactiveRedisTemplate<String, T>,
 ) : ICacheRedis<T> {
+    protected fun executeMono(
+        key: String,
+        waitTime: Long = 10,
+        leaseTime: Long = 5,
+        timeUnit: TimeUnit = TimeUnit.SECONDS,
+        action: (locked: Boolean) -> Mono<T>
+    ): Mono<T> {
+        val lock = redissonClient.getLock(key)
+
+        return lock.tryLock(waitTime, leaseTime, timeUnit)
+            .flatMap { action(it) }
+            .doFinally {
+                lock.unlock().subscribe()
+            }
+    }
+
+    protected fun executeFlux(
+        key: String,
+        waitTime: Long = 10,
+        leaseTime: Long = 5,
+        timeUnit: TimeUnit = TimeUnit.SECONDS,
+        action: (locked: Boolean) -> Flux<T>
+    ): Flux<T> {
+        val lock = redissonClient.getLock(key)
+
+        return lock.tryLock(waitTime, leaseTime, timeUnit)
+            .flatMapMany { action(it) }
+            .doFinally {
+                lock.unlock().subscribe()
+            }
+    }
+
     override fun cacheData(
         key: String,
         data: Mono<T>,
         amount: Long?,
         unit: ChronoUnit?
     ): Mono<T> {
-        val locker = redissonClient.getLock("lock:$key")
+        return executeMono("lock:$key") { lock ->
+            if (!lock) return@executeMono Mono.delay(Duration.ofMillis(100))
+                .flatMap { getData(key) }
 
-        val result = locker.tryLock(10, 5, TimeUnit.SECONDS)
-            .flatMap { locked ->
-                if (!locked) return@flatMap Mono.delay(Duration.ofMillis(100))
-                    .flatMap { getData(key) }
-
-                data.flatMap { dataInDb ->
-                    if (amount == null || unit == null) redisTemple.opsForValue()
-                        .set(key, dataInDb!!)
-                        .map { dataInDb }
-                    else redisTemple.opsForValue()
-                        .set(key, dataInDb!!, Duration.of(amount, unit))
-                        .map { dataInDb }
-                }
+            data.flatMap { dataInDb ->
+                if (amount == null || unit == null) redisTemple.opsForValue()
+                    .set(key, dataInDb!!)
+                    .map { dataInDb }
+                else redisTemple.opsForValue()
+                    .set(key, dataInDb!!, Duration.of(amount, unit))
+                    .map { dataInDb }
             }
-
-        return locker.isLocked
-            .filter { it }
-            .flatMap { locker.unlock() }
-            .then(result)
+        }
     }
 
     override fun cacheAllData(
@@ -55,29 +79,22 @@ abstract class ACacheRedis<T>(
         amount: Long?,
         unit: ChronoUnit?
     ): Flux<T> {
-        val locker = redissonClient.getLock("lock:$key")
-        val result = locker.tryLock(10, 5, TimeUnit.SECONDS)
-            .flatMapMany { lock ->
-                if (!lock) return@flatMapMany Mono.delay(Duration.ofMillis(100))
-                    .thenMany(getAllData(key))
+        return executeFlux("lock:$key") { lock ->
+            if (!lock) return@executeFlux Mono.delay(Duration.ofMillis(100))
+                .thenMany(getAllData(key))
 
-                data.collectList()
-                    .filter { it.isNotEmpty() }
-                    .flatMap { dataInDb ->
-                        redisTemple.opsForList()
-                            .leftPushAll(key, dataInDb)
-                            .flatMap {
-                                if (amount == null || unit == null) Mono.empty()
-                                else redisTemple.expire(key, Duration.of(amount, unit))
-                            }
-                            .thenReturn(dataInDb)
-                    }.flatMapMany { Flux.fromIterable(it) }
-            }
-
-        return locker.isLocked
-            .filter { it }
-            .flatMap { locker.unlock() }
-            .thenMany(result)
+            data.collectList()
+                .filter { it.isNotEmpty() }
+                .flatMap { dataInDb ->
+                    redisTemple.opsForList()
+                        .leftPushAll(key, dataInDb)
+                        .flatMap {
+                            if (amount == null || unit == null) Mono.empty()
+                            else redisTemple.expire(key, Duration.of(amount, unit))
+                        }
+                        .thenReturn(dataInDb)
+                }.flatMapMany { Flux.fromIterable(it) }
+        }
     }
 
     override fun clearCache(key: String): Mono<Long> {
@@ -106,14 +123,14 @@ abstract class ACacheRedis<T>(
         amount: Long?,
         unit: ChronoUnit?
     ): Flux<T> {
+        val result = redisTemple.opsForList()
+            .range(key, 0, -1)
         if (expire ?: true)
-            return redisTemple.opsForList()
-                .range(key, 0, -1)
-                .flatMap { data ->
-                    redisTemple.expire(key, Duration.of(amount ?: 60, unit ?: ChronoUnit.MINUTES))
-                        .thenReturn(data!!)
-                }
+            result.flatMap { data ->
+                redisTemple.expire(key, Duration.of(amount ?: 60, unit ?: ChronoUnit.MINUTES))
+                    .thenReturn(data!!)
+            }
 
-        return redisTemple.opsForList().range(key, 0, -1)
+        return result
     }
 }
