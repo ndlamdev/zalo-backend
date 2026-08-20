@@ -34,7 +34,7 @@ interface IAuthService {
      * @param refreshToken refresh token cần kiểm tra và thu hồi.
      * @return Mono chứa cặp token mới.
      */
-    fun resign(refreshToken: String): Mono<TokenResponse>
+    fun refresh(refreshToken: String): Mono<TokenResponse>
 
     /**
      * Đăng xuất người dùng bằng cách đưa refresh token và access token liên quan vào blacklist.
@@ -50,7 +50,7 @@ interface IAuthService {
      * @param refreshToken Mono chứa payload của refresh token hợp lệ.
      * @return Mono chứa access token và refresh token mới.
      */
-    fun resign(refreshToken: Mono<RefreshTokenPayload>): Mono<TokenResponse>
+    fun refresh(refreshToken: Mono<RefreshTokenPayload>): Mono<TokenResponse>
 
     /**
      * Gửi mã OTP đến số điện thoại đã đăng ký thành công.

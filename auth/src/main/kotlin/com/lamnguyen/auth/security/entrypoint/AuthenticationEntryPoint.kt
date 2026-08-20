@@ -27,7 +27,7 @@ class AuthenticationEntryPoint : ServerAuthenticationEntryPoint {
         exchange.response.statusCode = HttpStatus.UNAUTHORIZED
         exchange.response.headers.contentType = MediaType.APPLICATION_JSON
         val apiResponse = ApiResponseError<Any>().apply {
-            code = HttpStatus.UNAUTHORIZED.value()
+            code = exchange.response.statusCode?.value() ?: HttpStatus.UNAUTHORIZED.value()
             detail = ex.message
             trace = ex.stackTrace as Any
             error = HttpStatus.UNAUTHORIZED.reasonPhrase

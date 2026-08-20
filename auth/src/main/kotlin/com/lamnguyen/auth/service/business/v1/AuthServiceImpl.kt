@@ -107,14 +107,14 @@ class AuthServiceImpl(
     /**
      * Xác thực refresh token, đưa token cũ vào blacklist rồi cấp cặp token mới.
      */
-    override fun resign(refreshToken: String): Mono<TokenResponse> {
-        return resign(checkRefreshTokenAndAddIntoBlacklist(refreshToken))
+    override fun refresh(refreshToken: String): Mono<TokenResponse> {
+        return refresh(checkRefreshTokenAndAddIntoBlacklist(refreshToken))
     }
 
     /**
      * Tạo access token và refresh token mới từ payload refresh token hợp lệ.
      */
-    override fun resign(refreshToken: Mono<RefreshTokenPayload>): Mono<TokenResponse> {
+    override fun refresh(refreshToken: Mono<RefreshTokenPayload>): Mono<TokenResponse> {
         return refreshToken
             .flatMap { payload ->
                 val phoneNumberFormated = formatPhoneNumber(payload.phoneNumber)

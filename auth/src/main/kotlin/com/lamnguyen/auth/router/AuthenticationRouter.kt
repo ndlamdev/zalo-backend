@@ -143,7 +143,7 @@ class AuthenticationRouter {
                 v1.POST(PathKeyworkCommon.VALIDATE_ACCOUNT, authenticationHandler::validateAccount)
                 v1.POST(PathKeyworkCommon.VALIDATE, authenticationHandler::validate)
                 v1.POST(PathKeyworkCommon.CHECK_PHONE_NUMBER, authenticationHandler::checkPhoneNumber)
-                v1.POST(PathKeyworkCommon.RE_SIGN_IN, authenticationHandler::reSignIn)
+                v1.POST(PathKeyworkCommon.REFRESH, authenticationHandler::refresh)
                 v1.POST(PathKeyworkCommon.LOGOUT, authenticationHandler::logout)
                 v1.GET(PathKeyworkCommon.INFO, authenticationHandler::info)
                 v1.path(PathKeyworkCommon.QR) { qr ->

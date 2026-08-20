@@ -125,14 +125,14 @@ class AuthenticationHandler(
      *
      * Refresh token mới sẽ được ghi lại vào cookie bảo mật của response.
      */
-    fun reSignIn(request: ServerRequest): Mono<ServerResponse?> {
+    fun refresh(request: ServerRequest): Mono<ServerResponse?> {
         val refreshToken = request.cookies().getOrDefault(Keyword.REFRESH_TOKEN.value, null)?.get(0) ?: return error(
             ApplicationException(ExceptionEnum.MISSING_REFRESH_TOKEN),
             null,
             null,
             null
         )
-        return authService.resign(refreshToken.value)
+        return authService.refresh(refreshToken.value)
             .flatMap { tokenResponse ->
                 val refreshTokenCookie =
                     ResponseCookie.from(Keyword.REFRESH_TOKEN.value, tokenResponse.refreshToken).apply {
