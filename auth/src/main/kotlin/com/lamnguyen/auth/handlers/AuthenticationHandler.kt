@@ -135,11 +135,12 @@ class AuthenticationHandler(
         return authService.refresh(refreshToken.value)
             .flatMap { tokenResponse ->
                 val refreshTokenCookie =
-                    ResponseCookie.from(Keyword.REFRESH_TOKEN.value, tokenResponse.refreshToken).apply {
-                        maxAge(refreshTokenProperty.expires * 60000)
-                        httpOnly(true)
-                        secure(true)
-                    }.build()
+                    ResponseCookie.from(Keyword.REFRESH_TOKEN.value, tokenResponse.refreshToken)
+                        .apply {
+                            maxAge(refreshTokenProperty.expires * 60000)
+                            httpOnly(true)
+                            secure(true)
+                        }.build()
                 ok(tokenResponse) {
                     it.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                 }
