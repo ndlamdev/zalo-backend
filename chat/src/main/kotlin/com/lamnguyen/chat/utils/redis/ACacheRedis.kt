@@ -81,6 +81,25 @@ abstract class ACacheRedis<T>(
         }
     }
 
+    override fun cacheData(
+        key: String,
+        data: T,
+        amount: Long?,
+        unit: ChronoUnit?
+    ): Mono<T> {
+        return executeMono("lock:$key") { lock ->
+            if (!lock) return@executeMono Mono.delay(Duration.ofMillis(100))
+                .flatMap { getData(key) }
+
+            return@executeMono if (amount == null || unit == null) redisTemple.opsForValue()
+                .set(key, data!!)
+                .map { data }
+            else redisTemple.opsForValue()
+                .set(key, data!!, Duration.of(amount, unit))
+                .map { data }
+        }
+    }
+
     override fun cacheAllData(
         key: String,
         data: Flux<T>,
@@ -102,6 +121,28 @@ abstract class ACacheRedis<T>(
                         }
                         .thenReturn(dataInDb)
                 }.flatMapMany { Flux.fromIterable(it) }
+        }
+    }
+
+
+    override fun cacheAllData(
+        key: String,
+        data: List<T>,
+        amount: Long?,
+        unit: ChronoUnit?
+    ): Flux<T> {
+        return executeFlux("lock:$key") { lock ->
+            if (!lock) return@executeFlux Mono.delay(Duration.ofMillis(100))
+                .thenMany(getAllData(key))
+
+            redisTemple.opsForList()
+                .leftPushAll(key, data)
+                .flatMap {
+                    if (amount == null || unit == null) Mono.empty()
+                    else redisTemple.expire(key, Duration.of(amount, unit))
+                }
+                .thenReturn(data)
+                .flatMapMany { Flux.fromIterable(it) }
         }
     }
 
@@ -131,10 +172,10 @@ abstract class ACacheRedis<T>(
         amount: Long?,
         unit: ChronoUnit?
     ): Flux<T> {
-        val result = redisTemple.opsForList()
+        var result = redisTemple.opsForList()
             .range(key, 0, -1)
         if (expire ?: true)
-            result.flatMap { data ->
+            result = result.flatMap { data ->
                 redisTemple.expire(key, Duration.of(amount ?: 60, unit ?: ChronoUnit.MINUTES))
                     .thenReturn(data!!)
             }

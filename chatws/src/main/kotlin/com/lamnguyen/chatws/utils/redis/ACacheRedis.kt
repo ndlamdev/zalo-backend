@@ -131,10 +131,10 @@ abstract class ACacheRedis<T>(
         amount: Long?,
         unit: ChronoUnit?
     ): Flux<T> {
-        val result = redisTemple.opsForList()
+        var result = redisTemple.opsForList()
             .range(key, 0, -1)
         if (expire ?: true)
-            result.flatMap { data ->
+            result = result.flatMap { data ->
                 redisTemple.expire(key, Duration.of(amount ?: 60, unit ?: ChronoUnit.MINUTES))
                     .thenReturn(data!!)
             }
