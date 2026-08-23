@@ -1,3 +1,8 @@
+pluginManagement {
+    plugins {
+        id "org.jetbrains.kotlin.plugin.lombok" version '1.9.25'
+    }
+}
 rootProject.name = 'zola'
 
 include(
