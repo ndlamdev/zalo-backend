@@ -28,6 +28,7 @@ import reactor.core.publisher.Mono
 class AuthenticationGatewayFilterFactory(
     val authProperty: ApplicationProperty.Companion.AuthProperty,
 ) : AbstractGatewayFilterFactory<Any>() {
+    val objectMapper = ObjectMapper()
 
     override fun apply(config: Any?): GatewayFilter? {
         return GatewayFilter { exchange, chain ->
@@ -61,7 +62,7 @@ class AuthenticationGatewayFilterFactory(
                         }
                     exchange.response.headers.contentType = MediaType.APPLICATION_JSON
                     exchange.response.statusCode = HttpStatus.BAD_REQUEST
-                    exchange.response.writeWith(Mono.just(bufferFactory.wrap(ObjectMapper().writeValueAsBytes(response))))
+                    exchange.response.writeWith(Mono.just(bufferFactory.wrap(objectMapper.writeValueAsBytes(response))))
                 }
         }
     }
@@ -72,7 +73,7 @@ class AuthenticationGatewayFilterFactory(
             .flatMap {
                 val response = Mono.just(
                     bufferFactory.wrap(
-                        ObjectMapper().writeValueAsBytes(it)
+                        objectMapper.writeValueAsBytes(it)
                     )
                 )
                 exchange.response.headers["X-Jwt-Expired"] = clientResponse.headers().header("X-Jwt-Expired")
@@ -90,7 +91,7 @@ class AuthenticationGatewayFilterFactory(
                     detail = it.localizedMessage
                     trace = it.stackTrace
                 }
-                val response = bufferFactory.wrap(ObjectMapper().writeValueAsBytes(bodyResponse))
+                val response = bufferFactory.wrap(objectMapper.writeValueAsBytes(bodyResponse))
                 exchange.response.writeWith(Mono.just(response))
             }
     }
@@ -124,7 +125,7 @@ class AuthenticationGatewayFilterFactory(
             }
         exchange.response.headers.contentType = MediaType.APPLICATION_JSON
         exchange.response.statusCode = HttpStatus.UNAUTHORIZED
-        return exchange.response.writeWith(Mono.just(bufferFactory.wrap(ObjectMapper().writeValueAsBytes(response))))
+        return exchange.response.writeWith(Mono.just(bufferFactory.wrap(objectMapper.writeValueAsBytes(response))))
     }
 }
 
