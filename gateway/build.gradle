@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.spring.dependency.management)
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.spring)
-    alias(libs.plugins.lombok)
 }
 
 group = 'com.lamnguyen'
@@ -33,9 +32,6 @@ dependencies {
     implementation(libs.kotlin.coroutines.reactor)
     implementation(libs.spring.cloud.gateway)
     implementation(libs.spring.cloud.loadbalancer)
-    compileOnly(libs.lombok)
-    annotationProcessor(libs.lombok)
-    implementation(libs.jackson.databind)
 }
 
 kotlin {
