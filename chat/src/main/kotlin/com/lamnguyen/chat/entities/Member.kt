@@ -1,7 +1,9 @@
 package com.lamnguyen.chat.entities
 
+import com.lamnguyen.chat.domain.dto.UserDto
 import com.lamnguyen.chat.utils.annotations.JsonDateTimeFormat
 import com.lamnguyen.chat.utils.enums.MemberRole
+import org.springframework.data.annotation.Transient
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.mapping.Field
 import java.time.LocalDateTime
@@ -24,4 +26,7 @@ class Member {
 
     @Field("metadata")
     var metadata: ConversationMemberMetadata? = null
+
+    @Transient
+    var user: UserDto? = null
 }

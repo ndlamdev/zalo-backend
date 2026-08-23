@@ -9,11 +9,14 @@
 package com.lamnguyen.chat.services.rsocket
 
 import com.lamnguyen.chat.domain.dto.UserDto
+import com.lamnguyen.chat.domain.dto.UserInRelationShip
 import reactor.core.publisher.Flux
 
 interface IUserRequester {
     fun getUserInfoFriendShip(
         phoneNumber: String,
         members: List<String>
-    ): Flux<UserDto>
+    ): Flux<UserInRelationShip>
+
+    fun getUserInfo(listPhone: List<String>): Flux<UserDto>
 }

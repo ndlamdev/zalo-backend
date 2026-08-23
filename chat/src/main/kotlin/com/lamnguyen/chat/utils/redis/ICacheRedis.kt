@@ -20,6 +20,20 @@ interface ICacheRedis<T> {
         unit: ChronoUnit? = ChronoUnit.MINUTES
     ): Mono<T>
 
+    fun cacheData(
+        key: String,
+        data: T,
+        amount: Long? = 60,
+        unit: ChronoUnit? = ChronoUnit.MINUTES
+    ): Mono<T>
+
+    fun cacheAllData(
+        key: String,
+        data: List<T>,
+        amount: Long? = 60,
+        unit: ChronoUnit? = ChronoUnit.MINUTES
+    ): Flux<T>
+
     fun cacheAllData(
         key: String,
         data: Flux<T>,

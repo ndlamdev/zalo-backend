@@ -9,6 +9,8 @@
 package com.lamnguyen.chat.services.business.v1
 
 import com.lamnguyen.chat.domain.dto.ConversationDto
+import com.lamnguyen.chat.domain.dto.ConversationDtoAndPhoneNumberMember
+import com.lamnguyen.chat.domain.dto.UserDto
 import com.lamnguyen.chat.domain.requests.CreateConversationRequest
 import com.lamnguyen.chat.entities.Conversation
 import com.lamnguyen.chat.entities.ConversationMemberMetadata
@@ -18,21 +20,28 @@ import com.lamnguyen.chat.exceptions.ExceptionEnum
 import com.lamnguyen.chat.repositories.IConversationRepository
 import com.lamnguyen.chat.services.business.IConversationService
 import com.lamnguyen.chat.services.redis.IConversationCacheManager
+import com.lamnguyen.chat.services.redis.IUserCacheManager
 import com.lamnguyen.chat.services.rsocket.IUserRequester
 import com.lamnguyen.chat.utils.enums.ConversationType
 import com.lamnguyen.chat.utils.enums.MemberRole
 import com.lamnguyen.chat.utils.helpers.KeyGenerator
+import com.lamnguyen.chat.utils.redis.CacheResult
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 import java.time.LocalDateTime
+import java.util.function.Function
+import java.util.stream.Collectors
 
 @Service
 class ConversationServiceImpl(
     private val conversationRepository: IConversationRepository,
     private val userRequester: IUserRequester,
+    private val userCacheManager: IUserCacheManager,
     private val conversationCacheManager: IConversationCacheManager,
 ) : IConversationService {
 
@@ -66,6 +75,7 @@ class ConversationServiceImpl(
             conversationRepository.findBySoftId(softId)
                 .switchIfEmpty {
                     userRequester.getUserInfoFriendShip(admin, users)
+                        .flatMap(userCacheManager::cache)
                         .collectList()
                         .flatMap { users ->
                             if (users.isEmpty()) return@flatMap Mono.error(ApplicationException(ExceptionEnum.LIST_MEMBER_IS_EMPTY))
@@ -76,32 +86,34 @@ class ConversationServiceImpl(
                                 )
                             )
 
-                            val phoneNumberMembers = users.map { it.phoneNumber }.toList()
-                            val conversationId = KeyGenerator.generateUuidV7()
-
-                            val conversation =
-                                Conversation().apply {
-                                    this.id = conversationId
-                                    this.isNewItem = true
-                                    this.softId = softId
-                                    this.admin = KeyGenerator.generateUuidV7()
-                                    this.type =
-                                        if (phoneNumberMembers.size > 1) ConversationType.GROUP else ConversationType.PRIVATE
-                                    this.createdBy = createdBy ?: "System"
-                                    this.createdAt = LocalDateTime.now()
-                                    this.updatedAt = this.createdAt
-                                }
-                            return@flatMap saveConversation(conversation, admin, phoneNumberMembers)
+                            saveConversation(softId, users, admin)
                         }
                 }
         }.switchIfEmpty { conversationRepository.findBySoftId(softId) }
     }
 
     private fun saveConversation(
-        conversation: Conversation,
+        softId: String,
+        users: List<UserDto>,
         phoneNumberAdmin: String,
-        phoneNumberMembers: List<String>
     ): Mono<Conversation> {
+
+        val phoneNumberMembers = users.map { it.phoneNumber }.toList()
+        val conversationId = KeyGenerator.generateUuidV7()
+
+        val conversation =
+            Conversation().apply {
+                this.id = conversationId
+                this.isNewItem = true
+                this.softId = softId
+                this.admin = KeyGenerator.generateUuidV7()
+                this.type =
+                    if (phoneNumberMembers.size > 1) ConversationType.GROUP else ConversationType.PRIVATE
+                this.createdBy = createdBy ?: "System"
+                this.createdAt = LocalDateTime.now()
+                this.updatedAt = this.createdAt
+            }
+
         val member = phoneNumberMembers.toMutableSet().apply {
             add(phoneNumberAdmin)
         }.map { phoneNumber ->
@@ -125,7 +137,27 @@ class ConversationServiceImpl(
     }
 
     override fun getAllDetailConversation(phoneNumber: String): Mono<List<ConversationDto>> {
-        return conversationRepository.findAllDetailDtoByPhoneNumberContains(phoneNumber).collectList()
+        return conversationRepository.findAllDetailDtoByPhoneNumberContains(phoneNumber)
+            .collect({ ConversationDtoAndPhoneNumberMember(mutableListOf(), mutableSetOf()) }, { container, dto ->
+                container.listDto.add(dto)
+                container.listPhone.addAll(dto.members.mapNotNull(Member::phoneNumber))
+            })
+            .flatMap { container ->
+                userCacheManager.getAll(container.listPhone.toList())
+                    .flatMap { cacheResult ->
+                        if (cacheResult.missing.isEmpty()) Mono.just(cacheResult.found)
+                        else userRequester.getUserInfo(cacheResult.missing.toList())
+                            .flatMap(userCacheManager::cache)
+                            .collectMap(UserDto::phoneNumber)
+                            .doOnNext { map -> map.putAll(cacheResult.found) }
+                    }.doOnNext { mapUser ->
+                        container.listDto.forEach { dto ->
+                            dto.members.filter { it.user == null }.forEach { member ->
+                                member.user = mapUser[member.phoneNumber]
+                            }
+                        }
+                    }.thenReturn(container.listDto)
+            }
     }
 
     override fun existConversationById(conversationId: String): Mono<Boolean> {

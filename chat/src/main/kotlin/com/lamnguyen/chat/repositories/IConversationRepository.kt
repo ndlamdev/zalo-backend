@@ -123,14 +123,13 @@ interface IConversationRepository : ReactiveCrudRepository<Conversation, String>
             """
             {
                 ${"$"}set: {
-                    'pinned':
-                        '${"$"}viewer.metadata.is_pinned',
+                    'viewer_id': '${"$"}viewer._id',
+                
+                    'pinned': '${"$"}viewer.metadata.is_pinned',
 
-                    'muted':
-                        '${"$"}viewer.metadata.is_muted',
+                    'muted': '${"$"}viewer.metadata.is_muted',
 
-                    'archived':
-                        '${"$"}viewer.metadata.is_archived',
+                    'archived': '${"$"}viewer.metadata.is_archived',
 
                     'last_message': {
                         ${"$"}arrayElemAt: [

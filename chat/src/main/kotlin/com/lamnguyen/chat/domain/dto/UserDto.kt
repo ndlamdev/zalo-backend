@@ -8,15 +8,12 @@
 
 package com.lamnguyen.chat.domain.dto
 
-import com.lamnguyen.chat.utils.enums.RelationShipStatus
 import java.time.LocalDate
 
-class UserDto {
+open class UserDto {
     lateinit var phoneNumber: String
     var fullName: String? = null
     var birthDate: LocalDate? = null
     var avatar: String? = null
     var email: String? = null
-    var displayName: String? = null
-    var relationShipStatus: RelationShipStatus = RelationShipStatus.SELF
 }

@@ -9,6 +9,7 @@
 package com.lamnguyen.chat.services.rsocket.v1
 
 import com.lamnguyen.chat.domain.dto.UserDto
+import com.lamnguyen.chat.domain.dto.UserInRelationShip
 import com.lamnguyen.chat.domain.requests.UserInfoRequest
 import com.lamnguyen.chat.services.rsocket.IUserRequester
 import com.lamnguyen.chat.services.rsocket.RSocketRequesterManager
@@ -24,9 +25,13 @@ class UserRequesterImpl(rSocketRequesterManager: RSocketRequesterManager) : IUse
     override fun getUserInfoFriendShip(
         phoneNumber: String,
         members: List<String>
-    ): Flux<UserDto> {
+    ): Flux<UserInRelationShip> {
         return rSocketRequester?.route("user.friendship.info")?.data(UserInfoRequest(phoneNumber, members))
-            ?.retrieveFlux<UserDto>() ?: Flux.empty()
+            ?.retrieveFlux<UserInRelationShip>() ?: Flux.empty()
     }
 
+    override fun getUserInfo(listPhone: List<String>): Flux<UserDto> {
+        return rSocketRequester?.route("user.info")?.data(listPhone)
+            ?.retrieveFlux<UserDto>() ?: Flux.empty()
+    }
 }
