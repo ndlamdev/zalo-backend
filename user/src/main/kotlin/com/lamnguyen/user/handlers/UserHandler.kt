@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component
 import org.springframework.validation.Validator
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
-import org.springframework.web.reactive.function.server.bodyToMono
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -37,18 +36,18 @@ class UserHandler(
         return ReactiveSecurityContextHolder.getContext()
             .flatMap { context ->
                 userService.getInfo(context.authentication.name)
-            }.flatMap { ok(it) }
+            }.responseOkWithBody()
     }
 
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_SEARCH_BY_PHONE_NUMBER')")
-    fun regisInfo(request: ServerRequest): Mono<ServerResponse?> {
+    fun registerInfo(request: ServerRequest): Mono<ServerResponse?> {
         return Mono.zip(
             request.bodyToMonoAndValidate<RegisInfoRequest>(validator),
             ReactiveSecurityContextHolder.getContext()
         )
             .flatMap { (data, context) ->
-                userService.regisInfo(context.authentication.name, data)
-            }.flatMap { ok(it) }
+                userService.registerInfo(context.authentication.name, data)
+            }.responseOkWithBody()
     }
 
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_SEARCH_BY_PHONE_NUMBER')")
@@ -63,32 +62,26 @@ class UserHandler(
                 }
                 val monoUser = userService.findFriendAndStrangerByPhoneNumber(context.authentication.name, phoneNumber)
 
-                monoUser.collectList().flatMap { ok(it) }
+                monoUser.collectList().responseOkWithBody()
             }
     }
 
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_ADD_FRIEND', 'ROLE_ADMIN')")
     fun addFriend(request: ServerRequest): Mono<ServerResponse?> {
         return request
-            .bodyToMono<InviteAddFriendRequest>()
+            .bodyToMonoAndValidate<InviteAddFriendRequest>(validator)
             .flatMap {
-                validator.validate(it) { request ->
-                    inviteAddFriendService.sendRequest(
-                        request.phoneNumber,
-                        request.message
-                    )
-                }
-            }.then(ok(null))
+                inviteAddFriendService.sendRequest(it.phoneNumber, it.message)
+            }.responseOk()
     }
 
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_GET_ALL_FRIEND', 'ROLE_ADMIN')")
     fun getAllFriend(request: ServerRequest): Mono<ServerResponse?> {
         return ReactiveSecurityContextHolder.getContext()
-            .flatMap { context ->
+            .flatMapMany { context ->
                 userService.getAllFriend(context.authentication.name)
-                    .collectList()
-                    .flatMap { ok(it) }
-            }
+            }.collectList()
+            .responseOkWithBody()
     }
 
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_REPLY_ADD_FRIEND', 'ROLE_ADMIN')")
@@ -96,11 +89,8 @@ class UserHandler(
         return request
             .bodyToMonoAndValidate<ReplyInviteAddFriendRequest>(validator)
             .flatMap {
-                inviteAddFriendService.replyInvite(
-                    it.id!!,
-                    it.answer
-                )
-            }.then(ok(null))
+                inviteAddFriendService.replyInvite(it.id!!, it.answer)
+            }.responseOk()
     }
 
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_GET_ALL_INVITE', 'ROLE_ADMIN')")
@@ -109,7 +99,7 @@ class UserHandler(
             .flatMapMany { securityContext ->
                 inviteAddFriendService.getAllInvite(securityContext.authentication.name)
             }.collectList()
-            .flatMap { ok(it) }
+            .responseOkWithBody()
     }
 
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'USER_GET_ALL_REQUEST_INVITE', 'ROLE_ADMIN')")
@@ -118,6 +108,6 @@ class UserHandler(
             .flatMapMany { securityContext ->
                 inviteAddFriendService.getAllRequest(securityContext.authentication.name)
             }.collectList()
-            .flatMap { ok(it) }
+            .responseOkWithBody()
     }
 }

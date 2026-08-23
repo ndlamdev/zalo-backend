@@ -8,7 +8,7 @@
 
 package com.lamnguyen.user.services.business.v1
 
-import com.lamnguyen.user.domain.dto.UserDto
+import com.lamnguyen.user.domain.dto.UserInRelationShip
 import com.lamnguyen.user.domain.request.RegisInfoRequest
 import com.lamnguyen.user.exceptions.ApplicationException
 import com.lamnguyen.user.exceptions.ExceptionEnum
@@ -17,6 +17,7 @@ import com.lamnguyen.user.models.User
 import com.lamnguyen.user.repositories.IFriendShipRepository
 import com.lamnguyen.user.repositories.IUserRepository
 import com.lamnguyen.user.services.business.IUserService
+import com.lamnguyen.user.services.redis.IUserCacheManager
 import com.lamnguyen.user.utils.enums.RelationShipStatus
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -27,6 +28,7 @@ class UserServiceImpl(
     val userRepository: IUserRepository,
     val friendRepository: IFriendShipRepository,
     val userMapper: IUserMapper,
+    val userCacheManager: IUserCacheManager
 ) : IUserService {
     override fun createUser(phoneNumber: String): Mono<User> {
         return userRepository.save(
@@ -40,12 +42,12 @@ class UserServiceImpl(
             }
     }
 
-    override fun getAllFriend(ownerPhoneNumber: String): Flux<UserDto> {
+    override fun getAllFriend(ownerPhoneNumber: String): Flux<UserInRelationShip> {
         return friendRepository.findAllByOwnerPhoneNumber(ownerPhoneNumber)
             .flatMap { friendShip ->
                 userRepository.findUserByPhoneNumber(friendShip.friendPhoneNumber)
                     .map {
-                        userMapper.toDto(it).apply {
+                        userMapper.toUserInRelationShip(it).apply {
                             displayName = friendShip.displayName
                             relationShipStatus = RelationShipStatus.FRIEND
                         }
@@ -53,27 +55,37 @@ class UserServiceImpl(
             }
     }
 
-    override fun getInfo(phoneNumber: String): Mono<UserDto> {
-        return userRepository.findUserByPhoneNumber(phoneNumber)
+    override fun getInfo(phoneNumber: String): Mono<User> {
+        return userCacheManager.get(phoneNumber)
+            .switchIfEmpty(userCacheManager.cache(phoneNumber, userRepository.findUserByPhoneNumber(phoneNumber)))
             .switchIfEmpty(Mono.error(ApplicationException(ExceptionEnum.USER_NOT_FOUND)))
-            .map(userMapper::toDto)
     }
 
-    override fun regisInfo(
+    override fun getAllInfo(listPhone: List<String>): Flux<User> {
+        return userCacheManager.getAll(listPhone)
+            .flatMapMany {
+                if (it.missing.isEmpty()) Flux.fromIterable(it.found.values)
+                else userRepository.findAllById(it.missing)
+                    .flatMap(userCacheManager::cache)
+                    .mergeWith(Flux.fromIterable(it.found.values))
+            }
+    }
+
+    override fun registerInfo(
         phoneNumber: String,
         data: RegisInfoRequest
-    ): Mono<UserDto> {
+    ): Mono<UserInRelationShip> {
         val entity = userMapper.toEntity(data).apply {
             this.phoneNumber = phoneNumber
             this.isNewUser = true
         }
-        return userRepository.save(entity).map(userMapper::toDto)
+        return userRepository.save(entity).map(userMapper::toUserInRelationShip)
     }
 
     override fun findFriendAndStrangerByPhoneNumber(
         ownerPhoneNumber: String,
         phoneNumber: String
-    ): Flux<UserDto> {
+    ): Flux<UserInRelationShip> {
         if (phoneNumber.isBlank()) return Flux.empty()
 
         return userRepository.findFriendAndStrangerByPhoneNumber(ownerPhoneNumber, phoneNumber)
@@ -82,7 +94,7 @@ class UserServiceImpl(
     override fun getInfoAndFriendShip(
         owner: String,
         members: List<String>
-    ): Flux<UserDto> {
+    ): Flux<UserInRelationShip> {
         return userRepository.findFriendAndStrangerByPhoneNumber(owner, members)
     }
 }

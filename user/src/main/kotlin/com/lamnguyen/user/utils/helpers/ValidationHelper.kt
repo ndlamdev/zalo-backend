@@ -9,7 +9,6 @@
 package com.lamnguyen.user.utils.helpers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.springframework.cglib.core.internal.Function
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpStatus
 import org.springframework.validation.BeanPropertyBindingResult
@@ -28,23 +27,7 @@ inline fun <reified T : Any> Validator.validate(data: T): Mono<T> {
     )
 }
 
-inline fun <reified T : Any, R : Any> Validator.validate(data: T, next: Function<T, Mono<R>>): Mono<R> {
-    val errors = BeanPropertyBindingResult(this, T::class.java.name)
-    this.validate(data, errors)
-    if (!errors.hasErrors()) return next.apply(data)
-    val msg = errors
-        .fieldErrors
-        .associate { error -> error.field to (error.defaultMessage ?: "Invalid") }
-        .plus(Pair("Error data", errors.globalError?.defaultMessage ?: "Error data"))
-    return Mono.error(
-        ResponseStatusException(HttpStatus.BAD_REQUEST, ObjectMapper().writeValueAsString(msg))
-    )
-}
-
-
 inline fun <reified T : Any> ServerRequest.bodyToMonoAndValidate(validator: Validator): Mono<T> {
     return bodyToMono(object : ParameterizedTypeReference<T>() {})
-        .flatMap {
-            validator.validate(it)
-        }
+        .flatMap(validator::validate)
 }

@@ -8,7 +8,7 @@
 
 package com.lamnguyen.user.repositories
 
-import com.lamnguyen.user.domain.dto.UserDto
+import com.lamnguyen.user.domain.dto.UserInRelationShip
 import com.lamnguyen.user.models.User
 import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.r2dbc.repository.R2dbcRepository
@@ -36,7 +36,7 @@ interface IUserRepository : R2dbcRepository<User, String> {
           AND users.phone_number != :ownerPhoneNumber;
     """
     )
-    fun findFriendAndStrangerByPhoneNumber(ownerPhoneNumber: String, phoneNumber: String): Flux<UserDto>
+    fun findFriendAndStrangerByPhoneNumber(ownerPhoneNumber: String, phoneNumber: String): Flux<UserInRelationShip>
 
     @Query(
         """
@@ -50,5 +50,5 @@ interface IUserRepository : R2dbcRepository<User, String> {
           AND users.phone_number != :ownerPhoneNumber;
     """
     )
-    fun findFriendAndStrangerByPhoneNumber(ownerPhoneNumber: String, phoneNumbers: List<String>): Flux<UserDto>
+    fun findFriendAndStrangerByPhoneNumber(ownerPhoneNumber: String, phoneNumbers: List<String>): Flux<UserInRelationShip>
 }

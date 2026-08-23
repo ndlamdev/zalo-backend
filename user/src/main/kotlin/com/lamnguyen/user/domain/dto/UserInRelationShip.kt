@@ -11,7 +11,7 @@ package com.lamnguyen.user.domain.dto
 import com.lamnguyen.user.models.User
 import com.lamnguyen.user.utils.enums.RelationShipStatus
 
-class UserDto : User() {
+class UserInRelationShip : User() {
     var displayName: String? = null
     var relationShipStatus: RelationShipStatus = RelationShipStatus.SELF
 }

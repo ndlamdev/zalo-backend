@@ -8,7 +8,7 @@
 
 package com.lamnguyen.user.services.business
 
-import com.lamnguyen.user.domain.dto.UserDto
+import com.lamnguyen.user.domain.dto.UserInRelationShip
 import com.lamnguyen.user.domain.request.RegisInfoRequest
 import com.lamnguyen.user.models.User
 import reactor.core.publisher.Flux
@@ -16,9 +16,10 @@ import reactor.core.publisher.Mono
 
 interface IUserService {
     fun createUser(phoneNumber: String): Mono<User>
-    fun getAllFriend(ownerPhoneNumber: String): Flux<UserDto>
-    fun getInfo(phoneNumber: String): Mono<UserDto>
-    fun regisInfo(phoneNumber: String, data: RegisInfoRequest): Mono<UserDto>
-    fun findFriendAndStrangerByPhoneNumber(ownerPhoneNumber: String, phoneNumber: String): Flux<UserDto>
-    fun getInfoAndFriendShip(owner: String, members: List<String>): Flux<UserDto>
+    fun getAllFriend(ownerPhoneNumber: String): Flux<UserInRelationShip>
+    fun getInfo(phoneNumber: String): Mono<User>
+    fun getAllInfo(listPhone: List<String>): Flux<User>
+    fun registerInfo(phoneNumber: String, data: RegisInfoRequest): Mono<UserInRelationShip>
+    fun findFriendAndStrangerByPhoneNumber(ownerPhoneNumber: String, phoneNumber: String): Flux<UserInRelationShip>
+    fun getInfoAndFriendShip(owner: String, members: List<String>): Flux<UserInRelationShip>
 }
