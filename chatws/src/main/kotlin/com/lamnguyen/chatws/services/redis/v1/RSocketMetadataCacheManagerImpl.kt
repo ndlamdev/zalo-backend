@@ -30,7 +30,7 @@ class RSocketMetadataCacheManagerImpl(
     }
 
     override fun clear(user: String) {
-        super.clearCache(generateKey(user))
+        super.clearCache(generateKey(user)).subscribe()
     }
 
     private fun generateKey(user: String): String {
